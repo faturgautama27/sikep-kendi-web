@@ -1,95 +1,88 @@
-<div class="flex flex-col gap-5">
-  <!-- Header -->
-  <header class="flex flex-col gap-1">
-    <h1 class="text-2xl font-bold text-primary-900">Manajemen Pengguna</h1>
-    <p class="text-sm text-slate-500">
-      Daftar pengguna sistem SiKeP KenDI dengan informasi role dan status aktif.
-    </p>
+<p-toast /><p-confirmDialog />
+<section class="flex flex-col gap-5">
+  <header class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Manajemen Pengguna</h1>
+      <p class="text-sm text-slate-500">Kelola akun, role, dan akses pengguna sistem.</p>
+    </div>
+    <p-button label="Tambah Pengguna" icon="pi pi-user-plus" (onClick)="openAdd()" />
   </header>
 
-  <!-- Tabel Users -->
   <div class="sikep-table-wrap">
-    <p-table
-      [value]="users()"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      dataKey="id"
-      [rowHover]="true"
-      [stripedRows]="true"
-      currentPageReportTemplate="{first}–{last} dari {totalRecords} pengguna"
-      [showCurrentPageReport]="true"
-      responsiveLayout="scroll"
-      styleClass="text-sm"
-    >
+    <p-table [value]="users()" dataKey="id" [rowHover]="true" styleClass="text-sm" [paginator]="users().length > 15" [rows]="15">
       <ng-template #header>
         <tr>
-          <th class="w-48">Username</th>
           <th>Nama Lengkap</th>
-          <th class="w-40">Role</th>
-          <th class="w-32">Status</th>
-          <th class="w-48">Login Terakhir</th>
-          <th class="w-32 text-right">Aksi</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th class="w-20 text-center">Status</th>
+          <th class="w-36 text-right">Aksi</th>
         </tr>
       </ng-template>
-
-      <ng-template #body let-user>
+      <ng-template #body let-u>
         <tr>
-          <td class="font-mono text-sm font-semibold text-primary-700">
-            {{ user.username }}
-          </td>
-          <td class="text-slate-700">{{ user.fullName }}</td>
+          <td class="font-medium">{{ u.fullName }}</td>
+          <td class="font-mono text-xs">{{ u.username }}</td>
+          <td>{{ u.email }}</td>
           <td>
             <div class="flex flex-wrap gap-1">
-              @for (role of user.roles; track role) {
-                <p-chip [label]="role" styleClass="text-xs font-medium"></p-chip>
+              @for (r of u.roles; track r) {
+                <p-chip [label]="roleLabel(r)" styleClass="text-xs py-0" />
               }
             </div>
           </td>
-          <td>
-            <p-tag
-              [value]="user.active ? 'Aktif' : 'Nonaktif'"
-              [severity]="user.active ? 'success' : 'secondary'"
-              [rounded]="true"
-            ></p-tag>
-          </td>
-          <td class="text-xs text-slate-500">
-            {{ formatDateTime(user.lastLoginAt) }}
+          <td class="text-center">
+            <p-tag [value]="u.active ? 'Aktif' : 'Nonaktif'" [severity]="u.active ? 'success' : 'secondary'" />
           </td>
           <td class="text-right">
-            <div class="flex items-center justify-end gap-1">
-              <p-button
-                icon="pi pi-pencil"
-                severity="secondary"
-                [text]="true"
-                [rounded]="true"
-                size="small"
-                pTooltip="Edit pengguna"
-                (onClick)="onEdit(user)"
-              ></p-button>
-              <p-button
-                icon="pi pi-ban"
-                severity="danger"
-                [text]="true"
-                [rounded]="true"
-                size="small"
-                pTooltip="Nonaktifkan pengguna"
-                (onClick)="onDisable(user)"
-              ></p-button>
+            <div class="flex justify-end gap-1">
+              <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" pTooltip="Edit" (onClick)="openEdit(u)" />
+              <p-button icon="pi pi-key" [text]="true" severity="warn" size="small" pTooltip="Reset Password" (onClick)="resetPassword(u)" />
+              <p-button [icon]="u.active ? 'pi pi-user-minus' : 'pi pi-user-plus'" [text]="true" [severity]="u.active ? 'danger' : 'success'"
+                size="small" [pTooltip]="u.id === currentUserId() ? 'Tidak dapat menonaktifkan akun sendiri' : (u.active ? 'Nonaktifkan' : 'Aktifkan')"
+                [disabled]="u.id === currentUserId()" (onClick)="toggleActive(u)" />
             </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="6" class="py-10 text-center text-sm text-slate-500">
-            Tidak ada data pengguna.
           </td>
         </tr>
       </ng-template>
     </p-table>
   </div>
-</div>
+</section>
 
-<p-toast></p-toast>
+<p-dialog [header]="editingId() ? 'Edit Pengguna' : 'Tambah Pengguna'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+  <form [formGroup]="form" class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Nama Lengkap <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="fullName" placeholder="Nama lengkap pengguna" />
+      @if (form.get('fullName')!.invalid && form.get('fullName')!.touched) { <small class="text-red-500">Nama wajib diisi.</small> }
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Username <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="username" placeholder="hanya huruf kecil, angka, underscore" />
+        @if (form.get('username')!.invalid && form.get('username')!.touched) { <small class="text-red-500">Username wajib (min 3 karakter, a-z 0-9 _).</small> }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Email <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="email" type="email" placeholder="email@domain.com" />
+        @if (form.get('email')!.invalid && form.get('email')!.touched) { <small class="text-red-500">Format email tidak valid.</small> }
+      </div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Role <span class="text-red-500">*</span> (minimal 1)</label>
+      <p-multiselect formControlName="roles" [options]="roleOpts" optionLabel="label" optionValue="value"
+        placeholder="Pilih role..." display="chip" class="w-full" />
+      @if (form.get('roles')!.invalid && form.get('roles')!.touched) { <small class="text-red-500">Minimal 1 role wajib dipilih.</small> }
+    </div>
+    @if (!editingId()) {
+      <p class="text-xs text-slate-500 bg-slate-50 rounded p-2">
+        Password sementara akan di-generate otomatis dan dikirim ke email pengguna.
+      </p>
+    }
+  </form>
+  <ng-template #footer>
+    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editingId() ? 'Simpan Perubahan' : 'Buat Pengguna'" icon="pi pi-check" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

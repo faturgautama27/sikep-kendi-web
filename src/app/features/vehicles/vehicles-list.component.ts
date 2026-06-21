@@ -63,11 +63,11 @@ export class VehiclesListComponent {
   }
 
   protected onAdd(): void {
-    this.messageService.add({ severity: 'info', summary: 'Tambah Kendaraan', detail: 'Form tambah kendaraan akan tersedia setelah backend siap.', life: 3000 });
+    this.router.navigate(['/vehicles/new']);
   }
 
   protected onView(v: Vehicle): void {
-    this.router.navigate(['/vehicles', v.id], { queryParams: { tab: 'komponen' } });
+    this.router.navigate(['/vehicles', v.id]);
   }
 
   protected statusSeverity(s: VehicleStatus): 'success' | 'warn' | 'secondary' {

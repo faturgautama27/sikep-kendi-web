@@ -51,10 +51,34 @@ export const routes: Routes = [
         data: { title: 'Kendaraan', requiredPermissions: ['kendaraan.read'] },
       },
       {
+        path: 'vehicles/new',
+        loadComponent: () => import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Tambah Kendaraan', requiredPermissions: ['kendaraan.create'] },
+      },
+      {
+        path: 'vehicles/:id/edit',
+        loadComponent: () => import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Edit Kendaraan', requiredPermissions: ['kendaraan.create'] },
+      },
+      {
         path: 'vehicles/:id',
         loadComponent: () => import('@features/vehicles/vehicle-detail.component').then((m) => m.VehicleDetailComponent),
         canActivate: [permissionGuard],
         data: { title: 'Detail Kendaraan', requiredPermissions: ['kendaraan.read'] },
+      },
+      {
+        path: 'pengajuan/new',
+        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then((m) => m.PengajuanFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Buat Pengajuan', requiredPermissions: ['pengajuan.create'] },
+      },
+      {
+        path: 'pengajuan/:id',
+        loadComponent: () => import('@features/pengajuan/pengajuan-detail.component').then((m) => m.PengajuanDetailComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Detail Pengajuan', requiredPermissions: ['pengajuan.read'] },
       },
       {
         path: 'pengajuan',
@@ -163,6 +187,18 @@ export const routes: Routes = [
         data: { title: 'Portal Vendor Penawaran', requiredPermissions: ['penawaran.create'] },
       },
       {
+        path: 'vendor/history',
+        loadComponent: () => import('@features/vendor/vendor-history.component').then((m) => m.VendorHistoryComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Riwayat WO Vendor', requiredPermissions: ['work_order.read'] },
+      },
+      {
+        path: 'vendor/notifications',
+        loadComponent: () => import('@features/vendor/vendor-notifications.component').then((m) => m.VendorNotificationsComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Notifikasi Vendor', requiredPermissions: ['work_order.read'] },
+      },
+      {
         path: 'admin',
         loadComponent: () => import('@features/admin/admin.component').then((m) => m.AdminComponent),
         canActivate: [permissionGuard],
@@ -175,6 +211,14 @@ export const routes: Routes = [
           {
             path: 'roles',
             loadComponent: () => import('@features/admin/roles-list/roles-list.component').then((m) => m.RolesListComponent),
+          },
+          {
+            path: 'vendors',
+            loadComponent: () => import('@features/admin/vendor-management/vendor-management.component').then((m) => m.VendorManagementComponent),
+          },
+          {
+            path: 'early-warning',
+            loadComponent: () => import('@features/admin/early-warning-config/early-warning-config.component').then((m) => m.EarlyWarningConfigComponent),
           },
         ],
         data: { title: 'Admin', requiredPermissions: ['user.manage'] },

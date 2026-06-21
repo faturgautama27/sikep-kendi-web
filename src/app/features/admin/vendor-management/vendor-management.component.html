@@ -1,0 +1,74 @@
+<p-toast /><p-confirmDialog />
+<section class="flex flex-col gap-5">
+  <app-page-header title="Manajemen Vendor" subtitle="Kelola daftar bengkel mitra yang dapat menerima Work Order.">
+    <ng-template #actions>
+      <p-button label="Tambah Vendor" icon="pi pi-plus" (onClick)="openAdd()" />
+    </ng-template>
+  </app-page-header>
+
+  <div class="text-sm text-slate-500">Vendor aktif: <strong class="text-slate-800">{{ activeCount() }}</strong> dari {{ vendors().length }}</div>
+
+  <div class="sikep-table-wrap">
+    <p-table [value]="vendors()" [rowHover]="true" styleClass="text-sm" dataKey="id">
+      <ng-template #header>
+        <tr>
+          <th>Nama Vendor</th>
+          <th>Email</th>
+          <th>Kontak</th>
+          <th class="w-28 text-center">Status</th>
+          <th class="w-32 text-right">Aksi</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-v>
+        <tr>
+          <td>
+            <div class="font-medium">{{ v.namaVendor }}</div>
+            <div class="text-xs text-slate-400">{{ v.alamat }}</div>
+          </td>
+          <td>{{ v.email }}</td>
+          <td>{{ v.kontak }}</td>
+          <td class="text-center">
+            <p-tag [value]="v.isAktif ? 'Aktif' : 'Nonaktif'" [severity]="v.isAktif ? 'success' : 'secondary'" />
+          </td>
+          <td class="text-right">
+            <div class="flex justify-end gap-1">
+              <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" pTooltip="Edit" (onClick)="openEdit(v)" />
+              <p-button [icon]="v.isAktif ? 'pi pi-ban' : 'pi pi-check'" [text]="true" [severity]="v.isAktif ? 'danger' : 'success'"
+                size="small" [pTooltip]="v.isAktif ? 'Nonaktifkan' : 'Aktifkan'" (onClick)="toggleAktif(v)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</section>
+
+<p-dialog [header]="editingId() ? 'Edit Vendor' : 'Tambah Vendor'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+  <form [formGroup]="form" class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Nama Vendor <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="namaVendor" placeholder="PT / CV Nama Bengkel" />
+      @if (form.get('namaVendor')!.invalid && form.get('namaVendor')!.touched) { <small class="text-red-500">Nama vendor wajib diisi.</small> }
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Alamat <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="alamat" placeholder="Jl. ..." />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Nomor Kontak <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="kontak" placeholder="08xx..." />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Email <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="email" type="email" placeholder="vendor@domain.com" />
+        @if (emailConflict()) { <small class="text-red-500">Email vendor sudah terdaftar.</small> }
+        @if (form.get('email')!.invalid && form.get('email')!.touched && !emailConflict()) { <small class="text-red-500">Format email tidak valid.</small> }
+      </div>
+    </div>
+  </form>
+  <ng-template #footer>
+    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editingId() ? 'Simpan Perubahan' : 'Tambah Vendor'" icon="pi pi-check" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

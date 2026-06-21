@@ -34,7 +34,11 @@ export class SubmitPengajuan {
 export class ApprovePengajuan {
   static readonly type = '[Pengajuan] Approve';
   readonly type = ApprovePengajuan.type;
-  constructor(public readonly id: string, public readonly jenjangNo: number, public readonly comment: string) {}
+  constructor(
+    public readonly id: string,
+    public readonly vendorId: string,
+    public readonly komentarVerifikasi?: string,
+  ) {}
 }
 
 export class RejectPengajuan {

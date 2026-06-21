@@ -1,0 +1,110 @@
+<p-toast />
+<p-confirmDialog />
+
+<section class="flex flex-col gap-5 max-w-2xl">
+  <app-page-header
+    [title]="isEditMode() ? 'Edit Kendaraan' : 'Tambah Kendaraan'"
+    [subtitle]="isEditMode() ? 'Perbarui data kendaraan dinas.' : 'Daftarkan kendaraan dinas baru ke sistem.'"
+  />
+
+  <form [formGroup]="form" (ngSubmit)="onSave()" class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+    <!-- Nomor Polisi -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-slate-700">Nomor Polisi <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="nomorPolisi" placeholder="B 1234 ABC"
+        class="uppercase w-full" (input)="onNopolInput($event)" />
+      @if (f['nomorPolisi'].invalid && f['nomorPolisi'].touched) {
+        <small class="text-red-500">Nomor polisi wajib diisi (min 4 karakter).</small>
+      }
+      @if (nopolConflict()) {
+        <small class="text-red-500">Nomor polisi sudah terdaftar.</small>
+      }
+    </div>
+
+    <!-- Merk + Tipe -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Merk <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="merk" placeholder="Toyota" />
+        @if (f['merk'].invalid && f['merk'].touched) {
+          <small class="text-red-500">Merk wajib diisi.</small>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Model/Tipe <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="tipe" placeholder="Avanza 1.3 G" />
+        @if (f['tipe'].invalid && f['tipe'].touched) {
+          <small class="text-red-500">Model wajib diisi.</small>
+        }
+      </div>
+    </div>
+
+    <!-- Tahun + Jenis -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Tahun <span class="text-red-500">*</span></label>
+        <p-inputnumber formControlName="tahun" [useGrouping]="false" [min]="1990" [max]="currentYear" placeholder="2023" class="w-full" />
+        @if (f['tahun'].invalid && f['tahun'].touched) {
+          <small class="text-red-500">Tahun harus antara 1990–{{ currentYear }}.</small>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Jenis Kendaraan <span class="text-red-500">*</span></label>
+        <p-select formControlName="jenisKendaraan" [options]="jenisOpts" optionLabel="label" optionValue="value" class="w-full" />
+      </div>
+    </div>
+
+    <!-- Odometer -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-slate-700">Odometer Saat Ini (km) <span class="text-red-500">*</span></label>
+      <p-inputnumber formControlName="odometerCurrent" [min]="0" [useGrouping]="true" suffix=" km" placeholder="0" class="w-full" />
+      @if (f['odometerCurrent'].invalid && f['odometerCurrent'].touched) {
+        <small class="text-red-500">Odometer tidak boleh negatif.</small>
+      }
+    </div>
+
+    <!-- Status -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
+      <p-select formControlName="status" [options]="statusOpts" optionLabel="label" optionValue="value" class="w-full" />
+    </div>
+
+    <!-- Unit Kerja -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-slate-700">Unit Kerja <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="unitKerja" placeholder="Dinas Perhubungan Provinsi" />
+      @if (f['unitKerja'].invalid && f['unitKerja'].touched) {
+        <small class="text-red-500">Unit kerja wajib diisi.</small>
+      }
+    </div>
+
+    <!-- Nomor Inventaris / Rangka / Mesin -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Nomor Inventaris</label>
+        <input pInputText formControlName="nomorInventaris" placeholder="INV-..." />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Nomor Rangka</label>
+        <input pInputText formControlName="nomorRangka" placeholder="MHF..." />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Nomor Mesin</label>
+        <input pInputText formControlName="nomorMesin" placeholder="1TR..." />
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
+      <div class="flex gap-2">
+        <p-button type="submit" label="Simpan" icon="pi pi-check" [loading]="saving()" />
+        <p-button type="button" label="Batal" severity="secondary" [outlined]="true" (onClick)="onBatal()" />
+      </div>
+      @if (isEditMode() && f['status'].value !== 'retired') {
+        <p-button type="button" label="Nonaktifkan Kendaraan" severity="danger"
+          [outlined]="true" icon="pi pi-ban" (onClick)="onNonaktifkan()" />
+      }
+    </div>
+  </form>
+</section>

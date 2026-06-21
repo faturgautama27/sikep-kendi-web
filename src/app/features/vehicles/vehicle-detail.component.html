@@ -1,43 +1,144 @@
-<section class="flex flex-col gap-4">
-  <app-page-header
-    [title]="'Detail Kendaraan'"
-    [subtitle]="'Tab komponen kendaraan dan indikator EWE.'"
-  />
+<p-toast />
+<p-confirmDialog />
 
-  <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-5">
-    <input pInputText class="md:col-span-2" placeholder="Nama komponen" [(ngModel)]="namaKomponen" />
-    <input pInputText type="date" placeholder="Tanggal pasang" [(ngModel)]="tanggalPasang" />
-    <input pInputText type="number" placeholder="Umur (bulan)" [(ngModel)]="umurEstimasiBulan" />
-    <div class="flex gap-2">
-      <input pInputText type="number" placeholder="KM estimasi" [(ngModel)]="kmGantiEstimasi" />
-      <button pButton type="button" icon="pi pi-plus" (click)="addKomponen()"></button>
+@if (vehicle(); as v) {
+  <section class="flex flex-col gap-5">
+    <app-page-header [title]="v.nomorPolisi + ' — ' + v.merk + ' ' + v.tipe" [subtitle]="v.unitKerja">
+      <ng-template #actions>
+        <a routerLink="/vehicles">
+          <p-button label="Kembali" icon="pi pi-arrow-left" severity="secondary" [text]="true" />
+        </a>
+        <a [routerLink]="['/vehicles', vehicleId(), 'edit']">
+          <p-button label="Edit" icon="pi pi-pencil" severity="secondary" [outlined]="true" />
+        </a>
+      </ng-template>
+    </app-page-header>
+
+    <!-- Info cards -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="rounded-lg border border-slate-200 bg-white p-3">
+        <p class="text-xs text-slate-500">Tahun</p>
+        <p class="text-lg font-semibold">{{ v.tahun }}</p>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-3">
+        <p class="text-xs text-slate-500">Odometer</p>
+        <p class="text-lg font-semibold">{{ v.odometerCurrent.toLocaleString('id-ID') }} km</p>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-3">
+        <p class="text-xs text-slate-500">Jenis</p>
+        <p class="text-lg font-semibold capitalize">{{ v.jenisKendaraan }}</p>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-3">
+        <p class="text-xs text-slate-500">Status</p>
+        <p-tag [value]="v.status === 'active' ? 'Aktif' : v.status === 'in_repair' ? 'Dalam Perbaikan' : 'Nonaktif'"
+          [severity]="v.status === 'active' ? 'success' : v.status === 'in_repair' ? 'warn' : 'secondary'" />
+      </div>
     </div>
-  </div>
 
-  <p-table [value]="activeKomponen()" dataKey="id" [stripedRows]="true">
-    <ng-template #header>
-      <tr>
-        <th>Nama Komponen</th>
-        <th>Tanggal Pasang</th>
-        <th>Umur Estimasi</th>
-        <th>KM Estimasi</th>
-        <th>EWE</th>
-        <th class="w-24 text-right">Aksi</th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-row>
-      <tr>
-        <td>{{ row.namaKomponen }}</td>
-        <td>{{ row.tanggalPasang }}</td>
-        <td>{{ row.umurEstimasiBulan }} bulan</td>
-        <td>{{ row.kmGantiEstimasi.toLocaleString('id-ID') }} km</td>
-        <td>
-          <p-tag [value]="row.eweStatus" [severity]="eweSeverity(row.eweStatus)"></p-tag>
-        </td>
-        <td class="text-right">
-          <button pButton type="button" icon="pi pi-trash" severity="danger" [text]="true" (click)="softDelete(row.id)"></button>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</section>
+    <!-- Komponen section -->
+    <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <div>
+          <h2 class="font-semibold text-slate-800">Komponen Kendaraan</h2>
+          <p class="text-sm text-slate-500">Pantau masa pakai tiap komponen untuk early warning.</p>
+        </div>
+        <p-button label="Tambah Komponen" icon="pi pi-plus" (onClick)="openAddDialog()" />
+      </div>
+
+      <p-table [value]="activeKomponen()" dataKey="id" [rowHover]="true" styleClass="text-sm">
+        <ng-template #header>
+          <tr>
+            <th>Nama Komponen</th>
+            <th>Tanggal Pasang</th>
+            <th class="w-36 text-center">Sisa Umur</th>
+            <th class="w-36 text-center">Sisa KM</th>
+            <th class="w-36 text-center">Status EWE</th>
+            <th class="w-24 text-right">Aksi</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-k>
+          <tr>
+            <td class="font-medium">{{ k.namaKomponen }}</td>
+            <td>{{ formatDate(k.tanggalPasang) }}</td>
+            <td class="text-center">
+              @if (sisaBulan(k) > 0) {
+                {{ sisaBulan(k) }} bln
+              } @else {
+                <span class="text-red-600 font-medium">Terlewat</span>
+              }
+            </td>
+            <td class="text-center">
+              @if (sisaKm(k) > 0) {
+                {{ sisaKm(k).toLocaleString('id-ID') }} km
+              } @else {
+                <span class="text-red-600 font-medium">Terlewat</span>
+              }
+            </td>
+            <td class="text-center">
+              <p-tag [value]="eweLabel(k.eweStatus)" [severity]="eweSeverity(k.eweStatus)" />
+            </td>
+            <td class="text-right">
+              <div class="flex justify-end gap-1">
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
+                  pTooltip="Edit" (onClick)="openEditDialog(k)" />
+                <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
+                  pTooltip="Hapus" (onClick)="confirmDelete(k)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="6" class="py-8 text-center text-slate-400">Belum ada komponen. Klik "Tambah Komponen" untuk memulai.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </section>
+} @else {
+  <div class="p-8 text-center text-slate-400">Kendaraan tidak ditemukan.</div>
+}
+
+<!-- Dialog Tambah/Edit Komponen -->
+<p-dialog
+  [header]="editingKomponenId() ? 'Edit Komponen' : 'Tambah Komponen'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false">
+
+  <form [formGroup]="komponenForm" class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Nama Komponen <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="namaKomponen" placeholder="Contoh: Kampas Rem Depan, Oli Mesin" />
+      @if (komponenForm.get('namaKomponen')!.invalid && komponenForm.get('namaKomponen')!.touched) {
+        <small class="text-red-500">Nama komponen wajib diisi.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Tanggal Pasang <span class="text-red-500">*</span></label>
+      <p-datepicker formControlName="tanggalPasang" dateFormat="dd/mm/yy" [maxDate]="today"
+        [showIcon]="true" class="w-full" placeholder="dd/mm/yyyy" />
+      @if (komponenForm.get('tanggalPasang')!.invalid && komponenForm.get('tanggalPasang')!.touched) {
+        <small class="text-red-500">Tanggal pasang wajib diisi.</small>
+      }
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Umur Estimasi (bulan) <span class="text-red-500">*</span></label>
+        <p-inputnumber formControlName="umurEstimasiBulan" [min]="1" [max]="360" suffix=" bln" class="w-full" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">KM Estimasi Ganti <span class="text-red-500">*</span></label>
+        <p-inputnumber formControlName="kmGantiEstimasi" [min]="1" [useGrouping]="true" suffix=" km" class="w-full" />
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editingKomponenId() ? 'Simpan Perubahan' : 'Tambah'" icon="pi pi-check" (onClick)="saveKomponen()" />
+  </ng-template>
+</p-dialog>

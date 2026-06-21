@@ -36,3 +36,24 @@ export interface Permission {
   name: string; // 'resource.action'
   description: string;
 }
+
+export interface VendorAdmin {
+  id: string;
+  namaVendor: string;
+  alamat: string;
+  kontak: string;
+  email: string;
+  isAktif: boolean;
+  createdAt?: string;
+}
+
+export interface EarlyWarningConfig {
+  id: string;
+  triggerType: string;
+  triggerLabel: string;
+  ambangBulan?: number;
+  ambangKm?: number;
+  ambangHari?: number;
+  isActive: boolean;
+  updatedAt?: string;
+}

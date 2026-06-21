@@ -170,7 +170,7 @@ export class PengajuanState {
   @Action(ApprovePengajuan)
   approve(ctx: StateContext<PengajuanStateModel>, action: ApprovePengajuan) {
     if (!this.env.previewMode) {
-      return this.data.approve(action.id, action.jenjangNo, action.comment).pipe(
+      return this.data.approve(action.id, action.vendorId, action.komentarVerifikasi).pipe(
         tap(() => {
           ctx.dispatch(new LoadPengajuan());
         }),
@@ -181,12 +181,12 @@ export class PengajuanState {
     const target = state.list.find((p) => p.id === action.id);
     if (!target) return;
     const updatedSteps = target.approvalSteps.map((s) =>
-      s.jenjangNo === action.jenjangNo
+      s.decision === 'pending'
         ? {
             ...s,
             decision: 'approved' as const,
             decidedAt: new Date().toISOString(),
-            comment: action.comment,
+            comment: action.komentarVerifikasi ?? '',
             approverId: 'preview-user',
             approverName: 'Preview User',
           }

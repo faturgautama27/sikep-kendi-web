@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 
 import { ButtonModule } from 'primeng/button';
@@ -80,6 +81,7 @@ const STATUS_LABEL: Record<PengajuanStatus, string> = {
 })
 export class PengajuanListComponent {
   private readonly store = inject(Store);
+  private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
   protected readonly statusOptions = STATUS_OPTIONS;
@@ -133,41 +135,21 @@ export class PengajuanListComponent {
   });
 
   protected onCreateManual(): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Pengajuan Manual',
-      detail: 'Form pembuatan pengajuan manual akan ada di task 7.x',
-      life: 3500,
-    });
+    this.router.navigate(['/pengajuan/new']);
   }
 
   protected onOpenDetail(p: Pengajuan): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: `Detail ${p.nomor}`,
-      detail: 'Detail pengajuan akan ada di task 7.x',
-      life: 3500,
-    });
+    this.router.navigate(['/pengajuan', p.id]);
   }
 
   protected onApprove(p: Pengajuan, event: MouseEvent): void {
     event.stopPropagation();
-    this.messageService.add({
-      severity: 'info',
-      summary: `Approve ${p.nomor}`,
-      detail: 'Aksi verifikasi akan diimplementasi pada task berikutnya.',
-      life: 3500,
-    });
+    this.router.navigate(['/pengajuan', p.id]);
   }
 
   protected onReject(p: Pengajuan, event: MouseEvent): void {
     event.stopPropagation();
-    this.messageService.add({
-      severity: 'info',
-      summary: `Tolak ${p.nomor}`,
-      detail: 'Aksi penolakan akan diimplementasi pada task berikutnya.',
-      life: 3500,
-    });
+    this.router.navigate(['/pengajuan', p.id]);
   }
 
   protected onResetFilter(): void {

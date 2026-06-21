@@ -1,35 +1,146 @@
-<section class="flex flex-col gap-4">
-  <app-page-header
-    [title]="'Penawaran & Invoice Vendor'"
-    [subtitle]="'WO ' + workOrderId + ' - kelola penawaran, invoice, dan submit final.'"
-  />
+<p-toast /><p-confirmDialog />
 
-  <div class="flex gap-2 rounded-xl border border-slate-200 bg-white p-4">
-    <input pInputText type="number" placeholder="Total biaya" [(ngModel)]="totalBiaya" />
-    <input pInputText placeholder="Nomor invoice" [(ngModel)]="nomorInvoice" />
-    <button pButton type="button" label="Buat Penawaran" (click)="buatPenawaran()"></button>
+<section class="flex flex-col gap-5">
+  <header class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Penawaran Final</h1>
+      <p class="text-sm text-slate-500">Work Order: <strong>{{ workOrderId }}</strong></p>
+    </div>
+    @if (activePenawaran(); as p) {
+      <p-tag [value]="p.status" [severity]="statusSeverity(p.status)" class="text-sm" />
+    }
+  </header>
+
+  <!-- Revisi notice -->
+  @if (activePenawaran()?.status === 'REVISI') {
+    <div class="rounded-lg border border-orange-200 bg-orange-50 p-4 flex gap-3">
+      <i class="pi pi-exclamation-triangle text-orange-500 mt-0.5"></i>
+      <div>
+        <p class="font-semibold text-orange-700">Revisi Diperlukan</p>
+        <p class="text-sm text-orange-600 mt-1">{{ activePenawaran()?.catatanPerubahan }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Waiting notice -->
+  @if (activePenawaran()?.status === 'DIKIRIM') {
+    <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 flex items-center gap-2">
+      <i class="pi pi-clock"></i> Penawaran menunggu verifikasi dari tim internal.
+    </div>
+  }
+
+  <!-- Approved notice -->
+  @if (activePenawaran()?.status === 'DIVERIFIKASI') {
+    <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+      <i class="pi pi-check-circle"></i> Penawaran telah diverifikasi. Menunggu proses pembayaran.
+    </div>
+  }
+
+  <!-- Approved draft items (read-only) -->
+  <div>
+    <h2 class="text-base font-semibold mb-2">Item dari Draft Checklist (Disetujui)</h2>
+    <div class="sikep-table-wrap">
+      <p-table [value]="approvedItems()" styleClass="text-sm" [rowHover]="true">
+        <ng-template #header>
+          <tr>
+            <th class="w-10">No</th>
+            <th>Kerusakan</th>
+            <th>Tindakan</th>
+            <th class="w-36 text-right">Harga Estimasi</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.namaKerusakan }}</td>
+            <td class="text-xs">{{ item.tindakanPerbaikan }}</td>
+            <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #footer>
+          <tr class="bg-slate-50 font-semibold">
+            <td colspan="3" class="text-right">Total Draft:</td>
+            <td class="text-right">{{ formatCurrency(draftTotalHarga()) }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="4" class="text-center text-slate-400 py-4">Draft checklist belum disetujui. Pastikan draft sudah diverifikasi terlebih dahulu.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
   </div>
 
-  <p-table [value]="rows()" dataKey="id" [stripedRows]="true">
-    <ng-template #header>
-      <tr>
-        <th>Versi</th>
-        <th>Status</th>
-        <th>Total</th>
-        <th>Invoice</th>
-        <th class="w-24">Aksi</th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-row>
-      <tr>
-        <td>{{ row.versi }}</td>
-        <td>{{ row.status }}</td>
-        <td>{{ row.totalBiaya.toLocaleString('id-ID') }}</td>
-        <td>{{ row.nomorInvoice || '-' }}</td>
-        <td>
-          <button pButton type="button" label="Submit" size="small" [disabled]="row.status !== 'DRAFT'" (click)="submit(row.id)"></button>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+  <!-- Penawaran Form -->
+  @if (canEdit()) {
+    <form [formGroup]="form" class="flex flex-col gap-4 bg-slate-50 rounded-xl p-5 border border-slate-200">
+      <h2 class="text-base font-semibold">Detail Penawaran</h2>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Total Biaya Penawaran (Rp) <span class="text-red-500">*</span></label>
+        <p-inputnumber formControlName="totalBiaya" mode="currency" currency="IDR" locale="id-ID" [min]="1" class="w-full" />
+        @if (form.get('totalBiaya')!.invalid && form.get('totalBiaya')!.touched) {
+          <small class="text-red-500">Total biaya wajib lebih dari 0.</small>
+        }
+        @if (needsCatatan()) {
+          <small class="text-orange-600">Catatan alasan perubahan harga wajib diisi karena total berbeda dari estimasi draft.</small>
+        }
+      </div>
+
+      @if (needsCatatan()) {
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium">Catatan Perubahan Harga <span class="text-red-500">*</span></label>
+          <textarea pTextarea formControlName="catatanPerubahan" rows="3" placeholder="Jelaskan alasan perubahan dari estimasi draft..."></textarea>
+          @if (form.get('catatanPerubahan')!.invalid && form.get('catatanPerubahan')!.touched) {
+            <small class="text-red-500">Wajib diisi jika total biaya berbeda dari estimasi.</small>
+          }
+        </div>
+      }
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium">Nomor Invoice <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="nomorInvoice" placeholder="INV/2026/..." />
+          @if (form.get('nomorInvoice')!.invalid && form.get('nomorInvoice')!.touched) { <small class="text-red-500">Wajib diisi.</small> }
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium">Tanggal Invoice <span class="text-red-500">*</span></label>
+          <p-datepicker formControlName="tanggalInvoice" [maxDate]="today" dateFormat="dd/mm/yy" [showIcon]="true" class="w-full" />
+          @if (form.get('tanggalInvoice')!.invalid && form.get('tanggalInvoice')!.touched) { <small class="text-red-500">Wajib diisi.</small> }
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <p-button label="Kirim Penawaran ke Verifikator" icon="pi pi-send" (onClick)="kirimPenawaran()" />
+      </div>
+    </form>
+  }
+
+  <!-- History -->
+  @if (penawaranList().length > 1) {
+    <div>
+      <h2 class="text-base font-semibold mb-2">Riwayat Penawaran</h2>
+      <p-table [value]="penawaranList()" dataKey="id" styleClass="text-sm" [rowHover]="true">
+        <ng-template #header>
+          <tr>
+            <th>Versi</th>
+            <th class="w-28 text-center">Status</th>
+            <th class="w-36 text-right">Total Biaya</th>
+            <th>No. Invoice</th>
+            <th>Catatan</th>
+            <th>Dibuat</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-p>
+          <tr>
+            <td>v{{ p.versi }}</td>
+            <td class="text-center"><p-tag [value]="p.status" [severity]="statusSeverity(p.status)" /></td>
+            <td class="text-right">{{ formatCurrency(p.totalBiaya) }}</td>
+            <td class="font-mono text-xs">{{ p.nomorInvoice || '—' }}</td>
+            <td class="text-xs text-slate-400">{{ p.catatanPerubahan || '—' }}</td>
+            <td class="text-xs text-slate-400">{{ p.createdAt | date:'dd MMM yyyy' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
 </section>

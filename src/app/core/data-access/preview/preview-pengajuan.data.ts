@@ -32,7 +32,7 @@ export class PreviewPengajuanData implements PengajuanDataPort {
     return of({ id, status: 'submitted' } as unknown as Pengajuan);
   }
 
-  approve(id: string, jenjangNo: number, comment: string): Observable<Pengajuan> {
+  approve(id: string, vendorId: string, komentarVerifikasi?: string): Observable<Pengajuan> {
     return of({ id, status: 'approved' } as unknown as Pengajuan);
   }
 

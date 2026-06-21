@@ -146,11 +146,11 @@ export class ApiPengajuanData implements PengajuanDataPort {
     return this.getById(id);
   }
 
-  approve(id: string, jenjangNo: number, comment: string): Observable<Pengajuan> {
+  approve(id: string, vendorId: string, komentarVerifikasi?: string): Observable<Pengajuan> {
     return this.http
       .post(this.url(`/pengajuan/${id}/approve`), {
-        vendorId: jenjangNo,
-        komentarVerifikasi: comment,
+        vendorId,
+        komentarVerifikasi,
       })
       .pipe(switchMap(() => this.getById(id)));
   }

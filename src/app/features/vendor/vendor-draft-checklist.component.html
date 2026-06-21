@@ -1,36 +1,171 @@
-<section class="flex flex-col gap-4">
-  <app-page-header
-    [title]="'Draft Checklist Vendor'"
-    [subtitle]="'WO ' + workOrderId + ' - buat, submit, dan revisi draft checklist.'"
-  />
+<p-toast /><p-confirmDialog />
 
-  <div class="flex gap-2 rounded-xl border border-slate-200 bg-white p-4">
-    <input pInputText class="w-72" placeholder="Nama kerusakan" [(ngModel)]="namaKerusakan" />
-    <input pInputText class="w-72" placeholder="Tindakan perbaikan" [(ngModel)]="tindakan" />
-    <input pInputText type="number" class="w-52" placeholder="Harga" [(ngModel)]="harga" />
-    <button pButton type="button" label="Tambah Draft" (click)="tambahDraft()"></button>
-  </div>
+<section class="flex flex-col gap-5">
+  <!-- Header -->
+  <header class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Draft Checklist</h1>
+      <p class="text-sm text-slate-500">Work Order: <strong>{{ workOrderId }}</strong></p>
+    </div>
+    @if (activeDraft(); as d) {
+      <p-tag [value]="d.status" [severity]="statusSeverity(d.status)" class="text-sm" />
+    }
+  </header>
 
-  <p-table [value]="rows()" dataKey="id" [stripedRows]="true">
-    <ng-template #header>
-      <tr>
-        <th>Versi</th>
-        <th>Status</th>
-        <th>Total</th>
-        <th>Catatan</th>
-        <th class="w-24">Aksi</th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-row>
-      <tr>
-        <td>{{ row.versi }}</td>
-        <td>{{ row.status }}</td>
-        <td>{{ row.totalHarga.toLocaleString('id-ID') }}</td>
-        <td>{{ row.notesRejection || '-' }}</td>
-        <td>
-          <button pButton type="button" label="Submit" size="small" [disabled]="row.status !== 'DRAFT'" (click)="submit(row.id)"></button>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+  <!-- Rejection notice -->
+  @if (activeDraft()?.status === 'DITOLAK') {
+    <div class="rounded-lg border border-red-200 bg-red-50 p-4 flex gap-3">
+      <i class="pi pi-exclamation-circle text-red-500 mt-0.5"></i>
+      <div>
+        <p class="font-semibold text-red-700">Draft Ditolak</p>
+        <p class="text-sm text-red-600 mt-1">{{ activeDraft()?.notesRejection }}</p>
+        <p-button label="Revisi Draft" icon="pi pi-refresh" severity="danger" [outlined]="true" size="small" class="mt-2" (onClick)="reviseDraft()" />
+      </div>
+    </div>
+  }
+
+  <!-- Waiting notice -->
+  @if (activeDraft()?.status === 'DIKIRIM') {
+    <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 flex items-center gap-2">
+      <i class="pi pi-clock"></i> Draft telah dikirim dan menunggu review Pengurus Barang.
+    </div>
+  }
+
+  <!-- Approved notice -->
+  @if (activeDraft()?.status === 'DISETUJUI') {
+    <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+      <i class="pi pi-check-circle"></i> Draft disetujui. Lanjutkan ke tahap Penawaran Final.
+    </div>
+  }
+
+  <!-- Item table with tabs (current + history) -->
+  <p-tabs [value]="0">
+    <p-tablist>
+      <p-tab [value]="0">Item Checklist</p-tab>
+      @if (drafts().length > 1) { <p-tab [value]="1">Riwayat Versi ({{ drafts().length }})</p-tab> }
+    </p-tablist>
+
+    <p-tabpanels>
+      <!-- Tab 0: Current items -->
+      <p-tabpanel [value]="0">
+        <div class="flex flex-col gap-4">
+          @if (canEdit()) {
+            <div class="flex justify-end">
+              <p-button label="Tambah Item" icon="pi pi-plus" (onClick)="openAddItem()" />
+            </div>
+          }
+          <div class="sikep-table-wrap">
+            <p-table [value]="isReadOnly() ? (activeDraft()?.items ?? []) : editItems()" dataKey="_key" styleClass="text-sm" [rowHover]="true">
+              <ng-template #header>
+                <tr>
+                  <th class="w-10">No</th>
+                  <th>Kerusakan</th>
+                  <th>Sparepart</th>
+                  <th>Tindakan</th>
+                  <th class="w-36 text-right">Harga (Rp)</th>
+                  @if (canEdit()) { <th class="w-24 text-right">Aksi</th> }
+                </tr>
+              </ng-template>
+              <ng-template #body let-item let-i="rowIndex">
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ item.namaKerusakan }}</td>
+                  <td>{{ item.namaSparepart || '—' }}</td>
+                  <td class="whitespace-pre-line text-xs">{{ item.tindakanPerbaikan }}</td>
+                  <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
+                  @if (canEdit()) {
+                    <td class="text-right">
+                      <div class="flex justify-end gap-1">
+                        <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (onClick)="openEditItem(i)" />
+                        <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="removeItem(i)" />
+                      </div>
+                    </td>
+                  }
+                </tr>
+              </ng-template>
+              <ng-template #footer>
+                <tr class="bg-slate-50 font-semibold">
+                  <td [colSpan]="canEdit() ? 4 : 4" class="text-right">Total Estimasi:</td>
+                  <td class="text-right text-primary-700">{{ formatCurrency(isReadOnly() ? (activeDraft()?.totalHarga ?? 0) : totalHarga()) }}</td>
+                  @if (canEdit()) { <td></td> }
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage>
+                <tr><td [colSpan]="canEdit() ? 6 : 5" class="text-center text-slate-400 py-6">Belum ada item. Klik "Tambah Item" untuk memulai.</td></tr>
+              </ng-template>
+            </p-table>
+          </div>
+          @if (canEdit()) {
+            <div class="flex justify-end gap-2">
+              <p-button label="Simpan Draft" icon="pi pi-save" severity="secondary" [outlined]="true" (onClick)="simpanDraft()" />
+              <p-button label="Kirim ke Pengurus Barang" icon="pi pi-send" (onClick)="kirimDraft()" />
+            </div>
+          }
+        </div>
+      </p-tabpanel>
+
+      <!-- Tab 1: Version history -->
+      @if (drafts().length > 1) {
+        <p-tabpanel [value]="1">
+          <p-table [value]="drafts()" dataKey="id" styleClass="text-sm" [rowHover]="true">
+            <ng-template #header>
+              <tr>
+                <th>Versi</th>
+                <th class="w-28 text-center">Status</th>
+                <th class="w-24 text-right">Total (Rp)</th>
+                <th>Item Count</th>
+                <th>Catatan Tolak</th>
+                <th>Dibuat</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-d>
+              <tr>
+                <td>v{{ d.versi }}</td>
+                <td class="text-center"><p-tag [value]="d.status" [severity]="statusSeverity(d.status)" /></td>
+                <td class="text-right">{{ formatCurrency(d.totalHarga) }}</td>
+                <td>{{ d.items.length }} item</td>
+                <td class="text-xs text-red-500">{{ d.notesRejection || '—' }}</td>
+                <td class="text-xs text-slate-400">{{ d.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
 </section>
+
+<!-- Add/Edit Item Dialog -->
+<p-dialog header="Item Checklist" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '540px' }" [draggable]="false">
+  <form [formGroup]="itemForm" class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Nama Kerusakan / Komponen <span class="text-red-500">*</span></label>
+      <textarea pTextarea formControlName="namaKerusakan" rows="2" [maxLength]="200" placeholder="Deskripsikan kerusakan yang ditemukan..."></textarea>
+      @if (itemForm.get('namaKerusakan')!.invalid && itemForm.get('namaKerusakan')!.touched) {
+        <small class="text-red-500">Wajib diisi, maksimal 200 karakter.</small>
+      }
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Nama Sparepart (opsional)</label>
+      <input pInputText formControlName="namaSparepart" placeholder="Nama suku cadang yang digunakan" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Tindakan Perbaikan <span class="text-red-500">*</span></label>
+      <textarea pTextarea formControlName="tindakanPerbaikan" rows="3" [maxLength]="500" placeholder="Jelaskan tindakan yang dilakukan..."></textarea>
+      @if (itemForm.get('tindakanPerbaikan')!.invalid && itemForm.get('tindakanPerbaikan')!.touched) {
+        <small class="text-red-500">Wajib diisi, maksimal 500 karakter.</small>
+      }
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Estimasi Harga (Rp) <span class="text-red-500">*</span></label>
+      <p-inputnumber formControlName="hargaItem" mode="currency" currency="IDR" locale="id-ID" [min]="1" class="w-full" />
+      @if (itemForm.get('hargaItem')!.invalid && itemForm.get('hargaItem')!.touched) {
+        <small class="text-red-500">Harga wajib diisi dan lebih dari 0.</small>
+      }
+    </div>
+  </form>
+  <ng-template #footer>
+    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editingIndex() !== null ? 'Simpan Perubahan' : 'Tambah Item'" icon="pi pi-check" (onClick)="saveItem()" />
+  </ng-template>
+</p-dialog>

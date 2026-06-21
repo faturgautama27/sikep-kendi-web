@@ -31,7 +31,7 @@ export interface PengajuanDataPort {
   getById(id: string): Observable<Pengajuan>;
   create(input: PengajuanCreateInput): Observable<Pengajuan>;
   submit(id: string): Observable<Pengajuan>;
-  approve(id: string, jenjangNo: number, comment: string): Observable<Pengajuan>;
+  approve(id: string, vendorId: string, komentarVerifikasi?: string): Observable<Pengajuan>;
   reject(id: string, reason: string): Observable<Pengajuan>;
   listApprovalPolicies(): Observable<ApprovalPolicy[]>;
   updateApprovalPolicies(policies: ApprovalPolicy[]): Observable<ApprovalPolicy[]>;

@@ -46,3 +46,18 @@ export interface OdometerReading {
   recordedByName: string;
   source: 'manual' | 'fuel_transaction' | 'checklist';
 }
+
+export type KomponenEweStatus = 'HIJAU' | 'KUNING' | 'MERAH';
+
+export interface Komponen {
+  id: string;
+  kendaraanId: string;
+  namaKomponen: string;
+  tanggalPasang: string; // ISO date
+  umurEstimasiBulan: number;
+  kmGantiEstimasi: number;
+  eweStatus: KomponenEweStatus;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
