@@ -1,0 +1,95 @@
+<section class="flex flex-col gap-5">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Master Data Kendaraan</h1>
+      <p class="text-sm text-slate-500">Armada kendaraan dinas beserta dokumen legal dan odometer.</p>
+    </div>
+    <p-button icon="pi pi-plus" label="Tambah Kendaraan" severity="primary" (onClick)="onAdd()"></p-button>
+  </header>
+
+  <!-- Filter -->
+  <div class="flex flex-wrap gap-3 armadin-table-wrap p-4 shadow-sm">
+    <div class="flex flex-col gap-1 flex-1 min-w-[200px]">
+      <label class="text-xs font-medium text-slate-600">Cari</label>
+      <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)"
+        placeholder="Plat nomor, merk, tipe..." class="w-full" />
+    </div>
+    <div class="flex flex-col gap-1 min-w-[160px]">
+      <label class="text-xs font-medium text-slate-600">Status</label>
+      <select class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        [value]="selectedStatus() ?? ''" (change)="onStatusChange($any($event.target).value)">
+        <option value="">Semua Status</option>
+        <option value="active">Aktif</option>
+        <option value="in_repair">Dalam Perbaikan</option>
+        <option value="retired">Pensiun</option>
+      </select>
+    </div>
+    <div class="flex flex-col gap-1 min-w-[160px]">
+      <label class="text-xs font-medium text-slate-600">Jenis</label>
+      <select class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        [value]="selectedJenis() ?? ''" (change)="onJenisChange($any($event.target).value)">
+        <option value="">Semua Jenis</option>
+        <option value="mobil">Mobil</option>
+        <option value="motor">Motor</option>
+        <option value="truk">Truk</option>
+        <option value="bus">Bus</option>
+        <option value="lainnya">Lainnya</option>
+      </select>
+    </div>
+    <div class="flex items-end">
+      <p-button icon="pi pi-filter-slash" label="Reset" severity="secondary" [text]="true"
+        (onClick)="onResetFilter()"></p-button>
+    </div>
+  </div>
+
+  <!-- Stats summary -->
+  <div class="flex flex-wrap gap-3 text-sm text-slate-500">
+    <span>Total: <strong class="text-slate-800">{{ filtered().length }}</strong></span>
+    <span>· Aktif: <strong class="text-emerald-700">{{ activeCount() }}</strong></span>
+    <span>· Dalam Perbaikan: <strong class="text-amber-700">{{ inRepairCount() }}</strong></span>
+    <span>· Pensiun: <strong class="text-slate-500">{{ retiredCount() }}</strong></span>
+  </div>
+
+  <!-- Table -->
+  <div class="armadin-table-wrap">
+    <p-table [value]="filtered()" [paginator]="filtered().length > 15" [rows]="15"
+      [rowsPerPageOptions]="[15,30,50]" dataKey="id" [rowHover]="true" styleClass="text-sm"
+      currentPageReportTemplate="{first}–{last} dari {totalRecords}" [showCurrentPageReport]="true">
+      <ng-template #header>
+        <tr>
+          <th>Nomor Polisi</th>
+          <th>Merk / Tipe</th>
+          <th class="w-20 text-center">Tahun</th>
+          <th class="w-28">Jenis</th>
+          <th class="w-32">Status</th>
+          <th class="w-36 text-right">Odometer</th>
+          <th class="w-20 text-center">Aksi</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-v>
+        <tr>
+          <td class="font-mono font-semibold text-primary-700">{{ v.nomorPolisi }}</td>
+          <td class="text-slate-800">{{ v.merk }} {{ v.tipe }}</td>
+          <td class="text-center text-slate-600">{{ v.tahun }}</td>
+          <td><p-tag [severity]="jenisSeverity(v.jenisKendaraan)" [value]="v.jenisKendaraan" [rounded]="true"></p-tag></td>
+          <td><p-tag [severity]="statusSeverity(v.status)" [value]="statusLabel(v.status)" [rounded]="true"></p-tag></td>
+          <td class="text-right text-slate-700">{{ formatKm(v.odometerCurrent) }}</td>
+          <td class="text-center">
+            <p-button icon="pi pi-eye" severity="secondary" [text]="true" [rounded]="true" size="small"
+              pTooltip="Lihat detail" (onClick)="onView(v)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="7" class="py-10 text-center text-sm text-slate-500">
+          @if (search() || selectedStatus() || selectedJenis()) {
+            Tidak ada kendaraan yang cocok dengan filter. <button class="text-primary-600 underline" (click)="onResetFilter()">Reset filter</button>
+          } @else {
+            Belum ada data kendaraan.
+          }
+        </td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</section>
+<p-toast></p-toast>

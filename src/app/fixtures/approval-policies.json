@@ -1,0 +1,53 @@
+{
+  "approvalPolicies": [
+    {
+      "id": "ap-corr-1",
+      "jenis": "corrective",
+      "jenjangNo": 1,
+      "ambangNominalMin": 0,
+      "role": "pengurus_barang"
+    },
+    {
+      "id": "ap-corr-2",
+      "jenis": "corrective",
+      "jenjangNo": 2,
+      "ambangNominalMin": 5000000,
+      "role": "kasubag"
+    },
+    {
+      "id": "ap-corr-3",
+      "jenis": "corrective",
+      "jenjangNo": 3,
+      "ambangNominalMin": 25000000,
+      "role": "kepala_dinas"
+    },
+    {
+      "id": "ap-prev-1",
+      "jenis": "preventive",
+      "jenjangNo": 1,
+      "ambangNominalMin": 0,
+      "role": "pengurus_barang"
+    },
+    {
+      "id": "ap-prev-2",
+      "jenis": "preventive",
+      "jenjangNo": 2,
+      "ambangNominalMin": 3000000,
+      "role": "kasubag"
+    },
+    {
+      "id": "ap-pred-1",
+      "jenis": "predictive",
+      "jenjangNo": 1,
+      "ambangNominalMin": 0,
+      "role": "pengurus_barang"
+    },
+    {
+      "id": "ap-pred-2",
+      "jenis": "predictive",
+      "jenjangNo": 2,
+      "ambangNominalMin": 5000000,
+      "role": "kasubag"
+    }
+  ]
+}

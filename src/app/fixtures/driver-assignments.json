@@ -1,0 +1,100 @@
+{
+  "driverAssignments": [
+    {
+      "id": "asg-001",
+      "driverId": "drv-001",
+      "driverName": "Agus Pramono",
+      "vehicleId": "v-001",
+      "vehiclePlate": "B 1234 ABC",
+      "mode": "utama",
+      "startAt": "2024-02-01T00:00:00+07:00",
+      "endAt": null,
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-002",
+      "driverId": "drv-002",
+      "driverName": "Dedi Kurniawan",
+      "vehicleId": "v-002",
+      "vehiclePlate": "D 5678 EFG",
+      "mode": "utama",
+      "startAt": "2024-02-01T00:00:00+07:00",
+      "endAt": null,
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-003",
+      "driverId": "drv-003",
+      "driverName": "Rudi Hartono",
+      "vehicleId": "v-004",
+      "vehiclePlate": "B 3456 KLM",
+      "mode": "utama",
+      "startAt": "2024-02-15T00:00:00+07:00",
+      "endAt": null,
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-004",
+      "driverId": "drv-004",
+      "driverName": "Joko Santoso",
+      "vehicleId": "v-009",
+      "vehiclePlate": "B 5678 ZAB",
+      "mode": "utama",
+      "startAt": "2024-03-01T00:00:00+07:00",
+      "endAt": null,
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-005",
+      "driverId": "drv-005",
+      "driverName": "Slamet Riyadi",
+      "vehicleId": "v-010",
+      "vehiclePlate": "D 1357 CDE",
+      "mode": "utama",
+      "startAt": "2024-03-15T00:00:00+07:00",
+      "endAt": null,
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-006",
+      "driverId": "drv-001",
+      "driverName": "Agus Pramono",
+      "vehicleId": "v-006",
+      "vehiclePlate": "F 2345 QRS",
+      "mode": "sementara",
+      "startAt": "2025-01-05T00:00:00+07:00",
+      "endAt": "2025-01-31T23:59:59+07:00",
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-007",
+      "driverId": "drv-004",
+      "driverName": "Joko Santoso",
+      "vehicleId": "v-007",
+      "vehiclePlate": "B 4567 TUV",
+      "mode": "sementara",
+      "startAt": "2024-12-15T00:00:00+07:00",
+      "endAt": "2024-12-31T23:59:59+07:00",
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "asg-008",
+      "driverId": "drv-002",
+      "driverName": "Dedi Kurniawan",
+      "vehicleId": "v-008",
+      "vehiclePlate": "D 8901 WXY",
+      "mode": "sementara",
+      "startAt": "2025-01-10T00:00:00+07:00",
+      "endAt": null,
+      "assignedBy": "u-003",
+      "assignedByName": "Siti Nurhaliza, S.E."
+    }
+  ]
+}

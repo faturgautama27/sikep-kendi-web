@@ -1,0 +1,64 @@
+{
+  "vendors": [
+    {
+      "id": "ven-001",
+      "nama": "PT Bengkel Mandiri Sejahtera",
+      "npwp": "01.234.567.8-432.000",
+      "alamat": "Jl. Soekarno-Hatta No. 145, Bandung, Jawa Barat 40286",
+      "kontak": "0228888888",
+      "email": "vendor1@bengkelmandiri.co.id",
+      "kategoriDilayani": ["oli", "rem", "ban", "mesin", "elektrikal", "body"],
+      "active": true,
+      "rating": 4.5,
+      "createdAt": "2024-01-20T08:00:00+07:00"
+    },
+    {
+      "id": "ven-002",
+      "nama": "CV Astra Motor Service",
+      "npwp": "02.345.678.9-432.000",
+      "alamat": "Jl. Asia Afrika No. 88, Bandung, Jawa Barat 40111",
+      "kontak": "0227777777",
+      "email": "service@astramotor.id",
+      "kategoriDilayani": ["oli", "rem", "ban", "mesin", "lampu"],
+      "active": true,
+      "rating": 4.2,
+      "createdAt": "2024-01-22T08:30:00+07:00"
+    },
+    {
+      "id": "ven-003",
+      "nama": "Bengkel Sumber Rejeki Motor",
+      "npwp": "03.456.789.0-432.000",
+      "alamat": "Jl. Merdeka No. 12, Cimahi, Jawa Barat 40521",
+      "kontak": "0229999999",
+      "email": "sumberrejeki@gmail.com",
+      "kategoriDilayani": ["oli", "rem", "ban", "lampu", "elektrikal"],
+      "active": true,
+      "rating": 4.0,
+      "createdAt": "2024-02-05T09:00:00+07:00"
+    },
+    {
+      "id": "ven-004",
+      "nama": "PT Hino Karya Berkat — Bandung",
+      "npwp": "04.567.890.1-432.000",
+      "alamat": "Jl. Raya Cibiru No. 56, Bandung, Jawa Barat 40615",
+      "kontak": "0226666666",
+      "email": "service.bandung@hinokarya.co.id",
+      "kategoriDilayani": ["oli", "rem", "ban", "mesin", "elektrikal"],
+      "active": true,
+      "rating": 4.7,
+      "createdAt": "2024-02-15T10:00:00+07:00"
+    },
+    {
+      "id": "ven-005",
+      "nama": "SPBU Pertamina 34.40123 Pasteur",
+      "npwp": "05.678.901.2-432.000",
+      "alamat": "Jl. Dr. Djunjunan No. 250, Bandung, Jawa Barat 40162",
+      "kontak": "0225555555",
+      "email": "spbu40123@pertamina.co.id",
+      "kategoriDilayani": ["lainnya"],
+      "active": true,
+      "rating": 4.3,
+      "createdAt": "2024-02-20T11:00:00+07:00"
+    }
+  ]
+}

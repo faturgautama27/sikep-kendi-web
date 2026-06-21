@@ -1,0 +1,194 @@
+<section class="flex flex-col gap-6">
+  <!-- Page header -->
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-primary-900">Manajemen Supir</h1>
+    <p class="text-sm text-slate-500">
+      Daftar supir, penugasan kendaraan aktif, dan riwayat pelanggaran.
+    </p>
+  </header>
+
+  <!-- Driver list -->
+  <article
+    class="flex flex-col gap-4 rounded-xl border border-primary-100 bg-surface p-5 shadow-sm"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-base font-semibold text-slate-800">Daftar Supir</h2>
+      <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">
+        Total: {{ drivers().length }}
+      </span>
+    </div>
+
+    <p-table
+      [value]="drivers()"
+      [paginator]="drivers().length > 10"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [scrollable]="true"
+      scrollHeight="flex"
+      dataKey="id"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="min-w-[180px]">Nama</th>
+          <th class="min-w-[160px]">NIP</th>
+          <th class="min-w-[120px]">Kontak</th>
+          <th class="min-w-[100px]">Jenis SIM</th>
+          <th class="min-w-[150px]">Nomor SIM</th>
+          <th class="min-w-[140px]">Berlaku s/d</th>
+          <th class="min-w-[140px]">Status SIM</th>
+          <th class="min-w-[120px]">Status</th>
+          <th class="w-20 text-center">Aksi</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-driver>
+        <tr>
+          <td class="font-medium text-slate-800">{{ driver.nama }}</td>
+          <td class="text-slate-600">{{ driver.nip }}</td>
+          <td class="text-slate-600">{{ driver.kontak }}</td>
+          <td>
+            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+              SIM {{ driver.simJenis }}
+            </span>
+          </td>
+          <td class="font-mono text-xs text-slate-600">{{ driver.simNomor }}</td>
+          <td class="text-slate-600">{{ formatDateOnly(driver.simKadaluarsa) }}</td>
+          <td>
+            <p-tag
+              [severity]="simStatusSeverity(driver.simStatus)"
+              [value]="simStatusLabel(driver.simStatus)"
+            ></p-tag>
+          </td>
+          <td>
+            <p-tag
+              [severity]="driverStatusSeverity(driver.status)"
+              [value]="driverStatusLabel(driver.status)"
+            ></p-tag>
+          </td>
+          <td class="text-center">
+            <p-button
+              icon="pi pi-eye"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              ariaLabel="Detail supir"
+              (onClick)="onViewDetail(driver)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="py-6 text-center text-sm text-slate-500">
+            Belum ada data supir.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </article>
+
+  <!-- Active assignments -->
+  <article
+    class="flex flex-col gap-4 rounded-xl border border-primary-100 bg-surface p-5 shadow-sm"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-base font-semibold text-slate-800">Penugasan Aktif</h2>
+      <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">
+        {{ activeAssignments().length }} aktif
+      </span>
+    </div>
+
+    <p-table
+      [value]="activeAssignments()"
+      [scrollable]="true"
+      scrollHeight="flex"
+      dataKey="id"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="min-w-[180px]">Supir</th>
+          <th class="min-w-[140px]">Kendaraan</th>
+          <th class="min-w-[120px]">Mode</th>
+          <th class="min-w-[160px]">Tanggal Mulai</th>
+          <th class="min-w-[200px]">Ditugaskan Oleh</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-assign>
+        <tr>
+          <td class="font-medium text-slate-800">{{ assign.driverName }}</td>
+          <td class="font-mono text-sm text-slate-700">{{ assign.vehiclePlate }}</td>
+          <td>
+            <p-tag
+              [severity]="modeSeverity(assign.mode)"
+              [value]="assign.mode === 'utama' ? 'Utama' : 'Sementara'"
+            ></p-tag>
+          </td>
+          <td class="text-slate-600">{{ formatDate(assign.startAt) }}</td>
+          <td class="text-slate-600">{{ assign.assignedByName }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="py-6 text-center text-sm text-slate-500">
+            Tidak ada penugasan aktif saat ini.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </article>
+
+  <!-- Violations (collapsible) -->
+  <article class="rounded-xl border border-primary-100 bg-surface shadow-sm">
+    <p-accordion [value]="['violations']" [multiple]="true">
+      <p-accordion-panel value="violations">
+        <p-accordion-header>
+          <span class="flex items-center gap-2 text-base font-semibold text-slate-800">
+            <i class="pi pi-exclamation-triangle text-amber-500"></i>
+            Riwayat Pelanggaran
+            <span
+              class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+            >
+              {{ violations().length }}
+            </span>
+          </span>
+        </p-accordion-header>
+        <p-accordion-content>
+          <p-table
+            [value]="violations()"
+            [scrollable]="true"
+            dataKey="id"
+            styleClass="p-datatable-sm"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="min-w-[220px]">Jenis Pelanggaran</th>
+                <th class="min-w-[160px]">Tanggal</th>
+                <th class="min-w-[140px] text-right">Nominal</th>
+                <th class="min-w-[280px]">Deskripsi</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-vio>
+              <tr>
+                <td class="font-medium text-slate-800">{{ vio.jenis }}</td>
+                <td class="text-slate-600">{{ formatDate(vio.terjadiAt) }}</td>
+                <td class="text-right font-medium text-rose-600">
+                  {{ formatRupiah(vio.nominal) }}
+                </td>
+                <td class="text-sm text-slate-600">{{ vio.description }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="4" class="py-6 text-center text-sm text-slate-500">
+                  Tidak ada riwayat pelanggaran.
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
+  </article>
+</section>

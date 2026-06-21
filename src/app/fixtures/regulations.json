@@ -1,0 +1,36 @@
+{
+  "regulations": [
+    {
+      "id": "reg-001",
+      "nama": "Interval Servis Berkala",
+      "kategori": "interval_servis",
+      "description": "Aturan interval servis berkala berdasarkan kilometer dan waktu untuk seluruh jenis kendaraan dinas",
+      "currentVersionId": "regv-001-v2",
+      "createdAt": "2024-01-10T08:00:00+07:00"
+    },
+    {
+      "id": "reg-002",
+      "nama": "Batas Konsumsi BBM Bulanan",
+      "kategori": "batas_bbm",
+      "description": "Pagu konsumsi BBM per kendaraan dan per supir per bulan sesuai SBM provinsi",
+      "currentVersionId": "regv-002-v2",
+      "createdAt": "2024-01-10T08:30:00+07:00"
+    },
+    {
+      "id": "reg-003",
+      "nama": "Kewajiban Dokumen Kendaraan",
+      "kategori": "kewajiban_dokumen",
+      "description": "Kewajiban memiliki dan memperpanjang STNK, KIR, Pajak Tahunan untuk seluruh kendaraan dinas aktif",
+      "currentVersionId": "regv-003-v2",
+      "createdAt": "2024-01-10T09:00:00+07:00"
+    },
+    {
+      "id": "reg-004",
+      "nama": "Pagu Anggaran Pemeliharaan",
+      "kategori": "pagu_anggaran",
+      "description": "Pagu anggaran pemeliharaan per kendaraan per tahun dan ambang nominal untuk persetujuan berjenjang",
+      "currentVersionId": "regv-004-v2",
+      "createdAt": "2024-01-10T09:30:00+07:00"
+    }
+  ]
+}

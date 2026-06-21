@@ -1,0 +1,79 @@
+{
+  "roles": [
+    {
+      "id": "r-001",
+      "name": "admin_sistem",
+      "displayName": "Admin Sistem",
+      "permissionIds": ["p-all"]
+    },
+    {
+      "id": "r-002",
+      "name": "kasubag",
+      "displayName": "Kepala Sub Bagian",
+      "permissionIds": ["p-002", "p-003", "p-004", "p-005", "p-009", "p-014", "p-016"]
+    },
+    {
+      "id": "r-003",
+      "name": "pengurus_barang",
+      "displayName": "Pengurus Barang",
+      "permissionIds": [
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-009",
+        "p-010",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-014",
+        "p-015"
+      ]
+    },
+    {
+      "id": "r-004",
+      "name": "auditor",
+      "displayName": "Auditor / Inspektorat",
+      "permissionIds": ["p-002", "p-003", "p-004", "p-005", "p-014", "p-016", "p-017"]
+    },
+    {
+      "id": "r-005",
+      "name": "vendor",
+      "displayName": "Vendor Bengkel",
+      "permissionIds": ["p-018", "p-019"]
+    },
+    {
+      "id": "r-006",
+      "name": "supir",
+      "displayName": "Supir",
+      "permissionIds": ["p-020", "p-021", "p-022"]
+    }
+  ],
+  "permissions": [
+    { "id": "p-all", "name": "*", "description": "Akses penuh ke seluruh sistem" },
+    { "id": "p-002", "name": "vehicle.read", "description": "Lihat data kendaraan" },
+    { "id": "p-003", "name": "regulation.read", "description": "Lihat regulasi" },
+    { "id": "p-004", "name": "pengajuan.read", "description": "Lihat pengajuan" },
+    { "id": "p-005", "name": "spj.read", "description": "Lihat SPJ" },
+    { "id": "p-006", "name": "vehicle.write", "description": "Kelola kendaraan" },
+    { "id": "p-007", "name": "sparepart.write", "description": "Kelola sparepart" },
+    { "id": "p-008", "name": "driver.write", "description": "Kelola data supir" },
+    { "id": "p-009", "name": "pengajuan.write", "description": "Buat dan ubah pengajuan" },
+    { "id": "p-010", "name": "pengajuan.approve", "description": "Setujui/tolak pengajuan" },
+    { "id": "p-011", "name": "workorder.write", "description": "Kelola work order" },
+    { "id": "p-012", "name": "fuel.write", "description": "Catat transaksi BBM" },
+    { "id": "p-013", "name": "spj.write", "description": "Upload dan kelola SPJ" },
+    { "id": "p-014", "name": "audit.read", "description": "Lihat audit log" },
+    { "id": "p-015", "name": "fuel.read", "description": "Lihat data BBM" },
+    { "id": "p-016", "name": "dashboard.read", "description": "Lihat dashboard" },
+    { "id": "p-017", "name": "workorder.read", "description": "Lihat work order" },
+    { "id": "p-018", "name": "workorder.progress", "description": "Update progres work order" },
+    { "id": "p-019", "name": "workorder.read.assigned", "description": "Lihat WO yang diassign" },
+    { "id": "p-020", "name": "checklist.execute", "description": "Jalankan checklist harian" },
+    { "id": "p-021", "name": "fuel.record", "description": "Catat BBM dari mobile supir" },
+    {
+      "id": "p-022",
+      "name": "vehicle.read.assigned",
+      "description": "Lihat kendaraan yang ditugaskan"
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+
+@source "./app/**/*.{html,ts}";
+
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9;
+  --color-on-primary: #ffffff;
+
+  --color-severity-info: #3b82f6;
+  --color-severity-warning: #f59e0b;
+  --color-severity-critical: #dc2626;
+
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.progressbar-primary .p-progressbar-value { background: var(--color-primary-600); }
+.progressbar-warning .p-progressbar-value { background: var(--color-severity-warning); }
+.progressbar-danger .p-progressbar-value { background: var(--color-severity-critical); }
+
+/* ─── Modern DataTable Override ─────────────────────────────────────────────
+   Replaces PrimeNG default table styling with a clean, shadowed, rounded table.
+   Applies globally to all p-table instances in the admin app.
+─────────────────────────────────────────────────────────────────────────── */
+
+.p-datatable { font-size: 0.8125rem; }
+
+/* Header */
+.p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-top: none !important;
+  padding: 0.625rem 1rem !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: #94a3b8 !important;
+  white-space: nowrap;
+}
+
+/* Body rows */
+.p-datatable .p-datatable-tbody > tr {
+  background: #ffffff;
+  transition: background 0.1s ease;
+}
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f8fafc !important;
+}
+.p-datatable .p-datatable-tbody > tr > td {
+  border-bottom: 1px solid #f1f5f9 !important;
+  border-top: none !important;
+  padding: 0.6875rem 1rem !important;
+  color: #374151;
+  vertical-align: middle;
+}
+.p-datatable .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none !important;
+}
+
+/* Empty message */
+.p-datatable .p-datatable-emptymessage td {
+  padding: 3rem 1rem !important;
+  text-align: center;
+  color: #9ca3af;
+  border-bottom: none !important;
+}
+
+/* Paginator */
+.p-paginator {
+  background: #f8fafc !important;
+  border-top: 1px solid #f1f5f9 !important;
+  border-bottom: none !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.75rem !important;
+}
+.p-paginator .p-paginator-current {
+  color: #94a3b8 !important;
+  font-size: 0.75rem !important;
+}
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-last {
+  border-radius: 0.5rem !important;
+  min-width: 2rem !important;
+  height: 2rem !important;
+  font-size: 0.75rem !important;
+  color: #64748b !important;
+}
+.p-paginator .p-paginator-page.p-highlight {
+  background: #2563eb !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+}
+
+/* ─── PrimeNG Popover (notification panel) ───────────────────────────────── */
+.p-popover {
+  border: none !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 60px -10px rgba(15, 23, 42, 0.18), 0 4px 16px -4px rgba(15, 23, 42, 0.1) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+.p-popover::before,
+.p-popover::after { display: none !important; }
+.p-popover .p-popover-content { padding: 0 !important; }
+
+/* ─── PrimeNG Menu (user panel popup) ───────────────────────────────────── */
+.p-menu {
+  border: none !important;
+  border-radius: 0.875rem !important;
+  box-shadow: 0 20px 60px -10px rgba(15, 23, 42, 0.18), 0 4px 16px -4px rgba(15, 23, 42, 0.1) !important;
+  overflow: hidden !important;
+  padding: 0.375rem !important;
+  min-width: 200px !important;
+}
+
+.p-menu .p-menu-list { padding: 0 !important; }
+
+.p-menu .p-menuitem {
+  border-radius: 0.5rem !important;
+  margin: 1px 0 !important;
+}
+
+.p-menu .p-menuitem .p-menuitem-content {
+  border-radius: 0.5rem !important;
+  padding: 0 !important;
+}
+
+.p-menu .p-menuitem .p-menuitem-link {
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 0.5rem !important;
+  gap: 0.625rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  transition: background 0.1s ease !important;
+}
+
+.p-menu .p-menuitem:not(.p-disabled) .p-menuitem-link:hover {
+  background: #f1f5f9 !important;
+  color: #1d4ed8 !important;
+}
+
+.p-menu .p-menuitem:not(.p-disabled) .p-menuitem-link:hover .p-menuitem-icon {
+  color: #1d4ed8 !important;
+}
+
+.p-menu .p-menuitem .p-menuitem-icon {
+  font-size: 0.8125rem !important;
+  color: #6b7280 !important;
+  width: 1rem !important;
+}
+
+.p-menu .p-menuitem-separator {
+  margin: 0.25rem 0.5rem !important;
+  border-color: #f1f5f9 !important;
+}
+
+/* ─── Table container wrapper (global) ──────────────────────────────────── */
+.armadin-table-wrap {
+  border-radius: 0.875rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  box-shadow: 0 1px 4px 0 rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}

@@ -1,0 +1,9 @@
+{
+  "thresholds": {
+    "documentExpiringDaysBefore": 30,
+    "simExpiringDaysBefore": 30,
+    "pengajuanStuckBusinessDays": 3,
+    "unreadCriticalEscalationHours": 24,
+    "budgetThresholdPercent": 80
+  }
+}

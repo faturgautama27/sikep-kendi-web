@@ -1,0 +1,98 @@
+<div class="max-w-md mx-auto bg-slate-50 pb-6">
+
+  <!-- Mark all read button -->
+  @if (unreadCount() > 0) {
+    <div class="mx-4 mt-4 flex items-center justify-between">
+      <p class="text-xs text-slate-500">{{ unreadCount() }} belum dibaca</p>
+      <button (click)="markAllRead()"
+        class="rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 active:scale-95">
+        <i class="pi pi-check-square mr-1 text-[11px]"></i>Baca Semua
+      </button>
+    </div>
+  }
+
+  <!-- Notification list -->
+  <div class="px-4 mt-4 flex flex-col gap-2.5">
+
+    @if (sorted().length === 0) {
+      <div class="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center mt-4">
+        <i class="pi pi-bell text-4xl text-slate-300 mb-3 block"></i>
+        <p class="text-sm font-semibold text-slate-400">Kotak masuk kosong</p>
+        <p class="text-xs text-slate-300 mt-1">Tidak ada notifikasi saat ini</p>
+      </div>
+    }
+
+    @for (notif of sorted(); track notif.id) {
+      <button
+        type="button"
+        (click)="toggleExpand(notif.id)"
+        class="w-full text-left rounded-2xl border bg-white shadow-sm transition active:scale-[0.99]"
+        [class.border-red-100]="notif.severity === 'critical'"
+        [class.border-amber-100]="notif.severity === 'warning'"
+        [class.border-slate-100]="notif.severity === 'info'"
+        [class.opacity-70]="notif.readAt !== null && !isExpanded(notif.id)">
+
+        <div class="p-4">
+          <div class="flex items-start gap-3">
+
+            <!-- Icon -->
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl mt-0.5"
+              [class]="getSeverityBg(notif.severity)">
+              <i [class]="getSeverityIcon(notif.severity) + ' text-lg ' + getSeverityIconColor(notif.severity)"></i>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2">
+                <p class="text-sm font-bold text-slate-800 leading-snug"
+                  [class.text-slate-600]="notif.readAt !== null">
+                  {{ notif.title }}
+                </p>
+                <!-- Unread dot -->
+                @if (notif.readAt === null) {
+                  <div class="h-2 w-2 rounded-full bg-primary-500 flex-shrink-0 mt-1.5"></div>
+                }
+              </div>
+
+              <div class="flex items-center gap-2 mt-1">
+                <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                  [class]="getSeverityBadge(notif.severity)">
+                  {{ getSeverityLabel(notif.severity) }}
+                </span>
+                <span class="text-[11px] text-slate-400">{{ formatTime(notif.createdAt) }}</span>
+              </div>
+
+              <!-- Preview message (collapsed) -->
+              @if (!isExpanded(notif.id)) {
+                <p class="text-xs text-slate-500 mt-1.5 line-clamp-1">{{ notif.message }}</p>
+              }
+            </div>
+
+          </div>
+
+          <!-- Expanded message -->
+          @if (isExpanded(notif.id)) {
+            <div class="mt-3 border-t pt-3"
+              [class.border-red-100]="notif.severity === 'critical'"
+              [class.border-amber-100]="notif.severity === 'warning'"
+              [class.border-slate-100]="notif.severity === 'info'">
+              <p class="text-sm text-slate-700 leading-relaxed">{{ notif.message }}</p>
+              @if (notif.entityRef) {
+                <p class="mt-2 text-xs text-slate-500">
+                  <i class="pi pi-tag text-[10px] mr-1"></i>{{ notif.entityRef }}
+                </p>
+              }
+              <p class="mt-2 text-[11px] text-slate-400">
+                <i class="pi pi-clock text-[10px] mr-1"></i>
+                {{ notif.createdAt | date:'dd MMM yyyy, HH:mm' }}
+              </p>
+            </div>
+          }
+        </div>
+
+      </button>
+    }
+
+  </div>
+
+</div>

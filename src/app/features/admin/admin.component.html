@@ -1,0 +1,23 @@
+<section class="flex flex-col gap-6">
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-primary-900">Administrasi Sistem</h1>
+    <p class="text-sm text-slate-500">
+      Kelola pengguna, peran, kebijakan persetujuan, dan ambang notifikasi.
+    </p>
+  </header>
+
+  <p-tabs [value]="activeTab()">
+    <p-tablist>
+      @for (tab of tabs; track tab.key) {
+        <p-tab [value]="tab.key" [routerLink]="tab.route">
+          <span class="flex items-center gap-2">
+            <i [class]="tab.icon"></i>
+            <span>{{ tab.label }}</span>
+          </span>
+        </p-tab>
+      }
+    </p-tablist>
+  </p-tabs>
+
+  <router-outlet />
+</section>

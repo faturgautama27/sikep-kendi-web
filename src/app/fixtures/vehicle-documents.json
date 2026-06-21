@@ -1,0 +1,290 @@
+{
+  "vehicleDocuments": [
+    {
+      "id": "doc-001",
+      "vehicleId": "v-001",
+      "jenis": "STNK",
+      "nomor": "12345678/JBR/2021",
+      "tanggalTerbit": "2021-03-15T00:00:00+07:00",
+      "tanggalKadaluarsa": "2026-03-15T00:00:00+07:00",
+      "scanImageId": "img-doc-001",
+      "status": "valid",
+      "daysToExpiry": 424
+    },
+    {
+      "id": "doc-002",
+      "vehicleId": "v-001",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-001234",
+      "tanggalTerbit": "2024-03-15T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-03-15T00:00:00+07:00",
+      "scanImageId": "img-doc-002",
+      "status": "expiring_soon",
+      "daysToExpiry": 59
+    },
+    {
+      "id": "doc-003",
+      "vehicleId": "v-001",
+      "jenis": "KIR",
+      "nomor": "KIR-JBR-2024-0567",
+      "tanggalTerbit": "2024-07-15T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-01-15T00:00:00+07:00",
+      "scanImageId": "img-doc-003",
+      "status": "expired",
+      "daysToExpiry": 0
+    },
+    {
+      "id": "doc-004",
+      "vehicleId": "v-002",
+      "jenis": "STNK",
+      "nomor": "23456789/JBR/2019",
+      "tanggalTerbit": "2019-06-20T00:00:00+07:00",
+      "tanggalKadaluarsa": "2024-06-20T00:00:00+07:00",
+      "scanImageId": "img-doc-004",
+      "status": "expired",
+      "daysToExpiry": -209
+    },
+    {
+      "id": "doc-005",
+      "vehicleId": "v-002",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-002345",
+      "tanggalTerbit": "2024-06-20T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-06-20T00:00:00+07:00",
+      "scanImageId": "img-doc-005",
+      "status": "valid",
+      "daysToExpiry": 156
+    },
+    {
+      "id": "doc-006",
+      "vehicleId": "v-002",
+      "jenis": "KIR",
+      "nomor": "KIR-JBR-2024-0890",
+      "tanggalTerbit": "2024-08-10T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-02-10T00:00:00+07:00",
+      "scanImageId": "img-doc-006",
+      "status": "expiring_soon",
+      "daysToExpiry": 26
+    },
+    {
+      "id": "doc-007",
+      "vehicleId": "v-003",
+      "jenis": "STNK",
+      "nomor": "34567890/JBR/2016",
+      "tanggalTerbit": "2016-09-10T00:00:00+07:00",
+      "tanggalKadaluarsa": "2021-09-10T00:00:00+07:00",
+      "scanImageId": "img-doc-007",
+      "status": "expired",
+      "daysToExpiry": -1223
+    },
+    {
+      "id": "doc-008",
+      "vehicleId": "v-003",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2023-003456",
+      "tanggalTerbit": "2023-09-10T00:00:00+07:00",
+      "tanggalKadaluarsa": "2024-09-10T00:00:00+07:00",
+      "scanImageId": "img-doc-008",
+      "status": "expired",
+      "daysToExpiry": -127
+    },
+    {
+      "id": "doc-009",
+      "vehicleId": "v-004",
+      "jenis": "STNK",
+      "nomor": "45678901/JBR/2022",
+      "tanggalTerbit": "2022-04-08T00:00:00+07:00",
+      "tanggalKadaluarsa": "2027-04-08T00:00:00+07:00",
+      "scanImageId": "img-doc-009",
+      "status": "valid",
+      "daysToExpiry": 813
+    },
+    {
+      "id": "doc-010",
+      "vehicleId": "v-004",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-004567",
+      "tanggalTerbit": "2024-04-08T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-04-08T00:00:00+07:00",
+      "scanImageId": "img-doc-010",
+      "status": "valid",
+      "daysToExpiry": 83
+    },
+    {
+      "id": "doc-011",
+      "vehicleId": "v-005",
+      "jenis": "STNK",
+      "nomor": "56789012/JBR/2023",
+      "tanggalTerbit": "2023-02-25T00:00:00+07:00",
+      "tanggalKadaluarsa": "2028-02-25T00:00:00+07:00",
+      "scanImageId": "img-doc-011",
+      "status": "valid",
+      "daysToExpiry": 1136
+    },
+    {
+      "id": "doc-012",
+      "vehicleId": "v-005",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-005678",
+      "tanggalTerbit": "2024-02-25T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-02-25T00:00:00+07:00",
+      "scanImageId": "img-doc-012",
+      "status": "expiring_soon",
+      "daysToExpiry": 41
+    },
+    {
+      "id": "doc-013",
+      "vehicleId": "v-006",
+      "jenis": "STNK",
+      "nomor": "67890123/JBR/2020",
+      "tanggalTerbit": "2020-11-12T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-11-12T00:00:00+07:00",
+      "scanImageId": "img-doc-013",
+      "status": "valid",
+      "daysToExpiry": 301
+    },
+    {
+      "id": "doc-014",
+      "vehicleId": "v-006",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-006789",
+      "tanggalTerbit": "2024-11-12T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-11-12T00:00:00+07:00",
+      "scanImageId": "img-doc-014",
+      "status": "valid",
+      "daysToExpiry": 301
+    },
+    {
+      "id": "doc-015",
+      "vehicleId": "v-007",
+      "jenis": "STNK",
+      "nomor": "78901234/JBR/2018",
+      "tanggalTerbit": "2018-07-30T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-07-30T00:00:00+07:00",
+      "scanImageId": "img-doc-015",
+      "status": "valid",
+      "daysToExpiry": 196
+    },
+    {
+      "id": "doc-016",
+      "vehicleId": "v-007",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-007890",
+      "tanggalTerbit": "2024-07-30T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-07-30T00:00:00+07:00",
+      "scanImageId": "img-doc-016",
+      "status": "valid",
+      "daysToExpiry": 196
+    },
+    {
+      "id": "doc-017",
+      "vehicleId": "v-007",
+      "jenis": "KIR",
+      "nomor": "KIR-JBR-2024-1234",
+      "tanggalTerbit": "2024-08-05T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-02-05T00:00:00+07:00",
+      "scanImageId": "img-doc-017",
+      "status": "expiring_soon",
+      "daysToExpiry": 21
+    },
+    {
+      "id": "doc-018",
+      "vehicleId": "v-008",
+      "jenis": "STNK",
+      "nomor": "89012345/JBR/2021",
+      "tanggalTerbit": "2021-05-18T00:00:00+07:00",
+      "tanggalKadaluarsa": "2026-05-18T00:00:00+07:00",
+      "scanImageId": "img-doc-018",
+      "status": "valid",
+      "daysToExpiry": 488
+    },
+    {
+      "id": "doc-019",
+      "vehicleId": "v-008",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-008901",
+      "tanggalTerbit": "2024-05-18T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-05-18T00:00:00+07:00",
+      "scanImageId": "img-doc-019",
+      "status": "valid",
+      "daysToExpiry": 123
+    },
+    {
+      "id": "doc-020",
+      "vehicleId": "v-008",
+      "jenis": "KIR",
+      "nomor": "KIR-JBR-2024-2345",
+      "tanggalTerbit": "2024-09-15T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-03-15T00:00:00+07:00",
+      "scanImageId": "img-doc-020",
+      "status": "expiring_soon",
+      "daysToExpiry": 59
+    },
+    {
+      "id": "doc-021",
+      "vehicleId": "v-009",
+      "jenis": "STNK",
+      "nomor": "90123456/JBR/2017",
+      "tanggalTerbit": "2017-08-22T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-08-22T00:00:00+07:00",
+      "scanImageId": "img-doc-021",
+      "status": "valid",
+      "daysToExpiry": 219
+    },
+    {
+      "id": "doc-022",
+      "vehicleId": "v-009",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-009012",
+      "tanggalTerbit": "2024-08-22T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-08-22T00:00:00+07:00",
+      "scanImageId": "img-doc-022",
+      "status": "valid",
+      "daysToExpiry": 219
+    },
+    {
+      "id": "doc-023",
+      "vehicleId": "v-009",
+      "jenis": "KIR",
+      "nomor": "KIR-JBR-2024-3456",
+      "tanggalTerbit": "2024-10-01T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-04-01T00:00:00+07:00",
+      "scanImageId": "img-doc-023",
+      "status": "expiring_soon",
+      "daysToExpiry": 76
+    },
+    {
+      "id": "doc-024",
+      "vehicleId": "v-010",
+      "jenis": "STNK",
+      "nomor": "01234567/JBR/2020",
+      "tanggalTerbit": "2020-12-05T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-12-05T00:00:00+07:00",
+      "scanImageId": "img-doc-024",
+      "status": "valid",
+      "daysToExpiry": 324
+    },
+    {
+      "id": "doc-025",
+      "vehicleId": "v-010",
+      "jenis": "PAJAK_TAHUNAN",
+      "nomor": "PAJ-2024-010123",
+      "tanggalTerbit": "2024-12-05T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-12-05T00:00:00+07:00",
+      "scanImageId": "img-doc-025",
+      "status": "valid",
+      "daysToExpiry": 324
+    },
+    {
+      "id": "doc-026",
+      "vehicleId": "v-010",
+      "jenis": "KIR",
+      "nomor": "KIR-JBR-2024-4567",
+      "tanggalTerbit": "2024-11-20T00:00:00+07:00",
+      "tanggalKadaluarsa": "2025-05-20T00:00:00+07:00",
+      "scanImageId": "img-doc-026",
+      "status": "valid",
+      "daysToExpiry": 125
+    }
+  ]
+}

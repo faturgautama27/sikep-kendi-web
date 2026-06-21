@@ -1,0 +1,148 @@
+<header class="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-200/80 bg-white/95 px-6 backdrop-blur-sm">
+
+  <!-- Page title breadcrumb -->
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center gap-2">
+      <span class="hidden text-[11px] font-semibold uppercase tracking-widest text-slate-300 sm:block">SiKeP KenDI</span>
+      <span class="hidden text-slate-200 sm:block">/</span>
+      <h1 class="truncate text-sm font-bold text-slate-800">{{ pageTitle() }}</h1>
+    </div>
+  </div>
+
+  <!-- Right -->
+  <div class="flex items-center gap-0.5">
+
+    <!-- Notification bell -->
+    <button type="button"
+      class="relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-700 active:scale-95"
+      (click)="toggleNotificationPopover(notifPopover, $event)">
+      <i class="pi pi-bell text-[15px]"></i>
+      @if (notificationCount() > 0) {
+        <span class="absolute right-1 top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow ring-2 ring-white">
+          {{ notificationCount() > 9 ? '9+' : notificationCount() }}
+        </span>
+      }
+    </button>
+
+    <!-- ── Notification popover ── -->
+    <p-popover #notifPopover>
+      <div class="w-[360px] overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between bg-white px-4 py-3 border-b border-slate-100">
+          <div class="flex items-center gap-2.5">
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600 text-white shadow-sm shadow-primary-200">
+              <i class="pi pi-bell text-[12px]"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-800">Notifikasi</span>
+            @if (notificationCount() > 0) {
+              <span class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                {{ notificationCount() }}
+              </span>
+            }
+          </div>
+          <a routerLink="/audit"
+            class="rounded-lg px-2.5 py-1 text-[11px] font-semibold text-primary-600 transition hover:bg-primary-50 hover:text-primary-700">
+            Lihat semua →
+          </a>
+        </div>
+
+        <!-- Items list -->
+        <ul class="max-h-[320px] divide-y divide-slate-50 overflow-y-auto">
+          @for (notif of notifications; track notif.title) {
+            <li class="group flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-slate-50">
+              <!-- Severity icon -->
+              <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs"
+                [class.bg-blue-50]="notif.severity === 'info'"
+                [class.text-blue-600]="notif.severity === 'info'"
+                [class.bg-amber-50]="notif.severity === 'warning'"
+                [class.text-amber-600]="notif.severity === 'warning'"
+                [class.bg-red-50]="notif.severity === 'critical'"
+                [class.text-red-600]="notif.severity === 'critical'">
+                <i class="pi text-[13px]"
+                  [class.pi-info-circle]="notif.severity === 'info'"
+                  [class.pi-exclamation-triangle]="notif.severity === 'warning'"
+                  [class.pi-times-circle]="notif.severity === 'critical'"></i>
+              </div>
+              <!-- Content -->
+              <div class="min-w-0 flex-1">
+                <p class="line-clamp-2 text-[12px] font-semibold leading-snug text-slate-700">{{ notif.title }}</p>
+                <p class="mt-0.5 text-[11px] text-slate-400">{{ notif.time }}</p>
+              </div>
+              <!-- Unread dot -->
+              <div class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary-500"></div>
+            </li>
+          }
+        </ul>
+
+        <!-- Footer -->
+        <div class="border-t border-slate-100 bg-slate-50/80 px-4 py-2.5 text-center">
+          <a routerLink="/audit"
+            class="text-[11px] font-semibold text-slate-500 transition hover:text-primary-600">
+            Tandai semua sudah dibaca
+          </a>
+        </div>
+      </div>
+    </p-popover>
+
+    <!-- Divider -->
+    <div class="mx-2 h-5 w-px bg-slate-200"></div>
+
+    <!-- ── User popover ── -->
+    <button type="button"
+      class="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-all hover:bg-slate-100 active:scale-[0.98]"
+      (click)="toggleUserPopover(userPopover, $event)">
+      <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-xs font-bold text-white shadow shadow-primary-200">
+        {{ userInitials() }}
+      </div>
+      <div class="hidden flex-col items-start leading-none lg:flex">
+        <span class="text-[12px] font-semibold text-slate-700">{{ userName() }}</span>
+        <span class="mt-0.5 text-[10px] text-slate-400">{{ userRole() }}</span>
+      </div>
+      <i class="pi pi-chevron-down hidden text-[9px] text-slate-400 lg:block"></i>
+    </button>
+
+    <p-popover #userPopover>
+      <div class="w-56 overflow-hidden">
+        <!-- User info header -->
+        <div class="flex items-center gap-3 bg-slate-50 px-4 py-3 border-b border-slate-100">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-xs font-bold text-white shadow-sm">
+            {{ userInitials() }}
+          </div>
+          <div class="min-w-0">
+            <p class="truncate text-xs font-bold text-slate-800">{{ userName() }}</p>
+            <p class="text-[10px] text-slate-400">{{ userRole() }}</p>
+          </div>
+        </div>
+
+        <!-- Menu items -->
+        <ul class="p-1.5 flex flex-col gap-0.5">
+          <li>
+            <a routerLink="/profile"
+              class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-primary-50 hover:text-primary-700">
+              <i class="pi pi-user text-[12px] w-4 text-center text-slate-400"></i>Profil Saya
+            </a>
+          </li>
+          <li>
+            <a routerLink="/profile/notification-preferences"
+              class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-primary-50 hover:text-primary-700">
+              <i class="pi pi-bell text-[12px] w-4 text-center text-slate-400"></i>Pengaturan Notifikasi
+            </a>
+          </li>
+          <li>
+            <a routerLink="/admin"
+              class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-primary-50 hover:text-primary-700">
+              <i class="pi pi-cog text-[12px] w-4 text-center text-slate-400"></i>Admin Panel
+            </a>
+          </li>
+          <li class="border-t border-slate-100 mt-0.5 pt-0.5">
+            <a routerLink="/login"
+              class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50">
+              <i class="pi pi-sign-out text-[12px] w-4 text-center"></i>Keluar
+            </a>
+          </li>
+        </ul>
+      </div>
+    </p-popover>
+
+  </div>
+</header>

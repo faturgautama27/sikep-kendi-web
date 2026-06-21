@@ -1,0 +1,52 @@
+{
+  "checklistTemplateVersions": [
+    {
+      "id": "tplv-001-v1",
+      "templateId": "tpl-001",
+      "versionNo": 1,
+      "publishedAt": "2024-01-15T08:00:00+07:00",
+      "publishedBy": "u-001",
+      "items": []
+    },
+    {
+      "id": "tplv-001-v2",
+      "templateId": "tpl-001",
+      "versionNo": 2,
+      "publishedAt": "2024-08-10T09:00:00+07:00",
+      "publishedBy": "u-001",
+      "items": []
+    },
+    {
+      "id": "tplv-002-v1",
+      "templateId": "tpl-002",
+      "versionNo": 1,
+      "publishedAt": "2024-01-15T08:30:00+07:00",
+      "publishedBy": "u-001",
+      "items": []
+    },
+    {
+      "id": "tplv-002-v2",
+      "templateId": "tpl-002",
+      "versionNo": 2,
+      "publishedAt": "2024-08-10T09:30:00+07:00",
+      "publishedBy": "u-001",
+      "items": []
+    },
+    {
+      "id": "tplv-003-v1",
+      "templateId": "tpl-003",
+      "versionNo": 1,
+      "publishedAt": "2024-01-15T09:00:00+07:00",
+      "publishedBy": "u-001",
+      "items": []
+    },
+    {
+      "id": "tplv-003-v2",
+      "templateId": "tpl-003",
+      "versionNo": 2,
+      "publishedAt": "2024-08-10T10:00:00+07:00",
+      "publishedBy": "u-001",
+      "items": []
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+<div class="flex flex-col gap-5">
+  <!-- Header -->
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-primary-900">Order Kerja</h1>
+    <p class="text-sm text-slate-500">
+      Daftar Work Order beserta progres pengerjaan dan dokumentasi evidence dari vendor.
+    </p>
+  </header>
+
+  <!-- Filter bar -->
+  <div
+    class="flex flex-col gap-3 armadin-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4"
+  >
+    <div class="flex flex-col gap-1 md:w-72">
+      <label for="status" class="text-xs font-medium text-slate-600">Status</label>
+      <p-select
+        inputId="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Semua status"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+
+    <div class="flex flex-col gap-1 md:w-96">
+      <label for="vendor" class="text-xs font-medium text-slate-600">Vendor</label>
+      <p-select
+        inputId="vendor"
+        [options]="vendorOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Semua vendor"
+        [filter]="true"
+        filterBy="label"
+        [ngModel]="selectedVendor()"
+        (ngModelChange)="selectedVendor.set($event)"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+
+    <p-button
+      icon="pi pi-filter-slash"
+      label="Reset"
+      severity="secondary"
+      [text]="true"
+      (onClick)="onResetFilter()"
+    ></p-button>
+  </div>
+
+  <!-- Tabel WO -->
+  <div class="armadin-table-wrap">
+    <p-table
+      [value]="filteredList()"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      dataKey="id"
+      [rowHover]="true"
+      [stripedRows]="true"
+      currentPageReportTemplate="{first}–{last} dari {totalRecords} work order"
+      [showCurrentPageReport]="true"
+      responsiveLayout="scroll"
+      styleClass="text-sm"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-10"></th>
+          <th class="w-40">Nomor WO</th>
+          <th class="w-40">Pengajuan</th>
+          <th class="w-28">Kendaraan</th>
+          <th>Vendor</th>
+          <th class="w-36">Status</th>
+          <th class="w-32">Assigned</th>
+          <th class="w-32">Selesai</th>
+          <th class="w-40 text-right">Total Nominal</th>
+          <th class="w-16 text-right">Aksi</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-wo let-expanded="expanded">
+        <tr>
+          <td>
+            <p-button
+              [icon]="isExpanded(wo) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              (onClick)="onToggleExpand(wo)"
+            ></p-button>
+          </td>
+          <td class="font-semibold text-primary-700">{{ wo.nomor }}</td>
+          <td class="text-slate-700">{{ wo.pengajuanNomor }}</td>
+          <td class="font-mono text-xs text-slate-700">{{ wo.vehiclePlate }}</td>
+          <td class="text-slate-700">{{ wo.vendorNama }}</td>
+          <td>
+            <p-tag
+              [value]="statusLabel(wo.status)"
+              [severity]="statusSeverity(wo.status)"
+              [rounded]="true"
+            ></p-tag>
+          </td>
+          <td class="text-xs text-slate-500">{{ formatDate(wo.assignedAt) }}</td>
+          <td class="text-xs text-slate-500">{{ formatDate(wo.completedAt) }}</td>
+          <td class="text-right font-medium text-slate-800">
+            {{ formatRupiah(wo.totalNominal) }}
+          </td>
+          <td class="text-right">
+            <p-button
+              icon="pi pi-eye"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              pTooltip="Lihat detail"
+              (onClick)="onToggleExpand(wo)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #expandedrow let-wo>
+        @if (isExpanded(wo)) {
+          <tr>
+            <td colspan="10" class="bg-primary-50/40 p-4">
+            <div class="grid gap-5 lg:grid-cols-2">
+              <!-- Timeline progress -->
+              <p-card header="Timeline Progres" styleClass="border border-primary-100">
+                @if (wo.progressUpdates.length === 0) {
+                  <p class="text-sm text-slate-500">
+                    Belum ada update progres dari vendor.
+                  </p>
+                } @else {
+                  <p-timeline
+                    [value]="progressEvents(wo)"
+                    align="left"
+                    styleClass="w-full"
+                  >
+                    <ng-template #marker let-event>
+                      <span
+                        class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-on-primary shadow"
+                      >
+                        <i [class]="progressIcon(event.status)" class="text-sm"></i>
+                      </span>
+                    </ng-template>
+                    <ng-template #content let-event>
+                      <div class="flex flex-col gap-0.5 pb-3">
+                        <span class="text-sm font-semibold text-primary-900">
+                          {{ progressLabel(event.status) }}
+                        </span>
+                        <span class="text-xs text-slate-500">
+                          {{ formatDateTime(event.occurredAt) }} · {{ event.actorName }}
+                        </span>
+                        @if (event.notes) {
+                          <p class="mt-1 text-sm text-slate-700">{{ event.notes }}</p>
+                        }
+                      </div>
+                    </ng-template>
+                  </p-timeline>
+                }
+              </p-card>
+
+              <!-- Evidence grid -->
+              <p-card header="Dokumentasi Evidence" styleClass="border border-primary-100">
+                @if (wo.evidence.length === 0) {
+                  <p class="text-sm text-slate-500">
+                    Belum ada foto evidence yang diunggah.
+                  </p>
+                } @else {
+                  <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                    @for (ev of wo.evidence; track ev.id) {
+                      <figure
+                        class="flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 bg-surface"
+                      >
+                        <p-image
+                          [src]="evidenceUrl(ev)"
+                          [preview]="true"
+                          alt="Evidence {{ evidenceLabel(ev.kategori) }}"
+                          imageClass="aspect-[3/2] w-full object-cover"
+                        ></p-image>
+                        <figcaption class="px-2 pb-2 pt-1 text-xs text-slate-600">
+                          <span class="block font-semibold text-primary-700">
+                            {{ evidenceLabel(ev.kategori) }}
+                          </span>
+                          <span class="text-[10px] text-slate-500">
+                            {{ formatDateTime(ev.uploadedAt) }}
+                          </span>
+                        </figcaption>
+                      </figure>
+                    }
+                  </div>
+                }
+              </p-card>
+            </div>
+
+            @if (wo.status === 'validated_rejected' && wo.rejectedReason) {
+              <div
+                class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+              >
+                <i class="pi pi-exclamation-triangle mr-2"></i>
+                <span class="font-semibold">Alasan validasi ditolak:</span>
+                {{ wo.rejectedReason }}
+              </div>
+            }
+          </td>
+        </tr>
+        }
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="10" class="py-10 text-center text-sm text-slate-500">
+            Tidak ada work order yang cocok dengan filter saat ini.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

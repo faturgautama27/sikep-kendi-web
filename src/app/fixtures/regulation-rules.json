@@ -1,0 +1,128 @@
+{
+  "regulationRules": [
+    {
+      "id": "rule-001-v2-a",
+      "regulationVersionId": "regv-001-v2",
+      "vehicleType": "mobil",
+      "params": { "intervalKm": 10000, "intervalBulan": 6 },
+      "description": "Servis mobil setiap 10.000 km atau 6 bulan"
+    },
+    {
+      "id": "rule-001-v2-b",
+      "regulationVersionId": "regv-001-v2",
+      "vehicleType": "motor",
+      "params": { "intervalKm": 4000, "intervalBulan": 3 },
+      "description": "Servis motor setiap 4.000 km atau 3 bulan"
+    },
+    {
+      "id": "rule-001-v2-c",
+      "regulationVersionId": "regv-001-v2",
+      "vehicleType": "truk",
+      "params": { "intervalKm": 15000, "intervalBulan": 4 },
+      "description": "Servis truk setiap 15.000 km atau 4 bulan"
+    },
+    {
+      "id": "rule-001-v2-d",
+      "regulationVersionId": "regv-001-v2",
+      "vehicleType": "bus",
+      "params": { "intervalKm": 20000, "intervalBulan": 4 },
+      "description": "Servis bus setiap 20.000 km atau 4 bulan"
+    },
+    {
+      "id": "rule-002-v2-a",
+      "regulationVersionId": "regv-002-v2",
+      "vehicleType": "mobil",
+      "params": { "kuotaLiterPerBulan": 200, "jenisBbm": "pertamax" },
+      "description": "Mobil — pagu 200 liter Pertamax per bulan"
+    },
+    {
+      "id": "rule-002-v2-b",
+      "regulationVersionId": "regv-002-v2",
+      "vehicleType": "motor",
+      "params": { "kuotaLiterPerBulan": 35, "jenisBbm": "pertalite" },
+      "description": "Motor — pagu 35 liter Pertalite per bulan"
+    },
+    {
+      "id": "rule-002-v2-c",
+      "regulationVersionId": "regv-002-v2",
+      "vehicleType": "truk",
+      "params": { "kuotaLiterPerBulan": 350, "jenisBbm": "dexlite" },
+      "description": "Truk — pagu 350 liter Dexlite per bulan"
+    },
+    {
+      "id": "rule-002-v2-d",
+      "regulationVersionId": "regv-002-v2",
+      "vehicleType": "bus",
+      "params": { "kuotaLiterPerBulan": 500, "jenisBbm": "dexlite" },
+      "description": "Bus — pagu 500 liter Dexlite per bulan"
+    },
+    {
+      "id": "rule-003-v2-a",
+      "regulationVersionId": "regv-003-v2",
+      "vehicleType": "all",
+      "params": { "wajibDokumen": ["STNK", "PAJAK_TAHUNAN"], "ingatkanHariSebelum": 30 },
+      "description": "STNK dan Pajak Tahunan wajib untuk semua kendaraan"
+    },
+    {
+      "id": "rule-003-v2-b",
+      "regulationVersionId": "regv-003-v2",
+      "vehicleType": "mobil",
+      "params": { "wajibDokumen": ["KIR"], "ingatkanHariSebelum": 30 },
+      "description": "KIR wajib untuk mobil dinas resmi"
+    },
+    {
+      "id": "rule-003-v2-c",
+      "regulationVersionId": "regv-003-v2",
+      "vehicleType": "truk",
+      "params": { "wajibDokumen": ["KIR"], "ingatkanHariSebelum": 30 },
+      "description": "KIR wajib untuk truk"
+    },
+    {
+      "id": "rule-003-v2-d",
+      "regulationVersionId": "regv-003-v2",
+      "vehicleType": "bus",
+      "params": { "wajibDokumen": ["KIR"], "ingatkanHariSebelum": 30 },
+      "description": "KIR wajib untuk bus"
+    },
+    {
+      "id": "rule-004-v2-a",
+      "regulationVersionId": "regv-004-v2",
+      "vehicleType": "mobil",
+      "params": {
+        "paguTahunan": 20000000,
+        "ambangJenjang2": 5000000,
+        "ambangJenjang3": 25000000
+      },
+      "description": "Mobil — pagu 20 juta/tahun"
+    },
+    {
+      "id": "rule-004-v2-b",
+      "regulationVersionId": "regv-004-v2",
+      "vehicleType": "motor",
+      "params": { "paguTahunan": 5000000, "ambangJenjang2": 2000000, "ambangJenjang3": 10000000 },
+      "description": "Motor — pagu 5 juta/tahun"
+    },
+    {
+      "id": "rule-004-v2-c",
+      "regulationVersionId": "regv-004-v2",
+      "vehicleType": "truk",
+      "params": {
+        "paguTahunan": 35000000,
+        "ambangJenjang2": 5000000,
+        "ambangJenjang3": 25000000
+      },
+      "description": "Truk — pagu 35 juta/tahun"
+    },
+    {
+      "id": "rule-004-v2-d",
+      "regulationVersionId": "regv-004-v2",
+      "vehicleType": "bus",
+      "params": {
+        "paguTahunan": 50000000,
+        "ambangJenjang2": 5000000,
+        "ambangJenjang3": 25000000
+      },
+      "description": "Bus — pagu 50 juta/tahun"
+    }
+  ]
+}

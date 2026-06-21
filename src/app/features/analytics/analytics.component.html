@@ -1,0 +1,179 @@
+<section class="flex flex-col gap-6">
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-primary-900">Analytics</h1>
+    <p class="text-sm text-slate-500">
+      Indikator deviasi armada, performa vendor, dan komposisi biaya operasional.
+    </p>
+  </header>
+
+  <!-- Top Deviation Vehicles -->
+  <p-card>
+    <ng-template #title>
+      <div class="flex items-center gap-2 text-slate-700">
+        <i class="pi pi-exclamation-triangle text-amber-600"></i>
+        <span class="text-base font-semibold">Top 10 Deviation Vehicles</span>
+      </div>
+    </ng-template>
+
+    <p-table
+      [value]="topDeviation()"
+      [rowHover]="true"
+      [paginator]="false"
+      styleClass="p-datatable-sm"
+      responsiveLayout="scroll"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Nopol</th>
+          <th>Merk / Tipe</th>
+          <th class="text-right">Deviation Count</th>
+          <th>Last Deviation</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-vehicle>
+        <tr>
+          <td class="font-mono font-semibold text-primary-700">{{ vehicle.vehiclePlate }}</td>
+          <td>
+            <div class="flex flex-col">
+              <span class="text-sm text-slate-700">{{ vehicle.merk }}</span>
+              <span class="text-xs text-slate-500">{{ vehicle.tipe }}</span>
+            </div>
+          </td>
+          <td class="text-right">
+            <span
+              class="inline-flex items-center justify-center rounded-full bg-amber-50 px-2 py-0.5 text-sm font-semibold text-amber-700"
+            >
+              {{ vehicle.deviationCount }}
+            </span>
+          </td>
+          <td class="text-sm text-slate-600">{{ formatDate(vehicle.lastDeviationAt) }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="py-6 text-center text-sm text-slate-500">
+            Belum ada deviation tercatat.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Vendor Performance -->
+  <p-card>
+    <ng-template #title>
+      <div class="flex items-center gap-2 text-slate-700">
+        <i class="pi pi-briefcase text-primary-700"></i>
+        <span class="text-base font-semibold">Performa Vendor</span>
+      </div>
+    </ng-template>
+
+    <p-table
+      [value]="vendorPerformance()"
+      [rowHover]="true"
+      [paginator]="false"
+      styleClass="p-datatable-sm"
+      responsiveLayout="scroll"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Nama Vendor</th>
+          <th class="text-right">Total WO</th>
+          <th class="text-right">Avg Completion (hari)</th>
+          <th class="text-right">Rejection Rate</th>
+          <th>Rating</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-vendor>
+        <tr>
+          <td class="text-sm font-medium text-slate-700">{{ vendor.vendorNama }}</td>
+          <td class="text-right text-sm text-slate-700">{{ vendor.totalWorkOrders }}</td>
+          <td class="text-right text-sm text-slate-700">
+            {{ vendor.avgCompletionDays | number: '1.1-1' }}
+          </td>
+          <td class="text-right">
+            <span
+              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+              [class.bg-emerald-50]="vendor.rejectionRate < 0.1"
+              [class.text-emerald-700]="vendor.rejectionRate < 0.1"
+              [class.bg-amber-50]="vendor.rejectionRate >= 0.1 && vendor.rejectionRate < 0.2"
+              [class.text-amber-700]="vendor.rejectionRate >= 0.1 && vendor.rejectionRate < 0.2"
+              [class.bg-red-50]="vendor.rejectionRate >= 0.2"
+              [class.text-red-700]="vendor.rejectionRate >= 0.2"
+            >
+              {{ formatPercent(vendor.rejectionRate) }}
+            </span>
+          </td>
+          <td>
+            <p-rating [ngModel]="vendor.rating" [readonly]="true" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="py-6 text-center text-sm text-slate-500">
+            Belum ada data vendor.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Cost Breakdown -->
+  <p-card>
+    <ng-template #title>
+      <div class="flex items-center gap-2 text-slate-700">
+        <i class="pi pi-chart-bar text-primary-700"></i>
+        <span class="text-base font-semibold">Cost Breakdown</span>
+        @if (costBreakdown(); as cb) {
+          <span class="text-xs font-normal text-slate-500">— Periode {{ cb.period }}</span>
+        }
+      </div>
+    </ng-template>
+
+    @if (costBreakdown(); as cb) {
+      <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+        <span class="text-xs font-medium uppercase text-slate-500">Total Biaya</span>
+        <span class="text-xl font-bold text-primary-900">{{ formatRupiah(cb.total) }}</span>
+      </div>
+    }
+
+    <p-table
+      [value]="costRows()"
+      [paginator]="false"
+      styleClass="p-datatable-sm"
+      responsiveLayout="scroll"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Kategori</th>
+          <th>Proporsi</th>
+          <th class="w-1/4 text-right">Nominal</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td class="text-sm font-medium text-slate-700">{{ row.kategori }}</td>
+          <td>
+            <div class="flex items-center gap-2">
+              <p-progressBar [value]="row.percent" [showValue]="false" class="flex-1" />
+              <span class="w-12 text-right text-xs font-medium text-slate-600">
+                {{ row.percent }}%
+              </span>
+            </div>
+          </td>
+          <td class="text-right text-sm font-semibold text-slate-800">
+            {{ formatRupiah(row.nominal) }}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="3" class="py-6 text-center text-sm text-slate-500">
+            Cost breakdown belum tersedia.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</section>

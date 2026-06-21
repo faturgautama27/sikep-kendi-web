@@ -1,0 +1,539 @@
+{
+  "notifications": [
+    {
+      "id": "ntf-001",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "critical",
+      "triggerKind": "sim_expired",
+      "title": "SIM Supir Sudah Kadaluarsa",
+      "message": "SIM A milik Rudi Hartono (NIP 198811252012051003) sudah expired sejak 25 November 2024. Status supir sudah otomatis di-set ke sim_expired.",
+      "entityKind": "Driver",
+      "entityId": "drv-003",
+      "entityRef": "Rudi Hartono",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2024-11-26T08:00:00+07:00",
+          "errorMessage": null
+        },
+        {
+          "channel": "email",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2024-11-26T08:00:05+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2024-11-26T08:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": "2024-11-27T08:00:00+07:00",
+      "link": "/drivers/drv-003"
+    },
+    {
+      "id": "ntf-002",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "critical",
+      "triggerKind": "document_expired",
+      "title": "Dokumen KIR Kadaluarsa",
+      "message": "KIR kendaraan Toyota Innova B 1234 ABC sudah expired hari ini (15 Januari 2025). Kendaraan tidak boleh dipakai sampai KIR diperpanjang.",
+      "entityKind": "Vehicle",
+      "entityId": "v-001",
+      "entityRef": "B 1234 ABC",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:00:00+07:00",
+          "errorMessage": null
+        },
+        {
+          "channel": "email",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:00:05+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T07:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/vehicles/v-001/documents"
+    },
+    {
+      "id": "ntf-003",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "critical",
+      "triggerKind": "document_expired",
+      "title": "STNK Kadaluarsa Lebih Dari 6 Bulan",
+      "message": "STNK Mitsubishi Pajero D 5678 EFG sudah expired sejak 20 Juni 2024 (lebih dari 200 hari). Segera perpanjang.",
+      "entityKind": "Vehicle",
+      "entityId": "v-002",
+      "entityRef": "D 5678 EFG",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:01:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T07:01:00+07:00",
+      "readAt": null,
+      "escalatedAt": "2025-01-15T07:01:00+07:00",
+      "link": "/vehicles/v-002/documents"
+    },
+    {
+      "id": "ntf-004",
+      "recipientId": "u-002",
+      "recipientName": "Drs. Bambang Sutrisno, M.M.",
+      "severity": "critical",
+      "triggerKind": "spj_unmatched_14d",
+      "title": "SPJ Belum Match >14 Hari",
+      "message": "SPJ-VEN003-2024-0090 dari Bengkel Sumber Rejeki Motor sudah 15 hari belum di-match dengan transaksi internal. Perlu eskalasi.",
+      "entityKind": "SpjExternal",
+      "entityId": "spj-010",
+      "entityRef": "SPJ-VEN003-2024-0090",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-14T07:00:00+07:00",
+          "errorMessage": null
+        },
+        {
+          "channel": "email",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-14T07:00:05+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-14T07:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": "2025-01-14T07:00:00+07:00",
+      "link": "/spj/spj-010"
+    },
+    {
+      "id": "ntf-005",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "critical",
+      "triggerKind": "recurring_deviation",
+      "title": "Deviation Berulang — Kebocoran Oli Pajero",
+      "message": "Item 'Periksa level oli mesin' pada Pajero D 5678 EFG sudah dilaporkan tidak_ok 3 kali berturut-turut (2, 4, 6 Januari). Perlu segera dibuat pengajuan corrective.",
+      "entityKind": "Vehicle",
+      "entityId": "v-002",
+      "entityRef": "D 5678 EFG",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-08T08:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-08T08:00:00+07:00",
+      "readAt": "2025-01-09T13:00:00+07:00",
+      "escalatedAt": null,
+      "link": "/vehicles/v-002/checklist-history"
+    },
+    {
+      "id": "ntf-006",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "warning",
+      "triggerKind": "document_expiring",
+      "title": "Pajak Tahunan Akan Kadaluarsa 59 Hari Lagi",
+      "message": "Pajak Tahunan Toyota Innova B 1234 ABC akan kadaluarsa pada 15 Maret 2025 (59 hari lagi). Siapkan perpanjangan.",
+      "entityKind": "Vehicle",
+      "entityId": "v-001",
+      "entityRef": "B 1234 ABC",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-13T07:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-13T07:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/vehicles/v-001/documents"
+    },
+    {
+      "id": "ntf-007",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "warning",
+      "triggerKind": "document_expiring",
+      "title": "KIR Akan Kadaluarsa 21 Hari Lagi",
+      "message": "KIR Mitsubishi Colt Diesel B 4567 TUV akan kadaluarsa pada 5 Februari 2025 (21 hari lagi).",
+      "entityKind": "Vehicle",
+      "entityId": "v-007",
+      "entityRef": "B 4567 TUV",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:02:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T07:02:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/vehicles/v-007/documents"
+    },
+    {
+      "id": "ntf-008",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "warning",
+      "triggerKind": "sim_expiring",
+      "title": "SIM B1 Umum Akan Kadaluarsa 26 Hari Lagi",
+      "message": "SIM B1 Umum milik Dedi Kurniawan akan kadaluarsa pada 10 Februari 2025 (26 hari lagi).",
+      "entityKind": "Driver",
+      "entityId": "drv-002",
+      "entityRef": "Dedi Kurniawan",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:03:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T07:03:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/drivers/drv-002"
+    },
+    {
+      "id": "ntf-009",
+      "recipientId": "u-002",
+      "recipientName": "Drs. Bambang Sutrisno, M.M.",
+      "severity": "warning",
+      "triggerKind": "spj_unmatched_7d",
+      "title": "SPJ Belum Match >7 Hari",
+      "message": "SPJ-VEN001-2025-0004 sudah 8 hari belum di-match dengan transaksi internal.",
+      "entityKind": "SpjExternal",
+      "entityId": "spj-009",
+      "entityRef": "SPJ-VEN001-2025-0004",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:04:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T07:04:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/spj/spj-009"
+    },
+    {
+      "id": "ntf-010",
+      "recipientId": "u-002",
+      "recipientName": "Drs. Bambang Sutrisno, M.M.",
+      "severity": "warning",
+      "triggerKind": "pengajuan_stuck",
+      "title": "Pengajuan Stuck >3 Hari Kerja",
+      "message": "Pengajuan PMNT-2025-0003 (Perbaikan kebocoran oli Pajero) sudah 3 hari kerja menunggu approval di tingkat 2.",
+      "entityKind": "Pengajuan",
+      "entityId": "pmnt-003",
+      "entityRef": "PMNT-2025-0003",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T07:05:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T07:05:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/pengajuan/pmnt-003"
+    },
+    {
+      "id": "ntf-011",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "warning",
+      "triggerKind": "service_due_km",
+      "title": "Servis Berkala Mendekat — Pajero",
+      "message": "Mitsubishi Pajero D 5678 EFG sudah 142.800 km, mendekati interval servis berikutnya (target 150.000 km).",
+      "entityKind": "Vehicle",
+      "entityId": "v-002",
+      "entityRef": "D 5678 EFG",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-13T07:05:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-13T07:05:00+07:00",
+      "readAt": "2025-01-14T08:30:00+07:00",
+      "escalatedAt": null,
+      "link": "/vehicles/v-002"
+    },
+    {
+      "id": "ntf-012",
+      "recipientId": "u-002",
+      "recipientName": "Drs. Bambang Sutrisno, M.M.",
+      "severity": "warning",
+      "triggerKind": "budget_threshold",
+      "title": "Pagu Anggaran 80% Terpakai",
+      "message": "Pagu pemeliharaan tahunan untuk Hino Dutro D 8901 WXY sudah terpakai 82% (Rp 28,7 juta dari Rp 35 juta).",
+      "entityKind": "Vehicle",
+      "entityId": "v-008",
+      "entityRef": "D 8901 WXY",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-12T07:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-12T07:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/vehicles/v-008/budget"
+    },
+    {
+      "id": "ntf-013",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "warning",
+      "triggerKind": "over_quota_bbm",
+      "title": "Konsumsi BBM Melebihi Pagu Bulanan",
+      "message": "Bus Hino R260 (B 5678 ZAB) melebihi pagu BBM 500 liter/bulan pada Desember 2024 (530 liter terpakai, 6% over).",
+      "entityKind": "Vehicle",
+      "entityId": "v-009",
+      "entityRef": "B 5678 ZAB",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-01T07:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-01T07:00:00+07:00",
+      "readAt": "2025-01-02T09:00:00+07:00",
+      "escalatedAt": null,
+      "link": "/fuel/quotas"
+    },
+    {
+      "id": "ntf-014",
+      "recipientId": "u-002",
+      "recipientName": "Drs. Bambang Sutrisno, M.M.",
+      "severity": "warning",
+      "triggerKind": "deviation_unresponded",
+      "title": "Deviation Belum Direspon >2 Hari",
+      "message": "Deviation 'Lampu rem belakang putus' pada NMax D 7890 NOP belum direspon dengan pengajuan corrective.",
+      "entityKind": "Vehicle",
+      "entityId": "v-005",
+      "entityRef": "D 7890 NOP",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-14T07:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-14T07:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/vehicles/v-005/checklist-history"
+    },
+    {
+      "id": "ntf-015",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "info",
+      "triggerKind": "service_due_km",
+      "title": "Servis Berkala Mendekat — Vario",
+      "message": "Honda Vario B 3456 KLM sudah 18.750 km. Servis berkala motor setiap 4.000 km.",
+      "entityKind": "Vehicle",
+      "entityId": "v-004",
+      "entityRef": "B 3456 KLM",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-12T07:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-12T07:00:00+07:00",
+      "readAt": "2025-01-12T10:00:00+07:00",
+      "escalatedAt": null,
+      "link": "/vehicles/v-004"
+    },
+    {
+      "id": "ntf-016",
+      "recipientId": "u-006",
+      "recipientName": "Agus Pramono",
+      "severity": "info",
+      "triggerKind": "service_due_time",
+      "title": "Checklist Harian Hari Ini",
+      "message": "Jangan lupa lakukan checklist harian sebelum berangkat dinas.",
+      "entityKind": "Vehicle",
+      "entityId": "v-001",
+      "entityRef": "B 1234 ABC",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-15T05:30:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-15T05:30:00+07:00",
+      "readAt": "2025-01-15T06:00:00+07:00",
+      "escalatedAt": null,
+      "link": "/checklist/new"
+    },
+    {
+      "id": "ntf-017",
+      "recipientId": "u-003",
+      "recipientName": "Siti Nurhaliza, S.E.",
+      "severity": "info",
+      "triggerKind": "service_due_km",
+      "title": "Pengajuan Disetujui Otomatis",
+      "message": "Pengajuan PMNT-2025-0013 (Servis berkala 16.000 km Vario) sudah disetujui di jenjang 1.",
+      "entityKind": "Pengajuan",
+      "entityId": "pmnt-013",
+      "entityRef": "PMNT-2025-0013",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-14T09:00:30+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-14T09:00:30+07:00",
+      "readAt": "2025-01-14T13:00:00+07:00",
+      "escalatedAt": null,
+      "link": "/pengajuan/pmnt-013"
+    },
+    {
+      "id": "ntf-018",
+      "recipientId": "u-002",
+      "recipientName": "Drs. Bambang Sutrisno, M.M.",
+      "severity": "info",
+      "triggerKind": "service_due_time",
+      "title": "Pengajuan Menunggu Approval Anda",
+      "message": "Pengajuan PMNT-2025-0003 (Rp 4,25 juta) menunggu persetujuan Anda di jenjang 2.",
+      "entityKind": "Pengajuan",
+      "entityId": "pmnt-003",
+      "entityRef": "PMNT-2025-0003",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-10T10:01:00+07:00",
+          "errorMessage": null
+        },
+        {
+          "channel": "email",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-10T10:01:05+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-10T10:01:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/pengajuan/pmnt-003"
+    },
+    {
+      "id": "ntf-019",
+      "recipientId": "u-005",
+      "recipientName": "PT Bengkel Mandiri Sejahtera",
+      "severity": "info",
+      "triggerKind": "service_due_time",
+      "title": "Work Order Baru Diassign",
+      "message": "Anda mendapat WO baru WO-2025-0001 untuk Toyota Innova B 1234 ABC.",
+      "entityKind": "WorkOrder",
+      "entityId": "wo-001",
+      "entityRef": "WO-2025-0001",
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-02T11:00:30+07:00",
+          "errorMessage": null
+        },
+        {
+          "channel": "email",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-02T11:00:35+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-02T11:00:30+07:00",
+      "readAt": "2025-01-02T13:00:00+07:00",
+      "escalatedAt": null,
+      "link": "/work-orders/wo-001"
+    },
+    {
+      "id": "ntf-020",
+      "recipientId": "u-004",
+      "recipientName": "Hendra Setiawan, S.T.",
+      "severity": "info",
+      "triggerKind": "service_due_time",
+      "title": "Laporan Audit Bulanan Tersedia",
+      "message": "Laporan audit Desember 2024 sudah dapat diunduh dari menu Audit Log.",
+      "entityKind": null,
+      "entityId": null,
+      "entityRef": null,
+      "channelStatus": [
+        {
+          "channel": "in_app",
+          "status": "sent",
+          "attempts": 1,
+          "lastAttemptAt": "2025-01-05T08:00:00+07:00",
+          "errorMessage": null
+        }
+      ],
+      "createdAt": "2025-01-05T08:00:00+07:00",
+      "readAt": null,
+      "escalatedAt": null,
+      "link": "/audit"
+    }
+  ]
+}

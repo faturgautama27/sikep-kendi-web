@@ -1,0 +1,49 @@
+{
+  "sparepartPriceHistory": [
+    {
+      "id": "sph-001",
+      "sparepartId": "sp-001",
+      "hargaLama": 365000,
+      "hargaBaru": 385000,
+      "changedAt": "2024-09-15T10:00:00+07:00",
+      "changedBy": "u-003",
+      "changedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "sph-002",
+      "sparepartId": "sp-007",
+      "hargaLama": 1180000,
+      "hargaBaru": 1250000,
+      "changedAt": "2024-10-22T11:30:00+07:00",
+      "changedBy": "u-003",
+      "changedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "sph-003",
+      "sparepartId": "sp-009",
+      "hargaLama": 2050000,
+      "hargaBaru": 2150000,
+      "changedAt": "2024-11-05T14:15:00+07:00",
+      "changedBy": "u-003",
+      "changedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "sph-004",
+      "sparepartId": "sp-012",
+      "hargaLama": 825000,
+      "hargaBaru": 875000,
+      "changedAt": "2024-12-08T09:00:00+07:00",
+      "changedBy": "u-003",
+      "changedByName": "Siti Nurhaliza, S.E."
+    },
+    {
+      "id": "sph-005",
+      "sparepartId": "sp-013",
+      "hargaLama": 1750000,
+      "hargaBaru": 1850000,
+      "changedAt": "2024-12-20T13:45:00+07:00",
+      "changedBy": "u-003",
+      "changedByName": "Siti Nurhaliza, S.E."
+    }
+  ]
+}

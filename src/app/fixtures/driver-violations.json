@@ -1,0 +1,31 @@
+{
+  "driverViolations": [
+    {
+      "id": "vio-001",
+      "driverId": "drv-002",
+      "jenis": "Tilang Lampu Lalu Lintas",
+      "terjadiAt": "2024-09-12T14:30:00+07:00",
+      "nominal": 500000,
+      "docImageId": "img-vio-001",
+      "description": "Menerobos lampu merah di Jl. Pasteur Bandung saat dinas perjalanan ke Cimahi"
+    },
+    {
+      "id": "vio-002",
+      "driverId": "drv-003",
+      "jenis": "Tilang Kelebihan Muatan",
+      "terjadiAt": "2024-10-25T09:15:00+07:00",
+      "nominal": 750000,
+      "docImageId": "img-vio-002",
+      "description": "Muatan melebihi kapasitas saat membawa logistik ke Garut"
+    },
+    {
+      "id": "vio-003",
+      "driverId": "drv-005",
+      "jenis": "Pelanggaran Internal — Penggunaan di Luar Jam Dinas",
+      "terjadiAt": "2024-12-08T22:45:00+07:00",
+      "nominal": 250000,
+      "docImageId": null,
+      "description": "Kendaraan dinas digunakan di luar jam kerja tanpa surat tugas"
+    }
+  ]
+}

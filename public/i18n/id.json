@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "ARMADIN",
+    "tagline": "Armada Dinas Terkelola"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "vehicles": "Kendaraan",
+    "regulations": "Regulasi",
+    "spareparts": "Sparepart",
+    "drivers": "Supir",
+    "checklist": "Checklist",
+    "pengajuan": "Pengajuan",
+    "workOrders": "Order Kerja",
+    "fuel": "BBM",
+    "spj": "SPJ",
+    "audit": "Audit",
+    "analytics": "Analytics",
+    "admin": "Admin",
+    "logout": "Keluar"
+  },
+  "auth": {
+    "login": "Masuk",
+    "username": "Nama Pengguna",
+    "password": "Kata Sandi",
+    "submit": "Masuk"
+  },
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Ubah",
+    "create": "Buat",
+    "search": "Cari",
+    "loading": "Memuat...",
+    "noData": "Tidak ada data",
+    "yes": "Ya",
+    "no": "Tidak"
+  },
+  "preview": {
+    "banner": "Mode Preview — Data Dummy"
+  },
+  "roles": {
+    "supir": "Supir",
+    "vendor": "Vendor",
+    "pengurus_barang": "Pengurus Barang",
+    "kasubag": "Kasubag",
+    "admin_sistem": "Admin Sistem",
+    "auditor": "Auditor"
+  }
+}

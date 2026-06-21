@@ -1,0 +1,71 @@
+import type { Uuid, Timestamp, Money } from './common';
+import type { Image } from './image';
+
+export type PengajuanJenis = 'preventive' | 'corrective' | 'predictive';
+export type PengajuanStatus =
+  | 'draft'
+  | 'submitted'
+  | 'awaiting_approval'
+  | 'approved'
+  | 'rejected'
+  | 'in_work_order'
+  | 'closed';
+export type ApprovalDecision = 'pending' | 'approved' | 'rejected';
+
+export interface Pengajuan {
+  id: Uuid;
+  nomor: string; // human-friendly: PMNT-2025-0001
+  jenis: PengajuanJenis;
+  vehicleId: Uuid;
+  vehiclePlate: string;
+  regulationVersionId: Uuid;
+  judul: string;
+  deskripsi: string;
+  kategoriKerusakan: string | null;
+  totalEstimasi: Money;
+  status: PengajuanStatus;
+  createdBy: Uuid;
+  createdByName: string;
+  sourceExecutionId: Uuid | null; // referensi ke ChecklistExecution jika auto
+  sourceItemId: Uuid | null;
+  spareparts: PengajuanSparepart[];
+  approvalSteps: ApprovalStep[];
+  workOrderId: Uuid | null;
+  photos: Image[];
+  createdAt: Timestamp;
+  submittedAt: Timestamp | null;
+  approvedAt: Timestamp | null;
+  rejectedAt: Timestamp | null;
+}
+
+export interface PengajuanSparepart {
+  id: Uuid;
+  pengajuanId: Uuid;
+  sparepartId: Uuid;
+  sparepartKode: string;
+  sparepartNama: string;
+  qty: number;
+  hargaSatuanSnapshot: Money;
+  subtotal: Money;
+}
+
+export interface ApprovalStep {
+  id: Uuid;
+  pengajuanId: Uuid;
+  jenjangNo: number; // 1, 2, 3...
+  role: string; // 'pengurus_barang' | 'kasubag' | 'kepala_dinas'
+  approverId: Uuid | null;
+  approverName: string | null;
+  decision: ApprovalDecision;
+  decidedAt: Timestamp | null;
+  comment: string;
+  ambangNominalMin: Money;
+}
+
+export interface ApprovalPolicy {
+  id: Uuid;
+  jenis: PengajuanJenis;
+  jenjangNo: number;
+  ambangNominalMin: Money;
+  role: string;
+}

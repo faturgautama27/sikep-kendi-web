@@ -1,0 +1,40 @@
+{
+  "workOrderEvidence": [
+    {
+      "id": "woe-001-1",
+      "workOrderId": "wo-001",
+      "kategori": "kondisi_awal",
+      "imageId": "img-kerusakan-002",
+      "image": null,
+      "uploadedAt": "2025-01-03T09:00:00+07:00",
+      "uploadedBy": "u-005"
+    },
+    {
+      "id": "woe-001-2",
+      "workOrderId": "wo-001",
+      "kategori": "sparepart_sebelum",
+      "imageId": "img-sp-sebelum-001",
+      "image": null,
+      "uploadedAt": "2025-01-03T09:30:00+07:00",
+      "uploadedBy": "u-005"
+    },
+    {
+      "id": "woe-001-3",
+      "workOrderId": "wo-001",
+      "kategori": "sparepart_sesudah",
+      "imageId": "img-sp-sesudah-001",
+      "image": null,
+      "uploadedAt": "2025-01-04T15:30:00+07:00",
+      "uploadedBy": "u-005"
+    },
+    {
+      "id": "woe-001-4",
+      "workOrderId": "wo-001",
+      "kategori": "pasca_perbaikan",
+      "imageId": "img-pasca-001",
+      "image": null,
+      "uploadedAt": "2025-01-04T16:00:00+07:00",
+      "uploadedBy": "u-005"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+<aside class="flex h-full w-64 shrink-0 flex-col bg-white border-r border-slate-200 shadow-sm" aria-label="Navigasi utama">
+
+  <!-- Brand -->
+  <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 shadow-md shadow-primary-200">
+      <i class="pi pi-truck text-white text-sm"></i>
+    </div>
+    <div>
+      <p class="text-sm font-extrabold tracking-tight text-primary-700">SiKeP KenDI</p>
+      <p class="text-[10px] text-slate-400 leading-none">Sistem Kendali Pemeliharaan Kendaraan Dinas</p>
+    </div>
+  </div>
+
+  <!-- Nav grouped -->
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+
+    @for (group of navGroups; track group.label) {
+      <div>
+        <p class="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          {{ group.label }}
+        </p>
+        @for (item of group.items; track item.route) {
+          <a [routerLink]="item.route"
+            routerLinkActive
+            #rla="routerLinkActive"
+            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
+            [class]="rla.isActive
+              ? 'bg-primary-600 text-white shadow-md shadow-primary-200'
+              : 'text-slate-600 hover:bg-primary-50 hover:text-primary-700'">
+            <i [class]="item.icon + ' text-sm w-4 text-center flex-shrink-0'"></i>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </div>
+    }
+
+  </nav>
+
+  <!-- Footer -->
+  <div class="border-t border-slate-100 px-4 py-3">
+    <p class="text-[10px] text-slate-400 text-center">© SiKeP KenDI · v2-preview</p>
+  </div>
+
+</aside>

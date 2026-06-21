@@ -1,0 +1,246 @@
+<section class="flex flex-col gap-6">
+  <!-- Header -->
+  <header class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl font-bold text-primary-900">Audit Trail</h1>
+      <p class="text-sm text-slate-500">
+        Catatan aktivitas sistem dengan hash chain untuk integritas log.
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <p-button
+        icon="pi pi-file"
+        label="Export CSV"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="onExport('csv')"
+      />
+      <p-button
+        icon="pi pi-file-pdf"
+        label="Export PDF"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="onExport('pdf')"
+      />
+    </div>
+  </header>
+
+  <!-- Filter bar -->
+  <div class="rounded-lg border border-slate-200 bg-white p-4">
+    <h2 class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+      <i class="pi pi-filter text-primary-700"></i>
+      Filter
+    </h2>
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Tanggal Dari</label>
+        <p-datepicker
+          [ngModel]="filterForm().fromDate"
+          (ngModelChange)="updateFilter('fromDate', $event)"
+          dateFormat="dd/mm/yy"
+          placeholder="Pilih tanggal"
+          [showIcon]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Tanggal Sampai</label>
+        <p-datepicker
+          [ngModel]="filterForm().toDate"
+          (ngModelChange)="updateFilter('toDate', $event)"
+          dateFormat="dd/mm/yy"
+          placeholder="Pilih tanggal"
+          [showIcon]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Aktor</label>
+        <p-select
+          [options]="actorOptions()"
+          [ngModel]="filterForm().actorId"
+          (ngModelChange)="updateFilter('actorId', $event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Aktor"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Role</label>
+        <p-select
+          [options]="roleOptions"
+          [ngModel]="filterForm().role"
+          (ngModelChange)="updateFilter('role', $event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Role"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Entitas</label>
+        <p-select
+          [options]="entityOptions"
+          [ngModel]="filterForm().entity"
+          (ngModelChange)="updateFilter('entity', $event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Entitas"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Aksi</label>
+        <p-select
+          [options]="actionOptions"
+          [ngModel]="filterForm().action"
+          (ngModelChange)="updateFilter('action', $event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Aksi"
+          appendTo="body"
+        />
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-center justify-end gap-2">
+      <p-button
+        label="Reset"
+        icon="pi pi-undo"
+        severity="secondary"
+        [text]="true"
+        (onClick)="onResetFilter()"
+      />
+      <p-button
+        label="Terapkan Filter"
+        icon="pi pi-check"
+        severity="primary"
+        (onClick)="onApplyFilter()"
+      />
+    </div>
+  </div>
+
+  <!-- Audit table -->
+  <p-table
+    [value]="logs()"
+    dataKey="id"
+    [rowHover]="true"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50, 100]"
+    class="p-datatable-sm"
+  >
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>Timestamp</th>
+        <th>Aktor</th>
+        <th>Role</th>
+        <th>Aksi</th>
+        <th>Entitas</th>
+        <th>Entity Ref</th>
+        <th>IP</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-log let-expanded="expanded">
+      <tr>
+        <td>
+          <p-button
+            type="button"
+            [text]="true"
+            [rounded]="true"
+            [pRowToggler]="log"
+            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+          />
+        </td>
+        <td class="whitespace-nowrap text-sm text-slate-600">
+          {{ formatDateTime(log.occurredAt) }}
+        </td>
+        <td class="text-sm text-slate-700">{{ log.actorName }}</td>
+        <td>
+          <p-tag [value]="log.role" [severity]="roleSeverity(log.role)" />
+        </td>
+        <td>
+          <p-tag [value]="log.action" [severity]="actionSeverity(log.action)" />
+        </td>
+        <td class="text-sm text-slate-700">{{ log.entity }}</td>
+        <td class="font-mono text-xs text-primary-700">{{ log.entityRef ?? '—' }}</td>
+        <td class="font-mono text-xs text-slate-500">{{ log.ip }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template #expandedrow let-log>
+      <tr>
+        <td colspan="8" class="bg-slate-50">
+          <div class="grid grid-cols-1 gap-4 px-4 py-4 md:grid-cols-2">
+            <div>
+              <h4 class="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+                <i class="pi pi-arrow-circle-left"></i>
+                Before
+              </h4>
+              <pre
+                class="overflow-x-auto rounded-md border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700"
+              >{{ formatJson(log.before) }}</pre>
+            </div>
+            <div>
+              <h4 class="mb-2 flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+                <i class="pi pi-arrow-circle-right"></i>
+                After
+              </h4>
+              <pre
+                class="overflow-x-auto rounded-md border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700"
+              >{{ formatJson(log.after) }}</pre>
+            </div>
+            <div class="md:col-span-2">
+              <dl class="grid grid-cols-1 gap-2 text-xs md:grid-cols-3">
+                <div>
+                  <dt class="font-medium text-slate-500">User Agent</dt>
+                  <dd class="mt-0.5 break-all text-slate-700">{{ log.userAgent }}</dd>
+                </div>
+                <div>
+                  <dt class="font-medium text-slate-500">Hash</dt>
+                  <dd class="mt-0.5 break-all font-mono text-slate-700">{{ log.hash }}</dd>
+                </div>
+                <div>
+                  <dt class="font-medium text-slate-500">Prev Hash</dt>
+                  <dd class="mt-0.5 break-all font-mono text-slate-500">{{ log.prevHash }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8" class="py-6 text-center text-sm text-slate-500">
+          Tidak ada log audit yang cocok dengan filter.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Hash chain integrity footer -->
+  <footer
+    class="flex items-center justify-between rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm"
+  >
+    <span class="flex items-center gap-2 font-medium text-emerald-800">
+      <i class="pi pi-shield"></i>
+      Hash chain integrity
+    </span>
+    <span class="flex items-center gap-1 font-semibold text-emerald-700">
+      <i class="pi pi-check-circle"></i>
+      Valid
+    </span>
+  </footer>
+</section>
+
+<p-toast />

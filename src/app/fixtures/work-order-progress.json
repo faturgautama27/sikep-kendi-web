@@ -1,0 +1,130 @@
+{
+  "workOrderProgress": [
+    {
+      "id": "wop-001-1",
+      "workOrderId": "wo-001",
+      "status": "received",
+      "occurredAt": "2025-01-03T08:30:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Kendaraan diterima di bengkel"
+    },
+    {
+      "id": "wop-001-2",
+      "workOrderId": "wo-001",
+      "status": "in_progress",
+      "occurredAt": "2025-01-03T09:30:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Mulai bongkar caliper rem depan, foto sebelum dilampirkan"
+    },
+    {
+      "id": "wop-001-3",
+      "workOrderId": "wo-001",
+      "status": "completed",
+      "occurredAt": "2025-01-04T16:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Kampas rem baru terpasang, oli + filter sudah diganti, tes jalan OK"
+    },
+    {
+      "id": "wop-002-1",
+      "workOrderId": "wo-002",
+      "status": "received",
+      "occurredAt": "2025-01-02T09:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Hino Karya Berkat — Bandung",
+      "notes": "Truk Hino diterima di workshop Bandung"
+    },
+    {
+      "id": "wop-002-2",
+      "workOrderId": "wo-002",
+      "status": "in_progress",
+      "occurredAt": "2025-01-03T08:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Hino Karya Berkat — Bandung",
+      "notes": "Bongkar kompresor air brake, identifikasi kerusakan piston dan seal"
+    },
+    {
+      "id": "wop-003-1",
+      "workOrderId": "wo-003",
+      "status": "received",
+      "occurredAt": "2024-11-19T14:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Bus diterima"
+    },
+    {
+      "id": "wop-003-2",
+      "workOrderId": "wo-003",
+      "status": "in_progress",
+      "occurredAt": "2024-11-20T08:30:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Mulai dismount 4 ban depan dan tengah"
+    },
+    {
+      "id": "wop-003-3",
+      "workOrderId": "wo-003",
+      "status": "completed",
+      "occurredAt": "2024-11-22T15:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Selesai pasang 4 ban baru + balancing dan spooring"
+    },
+    {
+      "id": "wop-004-1",
+      "workOrderId": "wo-004",
+      "status": "received",
+      "occurredAt": "2024-12-24T09:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Bus diterima untuk servis AC"
+    },
+    {
+      "id": "wop-004-2",
+      "workOrderId": "wo-004",
+      "status": "in_progress",
+      "occurredAt": "2024-12-26T08:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "Servis AC + ganti freon R134a"
+    },
+    {
+      "id": "wop-004-3",
+      "workOrderId": "wo-004",
+      "status": "completed",
+      "occurredAt": "2024-12-28T15:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "PT Bengkel Mandiri Sejahtera",
+      "notes": "AC dingin, tes operasional 30 menit OK"
+    },
+    {
+      "id": "wop-005-1",
+      "workOrderId": "wo-005",
+      "status": "received",
+      "occurredAt": "2024-12-08T13:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "Bengkel Sumber Rejeki Motor",
+      "notes": "Motor diterima"
+    },
+    {
+      "id": "wop-005-2",
+      "workOrderId": "wo-005",
+      "status": "in_progress",
+      "occurredAt": "2024-12-09T08:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "Bengkel Sumber Rejeki Motor",
+      "notes": "Ganti kampas rem"
+    },
+    {
+      "id": "wop-005-3",
+      "workOrderId": "wo-005",
+      "status": "completed",
+      "occurredAt": "2024-12-09T11:00:00+07:00",
+      "actorId": "u-005",
+      "actorName": "Bengkel Sumber Rejeki Motor",
+      "notes": "Selesai, tes rem OK"
+    }
+  ]
+}

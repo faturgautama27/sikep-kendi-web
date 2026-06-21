@@ -1,0 +1,265 @@
+{
+  "odometerReadings": [
+    {
+      "id": "odo-001",
+      "vehicleId": "v-001",
+      "valueKm": 82000,
+      "recordedAt": "2024-11-05T08:30:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-002",
+      "vehicleId": "v-001",
+      "valueKm": 84200,
+      "recordedAt": "2024-12-03T09:15:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-003",
+      "vehicleId": "v-001",
+      "valueKm": 85800,
+      "recordedAt": "2024-12-28T07:45:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-004",
+      "vehicleId": "v-001",
+      "valueKm": 87450,
+      "recordedAt": "2025-01-14T16:30:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-005",
+      "vehicleId": "v-002",
+      "valueKm": 138400,
+      "recordedAt": "2024-11-12T08:00:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-006",
+      "vehicleId": "v-002",
+      "valueKm": 140250,
+      "recordedAt": "2024-12-08T10:30:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-007",
+      "vehicleId": "v-002",
+      "valueKm": 142800,
+      "recordedAt": "2025-01-13T11:20:00+07:00",
+      "recordedBy": "u-003",
+      "recordedByName": "Siti Nurhaliza, S.E.",
+      "source": "manual"
+    },
+    {
+      "id": "odo-008",
+      "vehicleId": "v-003",
+      "valueKm": 246500,
+      "recordedAt": "2024-10-20T09:00:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-009",
+      "vehicleId": "v-003",
+      "valueKm": 248900,
+      "recordedAt": "2024-12-20T10:00:00+07:00",
+      "recordedBy": "u-003",
+      "recordedByName": "Siti Nurhaliza, S.E.",
+      "source": "manual"
+    },
+    {
+      "id": "odo-010",
+      "vehicleId": "v-004",
+      "valueKm": 15200,
+      "recordedAt": "2024-11-18T07:30:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-011",
+      "vehicleId": "v-004",
+      "valueKm": 17100,
+      "recordedAt": "2024-12-15T08:00:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-012",
+      "vehicleId": "v-004",
+      "valueKm": 18750,
+      "recordedAt": "2025-01-12T08:45:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-013",
+      "vehicleId": "v-005",
+      "valueKm": 7800,
+      "recordedAt": "2024-12-01T07:15:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-014",
+      "vehicleId": "v-005",
+      "valueKm": 9320,
+      "recordedAt": "2025-01-11T14:00:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-015",
+      "vehicleId": "v-006",
+      "valueKm": 28900,
+      "recordedAt": "2024-11-28T08:30:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-016",
+      "vehicleId": "v-006",
+      "valueKm": 30500,
+      "recordedAt": "2024-12-22T09:00:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-017",
+      "vehicleId": "v-006",
+      "valueKm": 32100,
+      "recordedAt": "2025-01-10T13:15:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-018",
+      "vehicleId": "v-007",
+      "valueKm": 192800,
+      "recordedAt": "2024-11-15T07:00:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-019",
+      "vehicleId": "v-007",
+      "valueKm": 195600,
+      "recordedAt": "2024-12-18T08:30:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-020",
+      "vehicleId": "v-007",
+      "valueKm": 198500,
+      "recordedAt": "2025-01-09T07:30:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-021",
+      "vehicleId": "v-008",
+      "valueKm": 72400,
+      "recordedAt": "2024-11-22T08:45:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-022",
+      "vehicleId": "v-008",
+      "valueKm": 74900,
+      "recordedAt": "2024-12-19T09:30:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-023",
+      "vehicleId": "v-008",
+      "valueKm": 76800,
+      "recordedAt": "2025-01-08T09:00:00+07:00",
+      "recordedBy": "u-007",
+      "recordedByName": "Dedi Kurniawan",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-024",
+      "vehicleId": "v-009",
+      "valueKm": 210200,
+      "recordedAt": "2024-11-25T07:30:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-025",
+      "vehicleId": "v-009",
+      "valueKm": 213100,
+      "recordedAt": "2024-12-27T08:00:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-026",
+      "vehicleId": "v-009",
+      "valueKm": 215300,
+      "recordedAt": "2025-01-07T15:45:00+07:00",
+      "recordedBy": "u-006",
+      "recordedByName": "Agus Pramono",
+      "source": "checklist"
+    },
+    {
+      "id": "odo-027",
+      "vehicleId": "v-010",
+      "valueKm": 119500,
+      "recordedAt": "2024-11-30T08:00:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-028",
+      "vehicleId": "v-010",
+      "valueKm": 122200,
+      "recordedAt": "2024-12-26T09:15:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "fuel_transaction"
+    },
+    {
+      "id": "odo-029",
+      "vehicleId": "v-010",
+      "valueKm": 124700,
+      "recordedAt": "2025-01-06T10:20:00+07:00",
+      "recordedBy": "u-008",
+      "recordedByName": "Rudi Hartono",
+      "source": "checklist"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "regulationChangeHistory": [
+    {
+      "id": "rch-001",
+      "regulationId": "reg-001",
+      "versionFromId": "regv-001-v1",
+      "versionToId": "regv-001-v2",
+      "occurredAt": "2024-09-01T00:00:00+07:00",
+      "actorId": "u-001",
+      "actorName": "Admin Sistem",
+      "reason": "Penyesuaian interval servis mengikuti rekomendasi pabrikan dan menambah aturan untuk truk dan bus"
+    },
+    {
+      "id": "rch-002",
+      "regulationId": "reg-002",
+      "versionFromId": "regv-002-v1",
+      "versionToId": "regv-002-v2",
+      "occurredAt": "2024-10-01T00:00:00+07:00",
+      "actorId": "u-001",
+      "actorName": "Admin Sistem",
+      "reason": "Penyesuaian pagu BBM mengikuti SBM 2024 dan penambahan kategori truk dan bus"
+    },
+    {
+      "id": "rch-003",
+      "regulationId": "reg-003",
+      "versionFromId": "regv-003-v1",
+      "versionToId": "regv-003-v2",
+      "occurredAt": "2024-08-01T00:00:00+07:00",
+      "actorId": "u-001",
+      "actorName": "Admin Sistem",
+      "reason": "Tambahan kewajiban KIR untuk kendaraan komersial sesuai PP 55/2012"
+    },
+    {
+      "id": "rch-004",
+      "regulationId": "reg-004",
+      "versionFromId": "regv-004-v1",
+      "versionToId": "regv-004-v2",
+      "occurredAt": "2024-12-01T00:00:00+07:00",
+      "actorId": "u-001",
+      "actorName": "Admin Sistem",
+      "reason": "Restrukturisasi jenjang persetujuan menjadi 3 tingkat dan penyesuaian pagu per jenis kendaraan"
+    }
+  ]
+}

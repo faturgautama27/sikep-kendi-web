@@ -1,0 +1,31 @@
+{
+  "checklistTemplates": [
+    {
+      "id": "tpl-001",
+      "nama": "Checklist Harian Mobil Dinas",
+      "vehicleType": "mobil",
+      "frequency": { "kind": "daily" },
+      "currentVersionId": "tplv-001-v2",
+      "active": true,
+      "createdAt": "2024-01-15T08:00:00+07:00"
+    },
+    {
+      "id": "tpl-002",
+      "nama": "Checklist Mingguan Motor Dinas",
+      "vehicleType": "motor",
+      "frequency": { "kind": "weekly" },
+      "currentVersionId": "tplv-002-v2",
+      "active": true,
+      "createdAt": "2024-01-15T08:30:00+07:00"
+    },
+    {
+      "id": "tpl-003",
+      "nama": "Checklist Bulanan Truk dan Bus",
+      "vehicleType": "truk",
+      "frequency": { "kind": "monthly" },
+      "currentVersionId": "tplv-003-v2",
+      "active": true,
+      "createdAt": "2024-01-15T09:00:00+07:00"
+    }
+  ]
+}

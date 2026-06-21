@@ -1,0 +1,283 @@
+<section class="flex flex-col gap-6">
+  <!-- Page header -->
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-primary-900">
+      Riwayat Eksekusi Checklist
+      <span class="ml-2 text-sm font-normal text-slate-500">(Read Only)</span>
+    </h1>
+    <p class="text-sm text-slate-500">
+      Tampilan riwayat eksekusi checklist harian/mingguan/bulanan dari supir di lapangan.
+    </p>
+  </header>
+
+  <!-- Filters -->
+  <article
+    class="flex flex-col gap-4 rounded-xl border border-primary-100 bg-surface p-5 shadow-sm"
+  >
+    <div class="flex items-center gap-2">
+      <i class="pi pi-filter text-primary-700"></i>
+      <h2 class="text-base font-semibold text-slate-800">Filter</h2>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Tanggal Dari</label>
+        <p-datepicker
+          [ngModel]="filterDateFrom()"
+          (ngModelChange)="filterDateFrom.set($event)"
+          dateFormat="dd M yy"
+          placeholder="Pilih tanggal"
+          [showIcon]="true"
+          appendTo="body"
+          styleClass="w-full"
+        ></p-datepicker>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Tanggal Sampai</label>
+        <p-datepicker
+          [ngModel]="filterDateTo()"
+          (ngModelChange)="filterDateTo.set($event)"
+          dateFormat="dd M yy"
+          placeholder="Pilih tanggal"
+          [showIcon]="true"
+          appendTo="body"
+          styleClass="w-full"
+        ></p-datepicker>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Kendaraan</label>
+        <p-select
+          [options]="vehicleOptions()"
+          [ngModel]="filterVehicleId()"
+          (ngModelChange)="filterVehicleId.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Kendaraan"
+          [filter]="true"
+          appendTo="body"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Supir</label>
+        <p-select
+          [options]="driverOptions()"
+          [ngModel]="filterDriverId()"
+          (ngModelChange)="filterDriverId.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Supir"
+          [filter]="true"
+          appendTo="body"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Status</label>
+        <p-select
+          [options]="statusOptions"
+          [ngModel]="filterStatus()"
+          (ngModelChange)="filterStatus.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua Status"
+          appendTo="body"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <p-button
+        icon="pi pi-refresh"
+        label="Reset Filter"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        (onClick)="resetFilters()"
+      ></p-button>
+    </div>
+  </article>
+
+  <!-- Executions table -->
+  <article
+    class="flex flex-col gap-4 rounded-xl border border-primary-100 bg-surface p-5 shadow-sm"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-base font-semibold text-slate-800">Daftar Eksekusi</h2>
+      <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">
+        {{ filteredExecutions().length }} hasil
+      </span>
+    </div>
+
+    <p-table
+      [value]="filteredExecutions()"
+      [paginator]="filteredExecutions().length > 10"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      dataKey="id"
+      styleClass="p-datatable-sm"
+      [scrollable]="true"
+      scrollHeight="flex"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="min-w-[160px]">Mulai</th>
+          <th class="min-w-[160px]">Selesai</th>
+          <th class="min-w-[140px]">Kendaraan</th>
+          <th class="min-w-[160px]">Supir</th>
+          <th class="min-w-[200px]">Template</th>
+          <th class="w-20 text-center">Total</th>
+          <th class="w-20 text-center">OK</th>
+          <th class="w-24 text-center">Tidak OK</th>
+          <th class="min-w-[140px]">Status</th>
+          <th class="w-16 text-center">Aksi</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-exec>
+        <tr>
+          <td class="text-slate-600">{{ formatDate(exec.startedAt) }}</td>
+          <td class="text-slate-600">{{ formatDate(exec.completedAt) }}</td>
+          <td class="font-mono text-sm text-slate-700">{{ exec.vehiclePlate }}</td>
+          <td class="text-slate-700">{{ exec.driverName }}</td>
+          <td class="text-slate-700">{{ exec.templateName }}</td>
+          <td class="text-center font-medium text-slate-700">{{ exec.totalItems }}</td>
+          <td class="text-center">
+            <p-badge [value]="exec.okCount.toString()" severity="success"></p-badge>
+          </td>
+          <td class="text-center">
+            @if (exec.notOkCount > 0) {
+              <p-badge [value]="exec.notOkCount.toString()" severity="danger"></p-badge>
+            } @else {
+              <p-badge value="0" severity="secondary"></p-badge>
+            }
+          </td>
+          <td>
+            <p-tag
+              [severity]="statusSeverity(exec.status)"
+              [value]="statusLabel(exec.status)"
+            ></p-tag>
+          </td>
+          <td class="text-center">
+            <p-button
+              [icon]="isExpanded(exec.id) ? 'pi pi-chevron-up' : 'pi pi-eye'"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              ariaLabel="Lihat detail"
+              (onClick)="onRowToggle(exec.id)"
+            ></p-button>
+          </td>
+        </tr>
+        @if (isExpanded(exec.id)) {
+          <tr>
+            <td colspan="10" class="!bg-primary-50/40 !p-4">
+              <div class="flex flex-col gap-3">
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                  <span>
+                    GPS:
+                    <strong class="text-slate-700">
+                      {{ exec.gpsLat ?? '-' }}, {{ exec.gpsLng ?? '-' }}
+                    </strong>
+                  </span>
+                  <span>
+                    Client UUID:
+                    <code class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
+                      {{ exec.clientUuid }}
+                    </code>
+                  </span>
+                </div>
+
+                <h3 class="text-sm font-semibold text-slate-800">
+                  Jawaban ({{ exec.answers.length }})
+                </h3>
+
+                @if (exec.answers.length > 0) {
+                  <div class="overflow-hidden armadin-table-wrap">
+                    <p-table
+                      [value]="exec.answers"
+                      dataKey="id"
+                      styleClass="p-datatable-sm"
+                    >
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th class="min-w-[100px]">Kategori</th>
+                          <th class="min-w-[200px]">Item</th>
+                          <th class="w-28">Status</th>
+                          <th class="w-28 text-right">Nilai</th>
+                          <th class="min-w-[200px]">Catatan</th>
+                          <th class="min-w-[160px]">Foto</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-ans>
+                        <tr>
+                          <td>
+                            <span
+                              class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
+                            >
+                              {{ categoryLabel(ans.itemCategory) }}
+                            </span>
+                          </td>
+                          <td class="font-medium text-slate-800">{{ ans.itemName }}</td>
+                          <td>
+                            <p-tag
+                              [severity]="answerStatusSeverity(ans.status)"
+                              [value]="answerStatusLabel(ans.status)"
+                            ></p-tag>
+                          </td>
+                          <td class="text-right text-slate-700">
+                            {{ ans.measurementValue !== null ? ans.measurementValue : '-' }}
+                          </td>
+                          <td class="text-xs text-slate-600">{{ ans.notes || '-' }}</td>
+                          <td>
+                            @if (ans.images && ans.images.length > 0) {
+                              <div class="flex flex-wrap gap-1.5">
+                                @for (img of ans.images; track img.id) {
+                                  <img
+                                    [src]="img.thumbnailUrl || img.url"
+                                    [alt]="img.caption || 'Foto'"
+                                    class="h-12 w-12 rounded border border-primary-200 object-cover"
+                                    onerror="this.style.display='none'"
+                                  />
+                                }
+                              </div>
+                            } @else if (ans.imageIds && ans.imageIds.length > 0) {
+                              <div class="flex flex-wrap gap-1.5">
+                                @for (imgId of ans.imageIds; track imgId) {
+                                  <div
+                                    class="flex h-12 w-12 items-center justify-center rounded border border-dashed border-primary-200 bg-primary-50 text-primary-400"
+                                    [attr.title]="imgId"
+                                  >
+                                    <i class="pi pi-image"></i>
+                                  </div>
+                                }
+                              </div>
+                            } @else {
+                              <span class="text-xs text-slate-400">Tidak ada foto</span>
+                            }
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                } @else {
+                  <p class="text-sm italic text-slate-500">
+                    Tidak ada detail jawaban tersimpan untuk eksekusi ini.
+                  </p>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="10" class="py-6 text-center text-sm text-slate-500">
+            Tidak ada eksekusi checklist sesuai filter.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </article>
+</section>

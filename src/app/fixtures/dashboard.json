@@ -1,0 +1,104 @@
+{
+  "summary": {
+    "totalVehicles": 10,
+    "activeVehicles": 8,
+    "inRepairVehicles": 1,
+    "retiredVehicles": 1,
+    "documentsExpiringSoon": 6,
+    "simExpiringSoon": 1,
+    "pendingPengajuan": 5,
+    "unmatchedSpj": 3,
+    "totalCostThisMonth": 23890000,
+    "fuelCostThisMonth": 16280200,
+    "maintenanceCostThisMonth": 7609800,
+    "notificationCriticalUnread": 5
+  },
+  "costBreakdown": {
+    "period": "2025-01",
+    "total": 23890000,
+    "byCategory": [
+      { "kategori": "BBM", "nominal": 16280200 },
+      { "kategori": "Pemeliharaan Korektif", "nominal": 6259800 },
+      { "kategori": "Pemeliharaan Preventif", "nominal": 1350000 }
+    ],
+    "byVehicle": [
+      { "vehicleId": "v-009", "vehiclePlate": "B 5678 ZAB", "nominal": 6201000 },
+      { "vehicleId": "v-010", "vehiclePlate": "D 1357 CDE", "nominal": 5810000 },
+      { "vehicleId": "v-008", "vehiclePlate": "D 8901 WXY", "nominal": 4029000 },
+      { "vehicleId": "v-007", "vehiclePlate": "B 4567 TUV", "nominal": 3868500 },
+      { "vehicleId": "v-001", "vehiclePlate": "B 1234 ABC", "nominal": 2840500 },
+      { "vehicleId": "v-002", "vehiclePlate": "D 5678 EFG", "nominal": 834000 },
+      { "vehicleId": "v-005", "vehiclePlate": "D 7890 NOP", "nominal": 111200 },
+      { "vehicleId": "v-004", "vehiclePlate": "B 3456 KLM", "nominal": 80000 },
+      { "vehicleId": "v-006", "vehiclePlate": "F 2345 QRS", "nominal": 70000 }
+    ]
+  },
+  "topDeviation": [
+    {
+      "vehicleId": "v-002",
+      "vehiclePlate": "D 5678 EFG",
+      "merk": "Mitsubishi",
+      "tipe": "Pajero Sport Dakar 4x2",
+      "deviationCount": 4,
+      "lastDeviationAt": "2025-01-08T07:55:00+07:00"
+    },
+    {
+      "vehicleId": "v-005",
+      "vehiclePlate": "D 7890 NOP",
+      "merk": "Yamaha",
+      "tipe": "NMax 155 Connected",
+      "deviationCount": 1,
+      "lastDeviationAt": "2025-01-11T14:18:00+07:00"
+    },
+    {
+      "vehicleId": "v-007",
+      "vehiclePlate": "B 4567 TUV",
+      "merk": "Mitsubishi",
+      "tipe": "Colt Diesel FE 74 HD",
+      "deviationCount": 1,
+      "lastDeviationAt": "2025-01-09T08:30:00+07:00"
+    }
+  ],
+  "vendorPerformance": [
+    {
+      "vendorId": "ven-001",
+      "vendorNama": "PT Bengkel Mandiri Sejahtera",
+      "totalWorkOrders": 12,
+      "avgCompletionDays": 2.3,
+      "rejectionRate": 0.08,
+      "rating": 4.5
+    },
+    {
+      "vendorId": "ven-002",
+      "vendorNama": "CV Astra Motor Service",
+      "totalWorkOrders": 5,
+      "avgCompletionDays": 2.8,
+      "rejectionRate": 0.2,
+      "rating": 4.2
+    },
+    {
+      "vendorId": "ven-003",
+      "vendorNama": "Bengkel Sumber Rejeki Motor",
+      "totalWorkOrders": 8,
+      "avgCompletionDays": 1.2,
+      "rejectionRate": 0,
+      "rating": 4
+    },
+    {
+      "vendorId": "ven-004",
+      "vendorNama": "PT Hino Karya Berkat — Bandung",
+      "totalWorkOrders": 4,
+      "avgCompletionDays": 4.5,
+      "rejectionRate": 0,
+      "rating": 4.7
+    },
+    {
+      "vendorId": "ven-005",
+      "vendorNama": "SPBU Pertamina 34.40123 Pasteur",
+      "totalWorkOrders": 0,
+      "avgCompletionDays": 0,
+      "rejectionRate": 0,
+      "rating": 4.3
+    }
+  ]
+}

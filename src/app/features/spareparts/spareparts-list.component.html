@@ -1,0 +1,135 @@
+<section class="flex flex-col gap-5">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Sparepart & Vendor</h1>
+      <p class="text-sm text-slate-500">Katalog komponen, harga referensi, dan mitra vendor.</p>
+    </div>
+    <p-button icon="pi pi-plus" label="Tambah" severity="primary" (onClick)="onAdd()"></p-button>
+  </header>
+
+  <!-- Search + filter -->
+  <div class="flex flex-wrap gap-3 armadin-table-wrap p-4 shadow-sm">
+    <div class="flex flex-col gap-1 min-w-[220px] flex-1">
+      <label class="text-xs font-medium text-slate-600">Cari</label>
+      <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)"
+        placeholder="Kode, nama, atau vendor..." class="w-full" />
+    </div>
+    @if (activeTab() === 'spareparts') {
+      <div class="flex flex-col gap-1 min-w-[180px]">
+        <label class="text-xs font-medium text-slate-600">Kategori</label>
+        <select class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-primary-500 focus:outline-none"
+          [value]="selectedCat() ?? ''" (change)="onCatChange($any($event.target).value)">
+          <option value="">Semua Kategori</option>
+          <option value="oli">Oli</option>
+          <option value="rem">Rem</option>
+          <option value="ban">Ban</option>
+          <option value="lampu">Lampu</option>
+          <option value="elektrikal">Elektrikal</option>
+          <option value="mesin">Mesin</option>
+          <option value="body">Body</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  <!-- Tab buttons -->
+  <div class="flex gap-2 border-b border-primary-100">
+    <button type="button"
+      class="px-4 pb-2 text-sm font-medium transition"
+      [class.border-b-2]="activeTab() === 'spareparts'"
+      [class.border-primary-700]="activeTab() === 'spareparts'"
+      [class.text-primary-700]="activeTab() === 'spareparts'"
+      [class.text-slate-500]="activeTab() !== 'spareparts'"
+      (click)="activeTab.set('spareparts')">
+      Sparepart ({{ filteredSpareparts().length }})
+    </button>
+    <button type="button"
+      class="px-4 pb-2 text-sm font-medium transition"
+      [class.border-b-2]="activeTab() === 'vendors'"
+      [class.border-primary-700]="activeTab() === 'vendors'"
+      [class.text-primary-700]="activeTab() === 'vendors'"
+      [class.text-slate-500]="activeTab() !== 'vendors'"
+      (click)="activeTab.set('vendors')">
+      Vendor ({{ filteredVendors().length }})
+    </button>
+  </div>
+
+  <!-- Spareparts table -->
+  @if (activeTab() === 'spareparts') {
+    <div class="armadin-table-wrap">
+      <p-table [value]="filteredSpareparts()" [paginator]="true" [rows]="15"
+        dataKey="id" [rowHover]="true" styleClass="text-sm">
+        <ng-template #header>
+          <tr>
+            <th>Kode</th><th>Nama</th><th>Kategori</th><th>Satuan</th>
+            <th class="text-right">Harga Referensi</th><th>Kompatibilitas</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-s>
+          <tr>
+            <td class="font-mono text-xs font-semibold text-primary-700">{{ s.kode }}</td>
+            <td class="text-slate-800">{{ s.nama }}</td>
+            <td><p-tag [severity]="catSeverity(s.kategori)" [value]="s.kategori" [rounded]="true"></p-tag></td>
+            <td class="text-slate-600">{{ s.satuan }}</td>
+            <td class="text-right font-medium text-slate-800">{{ formatRupiah(s.hargaReferensi) }}</td>
+            <td>
+              <div class="flex flex-wrap gap-1">
+                @for (k of s.kompatibilitas; track k) {
+                  <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ k }}</span>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="6" class="py-8 text-center text-sm text-slate-500">Tidak ada sparepart.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+
+  <!-- Vendors table -->
+  @if (activeTab() === 'vendors') {
+    <div class="armadin-table-wrap">
+      <p-table [value]="filteredVendors()" [paginator]="true" [rows]="15"
+        dataKey="id" [rowHover]="true" styleClass="text-sm">
+        <ng-template #header>
+          <tr>
+            <th>Nama Vendor</th><th>NPWP</th><th>Kontak</th>
+            <th>Kategori Dilayani</th><th class="text-center">Rating</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-v>
+          <tr>
+            <td class="font-semibold text-primary-700">{{ v.nama }}</td>
+            <td class="font-mono text-xs text-slate-600">{{ v.npwp }}</td>
+            <td class="text-slate-600">{{ v.kontak }}</td>
+            <td>
+              <div class="flex flex-wrap gap-1">
+                @for (k of v.kategoriDilayani; track k) {
+                  <span class="rounded bg-primary-50 px-2 py-0.5 text-xs text-primary-700">{{ k }}</span>
+                }
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="flex items-center justify-center gap-0.5">
+                @for (star of getStars(v.rating); track star) {
+                  <i class="pi text-sm" [class.pi-star-fill]="star === 'full'"
+                    [class.pi-star]="star === 'empty'"
+                    [class.text-amber-400]="star === 'full'"
+                    [class.text-slate-300]="star === 'empty'"></i>
+                }
+                <span class="ml-1 text-xs text-slate-500">{{ v.rating }}</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="5" class="py-8 text-center text-sm text-slate-500">Tidak ada vendor.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</section>
+<p-toast></p-toast>
