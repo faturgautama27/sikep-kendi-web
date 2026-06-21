@@ -1,11 +1,21 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Store } from '@ngxs/store';
+
+import { AuthState } from '@features/login/state';
+import { LoadDashboardSummary, LoadTopDeviationVehicles, LoadVendorPerformance } from '@features/dashboard/state';
+import { LoadWorkOrders } from '@features/work-orders/state';
+import { LoadPengajuan } from '@features/pengajuan/state';
+import { LoadDarurat } from '@features/darurat/state';
+import { LoadVehicles } from '@features/vehicles/state';
+import { LoadAuditLogs } from '@features/audit/state';
+import { LoadNotifications, LoadNotificationPreferences } from '@features/notifications/state';
 
 import { SideNavComponent } from '../side-nav/side-nav.component';
 import { TopBarComponent } from '../top-bar/top-bar.component';
 
 /**
- * AppShell: layout root ARMADIN yang membungkus halaman authenticated.
+ * AppShell: layout root SiKeP KenDI yang membungkus halaman authenticated.
  *
  * Layout:
  * - `TopBar` (header) — logo, brand, tagline, notifikasi, user menu
@@ -24,4 +34,30 @@ import { TopBarComponent } from '../top-bar/top-bar.component';
   styleUrl: './app-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppShellComponent {}
+export class AppShellComponent implements OnInit {
+  private readonly store = inject(Store);
+
+  ngOnInit(): void {
+    const permissions = this.store.selectSnapshot(AuthState.permissions);
+    const has = (permission: string): boolean =>
+      permissions.includes('*') || permissions.includes(permission);
+
+    const actions: object[] = [
+      new LoadDashboardSummary(),
+      new LoadTopDeviationVehicles(),
+      new LoadVendorPerformance(),
+      new LoadNotifications(),
+      new LoadNotificationPreferences(),
+    ];
+
+    if (has('kendaraan.read')) actions.push(new LoadVehicles());
+    if (has('pengajuan.read')) actions.push(new LoadPengajuan());
+    if (has('work_order.read')) actions.push(new LoadWorkOrders());
+    if (has('darurat.read')) actions.push(new LoadDarurat());
+    if (has('audit_log.read')) actions.push(new LoadAuditLogs());
+
+    if (actions.length > 0) {
+      this.store.dispatch(actions);
+    }
+  }
+}

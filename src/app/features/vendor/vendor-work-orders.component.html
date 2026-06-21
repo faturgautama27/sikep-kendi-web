@@ -1,0 +1,28 @@
+<section class="flex flex-col gap-4">
+  <app-page-header
+    [title]="headerTitle()"
+    [subtitle]="headerSubtitle()"
+  />
+
+  <p-table [value]="rows()" [stripedRows]="true" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th>Nomor WO</th>
+        <th>Kendaraan</th>
+        <th>Status</th>
+        <th class="w-56">Aksi</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.nomor }}</td>
+        <td>{{ row.vehiclePlate }}</td>
+        <td>{{ row.status }}</td>
+        <td class="flex gap-3 py-3">
+          <a [routerLink]="['/vendor/work-orders', row.id, 'draft']" class="text-primary-700 hover:underline">Draft Checklist</a>
+          <a [routerLink]="['/vendor/work-orders', row.id, 'penawaran']" class="text-primary-700 hover:underline">Penawaran</a>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

@@ -1,0 +1,41 @@
+<section class="flex flex-col gap-4">
+  <app-page-header
+    [title]="'Laporan Darurat'"
+    [subtitle]="'List verifikasi/tolak darurat dan approval reimbursement.'"
+  >
+    <a
+      page-header-action
+      [routerLink]="['/darurat/new']"
+      class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white"
+    >
+      Buat Laporan
+    </a>
+  </app-page-header>
+
+  <p-table [value]="rows()" [stripedRows]="true" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th>Kendaraan</th>
+        <th>Pengemudi</th>
+        <th>Deskripsi</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th class="w-80">Aksi</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.kendaraanLabel }}</td>
+        <td>{{ row.pengemudiNama }}</td>
+        <td>{{ row.deskripsiDarurat }}</td>
+        <td>{{ row.totalPengeluaran.toLocaleString('id-ID') }}</td>
+        <td>{{ row.status }}</td>
+        <td class="flex gap-2 py-3">
+          <button pButton type="button" size="small" label="Verifikasi" [disabled]="row.status !== 'MENUNGGU_VERIFIKASI'" (click)="verifikasi(row.id, true)"></button>
+          <button pButton type="button" size="small" label="Tolak" severity="danger" [disabled]="row.status !== 'MENUNGGU_VERIFIKASI'" (click)="verifikasi(row.id, false)"></button>
+          <button pButton type="button" size="small" label="Approve Reimburse" severity="success" [disabled]="row.status !== 'TERVERIFIKASI'" (click)="approveReimburse(row.id)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

@@ -9,7 +9,7 @@
 
     <div class="relative">
       <p class="text-blue-200 text-xs font-medium tracking-wide mb-1">{{ greeting() }}</p>
-      <h1 class="text-2xl font-extrabold text-white leading-tight">{{ user()?.fullName ?? 'Supir' }}</h1>
+      <h1 class="text-2xl font-extrabold text-white leading-tight">{{ user()?.fullName ?? 'Pengemudi' }}</h1>
       <p class="text-blue-300 text-xs mt-1">{{ formatDate() }}</p>
 
       <!-- Quick status pills -->
@@ -101,7 +101,7 @@
   <!-- ── Checklist CTA (if not done) ─────────────────────────────────── -->
   @if (!checklistDone()) {
     <div class="mx-4 mt-4">
-      <a routerLink="/driver/checklist"
+      <a routerLink="/driver/notifications"
         class="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 p-4 shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-transform">
         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20">
           <i class="pi pi-list-check text-xl text-white"></i>
@@ -123,7 +123,7 @@
     <div class="grid grid-cols-2 gap-3">
 
       <!-- Checklist Harian -->
-      <a routerLink="/driver/checklist"
+      <a routerLink="/driver/notifications"
         class="relative flex flex-col gap-3 rounded-2xl p-4 overflow-hidden transition active:scale-95"
         [class.bg-emerald-500]="checklistDone()"
         [class.bg-white]="!checklistDone()"
@@ -160,7 +160,7 @@
       </a>
 
       <!-- Catat BBM -->
-      <a routerLink="/driver/fuel"
+      <a routerLink="/driver/notifications"
         class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50">
           <i class="pi pi-bolt text-lg text-amber-500"></i>
@@ -172,7 +172,7 @@
       </a>
 
       <!-- Lapor Kerusakan -->
-      <a routerLink="/driver/checklist"
+      <a routerLink="/driver/notifications"
         class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50">
           <i class="pi pi-exclamation-triangle text-lg text-red-500"></i>
@@ -184,7 +184,7 @@
       </a>
 
       <!-- Riwayat -->
-      <a routerLink="/driver/checklist-history"
+      <a routerLink="/driver/notifications"
         class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50">
           <i class="pi pi-history text-lg text-violet-600"></i>

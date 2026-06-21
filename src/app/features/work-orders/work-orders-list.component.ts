@@ -10,7 +10,6 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TimelineModule } from 'primeng/timeline';
 
-import { SparepartsState } from '@features/spareparts/state';
 import type {
   WorkOrder,
   WorkOrderEvidence,
@@ -65,11 +64,11 @@ const EVIDENCE_LABEL: Record<string, string> = {
 function evidencePlaceholder(kategori: string): string {
   // Use picsum.photos with seed sehingga tiap kategori dapat foto berbeda
   const seed = encodeURIComponent(kategori);
-  return `https://picsum.photos/seed/armadin-${seed}/240/160`;
+  return `https://picsum.photos/seed/sikep-${seed}/240/160`;
 }
 
 /**
- * ARMADIN — halaman daftar Work Order.
+ * SiKeP KenDI — halaman daftar Work Order.
  *
  * Menampilkan list `WorkOrder` dari `WorkOrdersState` dengan filter status
  * dan vendor. Row dapat di-expand untuk menampilkan timeline progress
@@ -99,12 +98,9 @@ export class WorkOrdersListComponent {
   /** List dari NGXS state. */
   private readonly list = this.store.selectSignal(WorkOrdersState.list);
 
-  /** Vendor select diambil dari SparepartsState (master vendor terpadu). */
-  private readonly vendors = this.store.selectSignal(SparepartsState.vendors);
-
   protected readonly vendorOptions = computed<OptionItem<string>[]>(() => [
     { label: 'Semua vendor', value: null },
-    ...this.vendors().map((v) => ({ label: v.nama, value: v.id })),
+    ...this.list().map((wo) => ({ label: wo.vendorNama, value: wo.vendorId })),
   ]);
 
   /** Filter signals. */

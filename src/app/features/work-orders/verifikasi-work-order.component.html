@@ -1,0 +1,22 @@
+<section class="flex flex-col gap-4">
+  <app-page-header
+    [title]="'Verifikasi Harga + SHS'"
+    [subtitle]="'Verifikator menilai harga vendor dan standar harga satuan.'"
+  />
+
+  <div class="rounded-xl border border-slate-200 bg-white p-4">
+    <p class="text-sm text-slate-600">Status saat ini: <span class="font-semibold">{{ record()?.status || 'DRAFT_SHS' }}</span></p>
+    <p class="mt-1 text-xs text-slate-500">Catatan: {{ record()?.catatanRevisi || '-' }}</p>
+  </div>
+
+  <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-3">
+    <input pInputText type="number" placeholder="Harga Vendor" [(ngModel)]="hargaVendor" />
+    <input pInputText type="number" placeholder="Harga Standar" [(ngModel)]="hargaStandar" />
+    <button pButton type="button" label="Simpan SHS" icon="pi pi-save" (click)="simpanShs()"></button>
+  </div>
+
+  <div class="flex gap-2">
+    <button pButton type="button" label="Setujui" icon="pi pi-check" (click)="setujui()"></button>
+    <button pButton type="button" label="Minta Revisi" icon="pi pi-refresh" severity="warn" (click)="mintaRevisi()"></button>
+  </div>
+</section>

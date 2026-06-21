@@ -31,7 +31,7 @@ const ADMIN_TABS: readonly AdminTab[] = [
 ];
 
 /**
- * ARMADIN — Admin shell.
+ * SiKeP KenDI — Admin shell.
  *
  * Layout parent untuk halaman admin (`/admin/*`). Menampilkan tab navigasi
  * di atas dengan `routerLink` ke masing-masing sub-route, serta

@@ -37,10 +37,10 @@ export class TopBarComponent {
 
   protected readonly notifications = [
     { title: 'STNK B 1234 ABC akan kadaluarsa', severity: 'warning' as const, time: '2 jam lalu' },
-    { title: 'Pengajuan #PG-0042 menunggu approval', severity: 'info' as const, time: '4 jam lalu' },
-    { title: 'SPJ Pertamina ambigu (3 transaksi)', severity: 'warning' as const, time: 'Kemarin' },
+    { title: 'Pengajuan #PG-0042 menunggu verifikasi', severity: 'info' as const, time: '4 jam lalu' },
+    { title: 'Work Order WO-2026-014 perlu tindak lanjut', severity: 'warning' as const, time: 'Kemarin' },
     { title: 'Checklist harian B 5566 CD belum diisi', severity: 'critical' as const, time: 'Kemarin' },
-    { title: 'Versi regulasi 2025-Q1 dipublikasikan', severity: 'info' as const, time: '2 hari lalu' },
+    { title: 'Laporan darurat DRT-2026-021 menunggu verifikasi', severity: 'info' as const, time: '2 hari lalu' },
   ];
 
   protected toggleUserPopover(popover: Popover, event: MouseEvent): void {

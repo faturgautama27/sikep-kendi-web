@@ -24,36 +24,33 @@ registerLocaleData(localeId, 'id-ID');
 
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { FixtureBootstrapService } from '@core/data-access/fixture-bootstrap.service';
-import { provideArmadinData } from '@core/data-access/provide-armadin-data';
+import { provideSikepKendiData } from '@core/data-access/provide-sikep-kendi-data';
 import { authInterceptor } from '@core/http/auth.interceptor';
 import { errorInterceptor } from '@core/http/error.interceptor';
 import { idempotencyKeyInterceptor } from '@core/http/idempotency-key.interceptor';
 import { previewSafetyNetInterceptor } from '@core/http/preview-safety-net.interceptor';
+import { responseUnwrapperInterceptor } from '@core/http/response-unwrapper.interceptor';
 import { UiState } from '@shared/ngxs/ui';
 import { AuthState } from '@features/login/state';
 import { VehiclesState } from '@features/vehicles/state';
-import { RegulationsState } from '@features/regulations/state';
-import { SparepartsState } from '@features/spareparts/state';
-import { DriversState } from '@features/drivers/state';
-import {
-  ChecklistTemplatesState,
-  ChecklistExecutionsState,
-} from '@features/checklist/state';
 import { PengajuanState } from '@features/pengajuan/state';
 import { WorkOrdersState } from '@features/work-orders/state';
-import { FuelState } from '@features/fuel/state';
-import { SpjState } from '@features/spj/state';
 import { NotificationsState } from '@features/notifications/state';
 import { AuditState } from '@features/audit/state';
-import { DashboardState } from '@features/analytics/state';
+import { DashboardState } from '@features/dashboard/state';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
+import { DaruratState } from '@features/darurat/state';
+import { DraftChecklistState } from '@features/draft-checklist/state';
+import { PembayaranState } from '@features/pembayaran/state';
+import { PenawaranState } from '@features/penawaran/state';
+import { VerifikasiState } from '@features/verifikasi/state';
 
 /**
- * ARMADIN PrimeNG preset: extends Aura and overrides the semantic primary palette
- * to the ARMADIN biru-putih brand (Tailwind blue scale, anchored at blue.700 = #1d4ed8).
+ * SiKeP KenDI PrimeNG preset: extends Aura and overrides the semantic primary palette
+ * to the SiKeP KenDI biru-putih brand (Tailwind blue scale, anchored at blue.700 = #1d4ed8).
  */
-const ArmadinPreset = definePreset(Aura, {
+const SikepKendiPreset = definePreset(Aura, {
   semantic: {
     primary: {
       50: '{blue.50}',
@@ -77,19 +74,17 @@ const ArmadinPreset = definePreset(Aura, {
  * Tiap slice di-register sekali di sini supaya `HydrateFromFixtures` dapat
  * disebar ke seluruh state secara serempak saat boot di Preview Mode.
  */
-const ARMADIN_STATES = [
+const SIKEP_KENDI_STATES = [
   UiState,
   AuthState,
   VehiclesState,
-  RegulationsState,
-  SparepartsState,
-  DriversState,
-  ChecklistTemplatesState,
-  ChecklistExecutionsState,
   PengajuanState,
   WorkOrdersState,
-  FuelState,
-  SpjState,
+  DraftChecklistState,
+  PenawaranState,
+  VerifikasiState,
+  PembayaranState,
+  DaruratState,
   NotificationsState,
   AuditState,
   DashboardState,
@@ -105,11 +100,12 @@ export const appConfig: ApplicationConfig = {
         previewSafetyNetInterceptor,
         authInterceptor,
         idempotencyKeyInterceptor,
+        responseUnwrapperInterceptor,
         errorInterceptor,
       ]),
     ),
     provideStore(
-      ARMADIN_STATES,
+      SIKEP_KENDI_STATES,
       { developmentMode: !environment.production },
       withNgxsRouterPlugin(),
       withNgxsStoragePlugin({
@@ -119,7 +115,7 @@ export const appConfig: ApplicationConfig = {
     ),
     providePrimeNG({
       theme: {
-        preset: ArmadinPreset,
+        preset: SikepKendiPreset,
         options: {
           darkModeSelector: '.app-dark',
         },
@@ -127,10 +123,8 @@ export const appConfig: ApplicationConfig = {
     }),
     { provide: APP_ENV, useValue: environment },
     { provide: LOCALE_ID, useValue: 'id-ID' },
-    provideArmadinData(),
+    provideSikepKendiData(),
     provideAppInitializer(() => {
-      // Hydrate NGXS state dari fixture JSON saat Preview Mode aktif.
-      // No-op di non-preview build (lihat FixtureBootstrapService.hydrate).
       inject(FixtureBootstrapService).hydrate();
     }),
   ],

@@ -1,0 +1,25 @@
+<section class="flex flex-col gap-4">
+  <app-page-header
+    [title]="'Portal Vendor Dashboard'"
+    [subtitle]="'Ringkasan WO aktif, penawaran, dan pembayaran.'"
+  />
+
+  <div class="grid gap-3 md:grid-cols-4">
+    <article class="rounded-xl bg-slate-900 p-4 text-white">
+      <p class="text-xs uppercase tracking-wide text-slate-300">WO Aktif</p>
+      <p class="mt-1 text-3xl font-bold">{{ woAktif() }}</p>
+    </article>
+    <article class="rounded-xl bg-slate-800 p-4 text-white">
+      <p class="text-xs uppercase tracking-wide text-slate-300">Penawaran Pending</p>
+      <p class="mt-1 text-3xl font-bold">{{ pendingPenawaran() }}</p>
+    </article>
+    <article class="rounded-xl bg-slate-700 p-4 text-white">
+      <p class="text-xs uppercase tracking-wide text-slate-300">Riwayat Dibayar</p>
+      <p class="mt-1 text-3xl font-bold">{{ woSelesai() }}</p>
+    </article>
+    <article class="rounded-xl bg-primary-700 p-4 text-white">
+      <p class="text-xs uppercase tracking-wide text-blue-100">Notifikasi</p>
+      <p class="mt-1 text-3xl font-bold">{{ unread() }}</p>
+    </article>
+  </div>
+</section>

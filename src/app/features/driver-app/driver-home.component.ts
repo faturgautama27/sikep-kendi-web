@@ -3,9 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 
 import { AuthState } from '@features/login/state';
-import { DriversState } from '@features/drivers/state';
-import { ChecklistExecutionsState } from '@features/checklist/state';
-import { FuelState } from '@features/fuel/state';
+import type { ChecklistExecution, Driver, DriverAssignment, FuelTransaction } from '@shared/models';
 
 @Component({
   selector: 'app-driver-home',
@@ -19,32 +17,10 @@ export class DriverHomeComponent {
 
   protected readonly user = this.store.selectSignal(AuthState.user);
 
-  protected readonly currentDriver = computed(() => {
-    const u = this.user();
-    if (!u) return null;
-    return this.store.selectSignal(DriversState.list)().find(d => d.userId === u.id) ?? null;
-  });
-
-  protected readonly activeAssignment = computed(() => {
-    const driver = this.currentDriver();
-    if (!driver) return null;
-    return this.store.selectSignal(DriversState.activeAssignments)()
-      .find(a => a.driverId === driver.id && a.mode === 'utama') ?? null;
-  });
-
-  protected readonly todayExecutions = computed(() => {
-    const today = new Date().toDateString();
-    return this.store.selectSignal(ChecklistExecutionsState.list)()
-      .filter(e => new Date(e.startedAt).toDateString() === today);
-  });
-
-  protected readonly todayFuel = computed(() => {
-    const today = new Date().toDateString();
-    const driver = this.currentDriver();
-    if (!driver) return [];
-    return this.store.selectSignal(FuelState.transactions)()
-      .filter(t => t.driverId === driver.id && new Date(t.tanggal).toDateString() === today);
-  });
+  protected readonly currentDriver = computed<Driver | null>(() => null);
+  protected readonly activeAssignment = computed<DriverAssignment | null>(() => null);
+  protected readonly todayExecutions = computed<ChecklistExecution[]>(() => []);
+  protected readonly todayFuel = computed<FuelTransaction[]>(() => []);
 
   protected readonly greeting = computed(() => {
     const h = new Date().getHours();

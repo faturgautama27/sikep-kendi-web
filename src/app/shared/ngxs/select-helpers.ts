@@ -1,5 +1,5 @@
 /**
- * Helper types dan factories untuk pola async slice di NGXS state ARMADIN.
+ * Helper types dan factories untuk pola async slice di NGXS state SiKeP KenDI.
  *
  * Setiap state slice yang merepresentasikan data asynchronous (load, save,
  * pengajuan, dll.) MENGGUNAKAN bentuk {@link AsyncSlice} agar konsisten dan

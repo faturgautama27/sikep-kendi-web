@@ -1,5 +1,5 @@
 /**
- * Base interface untuk semua NGXS Actions di ARMADIN.
+ * Base interface untuk semua NGXS Actions di SiKeP KenDI.
  *
  * Setiap action class SHALL menyediakan `static readonly type` string yang unik.
  * Konvensi naming: `'[Feature] Action Name'`, mis. `'[Vehicles] Load List'`.

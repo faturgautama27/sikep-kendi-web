@@ -4,12 +4,10 @@ import type { Image } from './image';
 export type PengajuanJenis = 'preventive' | 'corrective' | 'predictive';
 export type PengajuanStatus =
   | 'draft'
-  | 'submitted'
-  | 'awaiting_approval'
-  | 'approved'
-  | 'rejected'
-  | 'in_work_order'
-  | 'closed';
+  | 'menunggu_verifikasi'
+  | 'terverifikasi'
+  | 'ditolak'
+  | 'work_order_terbuat';
 export type ApprovalDecision = 'pending' | 'approved' | 'rejected';
 
 export interface Pengajuan {
@@ -52,8 +50,8 @@ export interface PengajuanSparepart {
 export interface ApprovalStep {
   id: Uuid;
   pengajuanId: Uuid;
-  jenjangNo: number; // 1, 2, 3...
-  role: string; // 'pengurus_barang' | 'kasubag' | 'kepala_dinas'
+  jenjangNo: number;
+  role: string; // 'pengurus_barang' | 'verifikator' | 'admin_sistem'
   approverId: Uuid | null;
   approverName: string | null;
   decision: ApprovalDecision;

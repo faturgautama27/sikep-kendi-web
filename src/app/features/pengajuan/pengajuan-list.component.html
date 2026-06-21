@@ -4,7 +4,7 @@
     <div>
       <h1 class="text-2xl font-bold text-primary-900">Pengajuan Pemeliharaan</h1>
       <p class="text-sm text-slate-500">
-        Daftar pengajuan corrective, preventive, dan predictive beserta status approval.
+        Daftar pengajuan corrective, preventive, dan predictive beserta status verifikasi.
       </p>
     </div>
     <p-button
@@ -17,7 +17,7 @@
 
   <!-- Filter bar -->
   <div
-    class="flex flex-col gap-3 armadin-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4"
+    class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4"
   >
     <div class="flex flex-1 flex-col gap-1">
       <label for="search" class="text-xs font-medium text-slate-600">Cari nomor / judul</label>
@@ -73,7 +73,7 @@
   </div>
 
   <!-- Tabel pengajuan -->
-  <div class="armadin-table-wrap">
+  <div class="sikep-table-wrap">
     <p-table
       [value]="filteredList()"
       [paginator]="true"
@@ -142,10 +142,10 @@
                 size="small"
                 (onClick)="onOpenDetail(p)"
               ></p-button>
-              @if (p.status === 'awaiting_approval') {
+              @if (p.status === 'menunggu_verifikasi') {
                 <p-button
                   icon="pi pi-check"
-                  label="Approve"
+                  label="Verifikasi"
                   severity="success"
                   size="small"
                   (onClick)="onApprove(p, $event)"

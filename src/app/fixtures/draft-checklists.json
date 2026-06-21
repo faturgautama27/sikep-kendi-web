@@ -1,0 +1,43 @@
+{
+  "draftChecklists": [
+    {
+      "id": "dc-wo-001-1",
+      "workOrderId": "wo-001",
+      "versi": 1,
+      "status": "DIKIRIM",
+      "totalHarga": 2750000,
+      "items": [
+        {
+          "namaKerusakan": "Kampas rem aus",
+          "namaSparepart": "Brake pad set",
+          "tindakanPerbaikan": "Ganti kampas rem depan",
+          "hargaItem": 1200000
+        },
+        {
+          "namaKerusakan": "Oli menurun",
+          "namaSparepart": "Oli mesin 10W-40",
+          "tindakanPerbaikan": "Ganti oli dan filter",
+          "hargaItem": 1550000
+        }
+      ],
+      "createdAt": "2026-06-20T10:00:00+07:00"
+    },
+    {
+      "id": "dc-wo-002-1",
+      "workOrderId": "wo-002",
+      "versi": 1,
+      "status": "DITOLAK",
+      "totalHarga": 3400000,
+      "notesRejection": "Harga item belum disertai detail part number.",
+      "items": [
+        {
+          "namaKerusakan": "Shockbreaker bocor",
+          "namaSparepart": "Shockbreaker belakang",
+          "tindakanPerbaikan": "Ganti shockbreaker kiri/kanan",
+          "hargaItem": 3400000
+        }
+      ],
+      "createdAt": "2026-06-20T13:00:00+07:00"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 /**
- * Barrel export untuk utilities NGXS yang dipakai lintas feature di ARMADIN.
+ * Barrel export untuk utilities NGXS yang dipakai lintas feature di SiKeP KenDI.
  *
  * Import dari path alias `@shared/ngxs` daripada subpath spesifik agar konsumen
  * tidak terkopling ke struktur folder internal.

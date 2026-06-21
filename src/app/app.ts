@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { PreviewBannerComponent } from '@core/layout/preview-banner/preview-banner.component';
 
 /**
- * Root komponen aplikasi ARMADIN.
+ * Root komponen aplikasi SiKeP KenDI.
  *
  * Layout strategy: route-driven. Login dan halaman error pakai blank layout,
  * authenticated routes dibungkus AppShell di app.routes.ts.

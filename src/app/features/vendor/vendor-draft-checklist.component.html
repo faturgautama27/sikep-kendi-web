@@ -1,0 +1,36 @@
+<section class="flex flex-col gap-4">
+  <app-page-header
+    [title]="'Draft Checklist Vendor'"
+    [subtitle]="'WO ' + workOrderId + ' - buat, submit, dan revisi draft checklist.'"
+  />
+
+  <div class="flex gap-2 rounded-xl border border-slate-200 bg-white p-4">
+    <input pInputText class="w-72" placeholder="Nama kerusakan" [(ngModel)]="namaKerusakan" />
+    <input pInputText class="w-72" placeholder="Tindakan perbaikan" [(ngModel)]="tindakan" />
+    <input pInputText type="number" class="w-52" placeholder="Harga" [(ngModel)]="harga" />
+    <button pButton type="button" label="Tambah Draft" (click)="tambahDraft()"></button>
+  </div>
+
+  <p-table [value]="rows()" dataKey="id" [stripedRows]="true">
+    <ng-template #header>
+      <tr>
+        <th>Versi</th>
+        <th>Status</th>
+        <th>Total</th>
+        <th>Catatan</th>
+        <th class="w-24">Aksi</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.versi }}</td>
+        <td>{{ row.status }}</td>
+        <td>{{ row.totalHarga.toLocaleString('id-ID') }}</td>
+        <td>{{ row.notesRejection || '-' }}</td>
+        <td>
+          <button pButton type="button" label="Submit" size="small" [disabled]="row.status !== 'DRAFT'" (click)="submit(row.id)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

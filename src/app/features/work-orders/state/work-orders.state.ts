@@ -1,33 +1,33 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { tap } from 'rxjs';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
+import { WORKORDER_DATA, type WorkOrderDataPort } from '@core/data-access/ports/work-order-data.port';
 import type { WorkOrder, WorkOrderProgress, WorkOrderEvidence } from '@shared/models';
 
 import {
   LoadWorkOrders,
-  AssignWorkOrder,
-  UpdateProgress,
-  AddEvidence,
-  CompleteWorkOrder,
-  ValidateWorkOrder,
+  GetWorkOrderDetail,
+  AssignVendor,
 } from './work-orders.actions';
 
 export interface WorkOrdersStateModel {
   list: WorkOrder[];
+  detail: WorkOrder | null;
   progress: WorkOrderProgress[];
   evidence: WorkOrderEvidence[];
 }
 
-const INITIAL: WorkOrdersStateModel = { list: [], progress: [], evidence: [] };
-
-function generateId(prefix: string): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
-}
+const INITIAL: WorkOrdersStateModel = { list: [], detail: null, progress: [], evidence: [] };
 
 @State<WorkOrdersStateModel>({ name: 'workOrders', defaults: INITIAL })
 @Injectable()
 export class WorkOrdersState {
+  private readonly env = inject(APP_ENV);
+  private readonly data = inject<WorkOrderDataPort>(WORKORDER_DATA);
+
   @Selector()
   static list(state: WorkOrdersStateModel): WorkOrder[] {
     return state.list;
@@ -36,6 +36,11 @@ export class WorkOrdersState {
   @Selector()
   static progress(state: WorkOrdersStateModel): WorkOrderProgress[] {
     return state.progress;
+  }
+
+  @Selector()
+  static detail(state: WorkOrdersStateModel): WorkOrder | null {
+    return state.detail;
   }
 
   @Selector()
@@ -57,10 +62,59 @@ export class WorkOrdersState {
   }
 
   @Action(LoadWorkOrders)
-  load(_ctx: StateContext<WorkOrdersStateModel>) {}
+  load(ctx: StateContext<WorkOrdersStateModel>) {
+    if (this.env.previewMode) return;
+    return this.data.list().pipe(
+      tap((list) => {
+        ctx.patchState({ list });
+      }),
+    );
+  }
 
-  @Action(AssignWorkOrder)
-  assign(ctx: StateContext<WorkOrdersStateModel>, action: AssignWorkOrder) {
+  @Action(GetWorkOrderDetail)
+  getDetail(ctx: StateContext<WorkOrdersStateModel>, action: GetWorkOrderDetail) {
+    if (!this.env.previewMode) {
+      return this.data.getById(action.workOrderId).pipe(
+        tap((detail) => {
+          ctx.patchState({ detail });
+        }),
+      );
+    }
+
+    const detail = ctx.getState().list.find((wo) => wo.id === action.workOrderId) ?? null;
+    ctx.patchState({ detail });
+    return;
+  }
+
+  @Action(AssignVendor)
+  assign(ctx: StateContext<WorkOrdersStateModel>, action: AssignVendor) {
+    if (!this.env.previewMode) {
+      return this.data.assignVendor(action.workOrderId, action.vendorId).pipe(
+        tap((updatedFromApi) => {
+          const current = ctx.getState();
+          ctx.patchState({
+            list: current.list.map((wo) => (wo.id === updatedFromApi.id ? updatedFromApi : wo)),
+            detail:
+              current.detail?.id === updatedFromApi.id
+                ? updatedFromApi
+                : current.detail,
+          });
+          ctx.dispatch(new LoadWorkOrders());
+        }),
+      );
+    }
+
+    const currentDetail = ctx.getState().detail;
+    const updatedDetail: WorkOrder | null =
+      currentDetail && currentDetail.id === action.workOrderId
+        ? {
+            ...currentDetail,
+            vendorId: action.vendorId,
+            status: 'assigned',
+            assignedAt: new Date().toISOString(),
+          }
+        : currentDetail;
+
     ctx.patchState({
       list: ctx.getState().list.map((wo) =>
         wo.id === action.workOrderId
@@ -72,72 +126,8 @@ export class WorkOrdersState {
             }
           : wo,
       ),
+      detail: updatedDetail,
     });
-  }
-
-  @Action(UpdateProgress)
-  updateProgress(ctx: StateContext<WorkOrdersStateModel>, action: UpdateProgress) {
-    const newProgress: WorkOrderProgress = {
-      ...action.progress,
-      id: generateId('wop'),
-      workOrderId: action.workOrderId,
-    };
-    ctx.patchState({
-      progress: [...ctx.getState().progress, newProgress],
-      list: ctx.getState().list.map((wo) =>
-        wo.id === action.workOrderId
-          ? { ...wo, progressUpdates: [...wo.progressUpdates, newProgress] }
-          : wo,
-      ),
-    });
-  }
-
-  @Action(AddEvidence)
-  addEvidence(ctx: StateContext<WorkOrdersStateModel>, action: AddEvidence) {
-    const newEv: WorkOrderEvidence = {
-      ...action.evidence,
-      id: generateId('woe'),
-      workOrderId: action.workOrderId,
-    };
-    ctx.patchState({
-      evidence: [...ctx.getState().evidence, newEv],
-      list: ctx.getState().list.map((wo) =>
-        wo.id === action.workOrderId ? { ...wo, evidence: [...wo.evidence, newEv] } : wo,
-      ),
-    });
-  }
-
-  @Action(CompleteWorkOrder)
-  complete(ctx: StateContext<WorkOrdersStateModel>, action: CompleteWorkOrder) {
-    ctx.patchState({
-      list: ctx.getState().list.map((wo) =>
-        wo.id === action.workOrderId
-          ? {
-              ...wo,
-              status: 'completed' as const,
-              completedAt: new Date().toISOString(),
-            }
-          : wo,
-      ),
-    });
-  }
-
-  @Action(ValidateWorkOrder)
-  validate(ctx: StateContext<WorkOrdersStateModel>, action: ValidateWorkOrder) {
-    ctx.patchState({
-      list: ctx.getState().list.map((wo) =>
-        wo.id === action.workOrderId
-          ? {
-              ...wo,
-              status: action.accepted
-                ? ('validated_accepted' as const)
-                : ('validated_rejected' as const),
-              validatedAt: new Date().toISOString(),
-              validatedBy: 'preview-user',
-              rejectedReason: action.accepted ? null : (action.reason ?? null),
-            }
-          : wo,
-      ),
-    });
+    return;
   }
 }

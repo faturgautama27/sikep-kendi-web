@@ -7,17 +7,11 @@ import { filter, map } from 'rxjs/operators';
 
 const DRIVER_TABS = [
   { route: '/driver', label: 'Beranda', icon: 'pi pi-home' },
-  { route: '/driver/checklist', label: 'Checklist', icon: 'pi pi-list-check' },
-  { route: '/driver/checklist-history', label: 'Riwayat', icon: 'pi pi-history' },
-  { route: '/driver/fuel', label: 'BBM', icon: 'pi pi-bolt' },
   { route: '/driver/notifications', label: 'Notifikasi', icon: 'pi pi-bell' },
 ] as const;
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string; color: string }> = {
-  '/driver': { title: 'Beranda', subtitle: 'Selamat datang, Supir', color: 'from-primary-600 to-primary-700' },
-  '/driver/checklist': { title: 'Checklist Harian', subtitle: 'Inspeksi kendaraan', color: 'from-primary-600 to-primary-700' },
-  '/driver/checklist-history': { title: 'Riwayat Checklist', subtitle: 'Histori inspeksi', color: 'from-violet-600 to-violet-700' },
-  '/driver/fuel': { title: 'Catat BBM', subtitle: 'Pengisian bahan bakar', color: 'from-amber-500 to-amber-600' },
+  '/driver': { title: 'Beranda', subtitle: 'Selamat datang, Pengemudi', color: 'from-primary-600 to-primary-700' },
   '/driver/notifications': { title: 'Notifikasi', subtitle: 'Pesan & peringatan', color: 'from-slate-700 to-slate-800' },
 };
 

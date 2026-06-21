@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import type { User } from '@shared/models';
-import type { AuthDataPort } from '../ports/auth-data.port';
+import type { AuthDataPort, AuthSession } from '../ports/auth-data.port';
 
 /**
  * Preview-mode implementation of AuthDataPort.
@@ -12,15 +11,26 @@ import type { AuthDataPort } from '../ports/auth-data.port';
  */
 @Injectable({ providedIn: 'root' })
 export class PreviewAuthData implements AuthDataPort {
-  login(username: string, password: string): Observable<User> {
-    return of({ username } as unknown as User);
+  login(username: string, password: string): Observable<AuthSession> {
+    return of({
+      accessToken: `preview-token-${Date.now()}`,
+      user: {
+        id: username,
+        username,
+        fullName: username,
+        email: `${username}@preview.local`,
+        roles: [],
+        permissions: [],
+        forceChangePassword: false,
+      },
+    });
   }
 
   logout(): Observable<void> {
     return of(void 0);
   }
 
-  getCurrentUser(): Observable<User | null> {
+  getCurrentUser(): Observable<AuthSession['user'] | null> {
     return of(null);
   }
 

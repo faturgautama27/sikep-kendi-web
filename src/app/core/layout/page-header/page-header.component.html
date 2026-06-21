@@ -1,0 +1,11 @@
+<header class="flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-bold text-primary-900">{{ title() }}</h1>
+    @if (subtitle()) {
+      <p class="text-sm text-slate-500">{{ subtitle() }}</p>
+    }
+  </div>
+  <div class="flex items-center gap-2">
+    <ng-content select="[page-header-action]"></ng-content>
+  </div>
+</header>

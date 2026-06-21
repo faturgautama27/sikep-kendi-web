@@ -1,7 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { tap } from 'rxjs';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
+import { VEHICLE_DATA, type VehicleDataPort } from '@core/data-access/ports/vehicle-data.port';
 import type { Vehicle, VehicleDocument, OdometerReading } from '@shared/models';
 
 import {
@@ -40,6 +43,9 @@ function nowIso(): string {
 })
 @Injectable()
 export class VehiclesState {
+  private readonly env = inject(APP_ENV);
+  private readonly data = inject<VehicleDataPort>(VEHICLE_DATA);
+
   @Selector()
   static list(state: VehiclesStateModel): Vehicle[] {
     return state.list;
@@ -84,12 +90,26 @@ export class VehiclesState {
   }
 
   @Action(LoadVehicles)
-  load(_ctx: StateContext<VehiclesStateModel>) {
-    // Preview Mode: data already hydrated from fixtures; nothing to fetch.
+  load(ctx: StateContext<VehiclesStateModel>) {
+    if (this.env.previewMode) return;
+    return this.data.list().pipe(
+      tap((list) => {
+        ctx.patchState({ list });
+      }),
+    );
   }
 
   @Action(CreateVehicle)
   create(ctx: StateContext<VehiclesStateModel>, action: CreateVehicle) {
+    if (!this.env.previewMode) {
+      return this.data.create(action.input).pipe(
+        tap((created) => {
+          ctx.patchState({ list: [created, ...ctx.getState().list] });
+          ctx.dispatch(new LoadVehicles());
+        }),
+      );
+    }
+
     const newVehicle: Vehicle = {
       ...action.input,
       id: generateId('v'),
@@ -97,22 +117,48 @@ export class VehiclesState {
       updatedAt: nowIso(),
     };
     ctx.patchState({ list: [...ctx.getState().list, newVehicle] });
+    return;
   }
 
   @Action(UpdateVehicle)
   update(ctx: StateContext<VehiclesStateModel>, action: UpdateVehicle) {
+    if (!this.env.previewMode) {
+      return this.data.update(action.id, action.patch).pipe(
+        tap((updatedFromApi) => {
+          const state = ctx.getState();
+          ctx.patchState({
+            list: state.list.map((v) => (v.id === updatedFromApi.id ? updatedFromApi : v)),
+          });
+        }),
+      );
+    }
+
     const updated = ctx.getState().list.map((v) =>
       v.id === action.id ? { ...v, ...action.patch, updatedAt: nowIso() } : v,
     );
     ctx.patchState({ list: updated });
+    return;
   }
 
   @Action(RetireVehicle)
   retire(ctx: StateContext<VehiclesStateModel>, action: RetireVehicle) {
+    if (!this.env.previewMode) {
+      return this.data.retire(action.id).pipe(
+        tap((retiredFromApi) => {
+          const state = ctx.getState();
+          ctx.patchState({
+            list: state.list.map((v) => (v.id === retiredFromApi.id ? retiredFromApi : v)),
+          });
+          ctx.dispatch(new LoadVehicles());
+        }),
+      );
+    }
+
     const updated = ctx.getState().list.map((v) =>
       v.id === action.id ? { ...v, status: 'retired' as const, updatedAt: nowIso() } : v,
     );
     ctx.patchState({ list: updated });
+    return;
   }
 
   @Action(AddVehicleDocument)
@@ -132,6 +178,21 @@ export class VehiclesState {
 
   @Action(RecordOdometer)
   recordOdometer(ctx: StateContext<VehiclesStateModel>, action: RecordOdometer) {
+    if (!this.env.previewMode) {
+      return this.data.addOdometerReading(action.vehicleId, action.reading).pipe(
+        tap((newReading) => {
+          ctx.patchState({
+            odometerReadings: [newReading, ...ctx.getState().odometerReadings],
+            list: ctx.getState().list.map((v) =>
+              v.id === action.vehicleId
+                ? { ...v, odometerCurrent: newReading.valueKm, updatedAt: nowIso() }
+                : v,
+            ),
+          });
+        }),
+      );
+    }
+
     // Validasi monoton: tolak jika nilai < terakhir.
     const last = ctx
       .getState()
@@ -153,5 +214,6 @@ export class VehiclesState {
           : v,
       ),
     });
+    return;
   }
 }

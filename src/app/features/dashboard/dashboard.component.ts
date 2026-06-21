@@ -16,9 +16,10 @@ import {
 } from 'ng-apexcharts';
 
 import { AuthState } from '@features/login/state';
-import { DashboardState } from '@features/analytics/state';
+import { DashboardState } from '@features/dashboard/state';
 import { NotificationsState } from '@features/notifications/state';
-import type { DashboardSummary } from '@shared/models';
+import { WorkOrdersState } from '@features/work-orders/state';
+import type { DashboardSummary, VendorPerformance } from '@shared/models';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,10 @@ import type { DashboardSummary } from '@shared/models';
 export class DashboardComponent {
   private readonly store = inject(Store);
 
+  private safeArray<T>(value: unknown): T[] {
+    return Array.isArray(value) ? (value as T[]) : [];
+  }
+
   protected readonly userName = computed(
     () => this.store.selectSignal(AuthState.user)()?.fullName?.split(' ')[0] ?? 'User',
   );
@@ -38,6 +43,13 @@ export class DashboardComponent {
   protected readonly topDeviation = this.store.selectSignal(DashboardState.topDeviation);
   protected readonly vendorPerf = this.store.selectSignal(DashboardState.vendorPerformance);
   protected readonly unread = this.store.selectSignal(NotificationsState.unreadCount);
+  protected readonly workOrders = this.store.selectSignal(WorkOrdersState.list);
+
+  protected readonly activeWorkOrders = computed(
+    () => this.workOrders().filter((wo) => ['assigned', 'received', 'in_progress'].includes(wo.status)).length,
+  );
+
+  protected readonly activeEwe = computed(() => this.topDeviation().length);
 
   protected num(s: DashboardSummary | null, key: keyof DashboardSummary): number {
     return s ? Number(s[key] ?? 0) : 0;
@@ -56,16 +68,17 @@ export class DashboardComponent {
     return `Rp ${v}`;
   }
 
-  // ── Biaya bulan ini: Donut chart ─────────────────────────────────────
+  // ── Operasional bulan ini: Donut chart ───────────────────────────────
   protected readonly donutSeries = computed(() => [
-    this.num(this.summary(), 'fuelCostThisMonth'),
-    this.num(this.summary(), 'maintenanceCostThisMonth'),
+    this.activeWorkOrders(),
+    this.num(this.summary(), 'pendingPengajuan'),
+    this.activeEwe(),
   ]);
 
   protected readonly donutOptions = {
     chart: { type: 'donut' as const, height: 220, sparkline: { enabled: false } },
-    labels: ['BBM', 'Maintenance'],
-    colors: ['#2563eb', '#f59e0b'],
+    labels: ['WO Aktif', 'Pengajuan Pending', 'EWE Aktif'],
+    colors: ['#2563eb', '#f59e0b', '#ef4444'],
     legend: { show: true, position: 'bottom' as const, fontSize: '11px' },
     plotOptions: {
       pie: {
@@ -79,7 +92,7 @@ export class DashboardComponent {
               fontSize: '11px',
               color: '#64748b',
               formatter: (w: { globals: { seriesTotals: number[] } }) =>
-                this.formatShort(w.globals.seriesTotals.reduce((a, b) => a + b, 0)),
+                `${w.globals.seriesTotals.reduce((a, b) => a + b, 0)} item`,
             },
           },
         },
@@ -88,7 +101,7 @@ export class DashboardComponent {
     stroke: { width: 0 },
     dataLabels: { enabled: false },
     tooltip: {
-      y: { formatter: (v: number) => this.formatRupiah(v) },
+      y: { formatter: (v: number) => `${v} item` },
     },
   };
 
@@ -122,7 +135,7 @@ export class DashboardComponent {
 
   // ── Vendor performa: Radial ───────────────────────────────────────────
   protected readonly radialSeries = computed(() =>
-    this.vendorPerf().slice(0, 4).map(v => Math.round((1 - v.rejectionRate) * 100))
+    this.safeArray<VendorPerformance>(this.vendorPerf()).slice(0, 4).map(v => Math.round((1 - v.rejectionRate) * 100))
   );
 
   protected readonly radialOptions = computed(() => ({
@@ -136,7 +149,7 @@ export class DashboardComponent {
         dataLabels: { name: { fontSize: '10px' }, value: { fontSize: '12px', fontWeight: 700 } },
       },
     },
-    labels: this.vendorPerf().slice(0, 4).map(v => v.vendorNama.split(' ').slice(0, 2).join(' ')),
+    labels: this.safeArray<VendorPerformance>(this.vendorPerf()).slice(0, 4).map(v => v.vendorNama.split(' ').slice(0, 2).join(' ')),
     colors: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'],
     legend: { show: true, position: 'bottom' as const, fontSize: '10px' },
   }));

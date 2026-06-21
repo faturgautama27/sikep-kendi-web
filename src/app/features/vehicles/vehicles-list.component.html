@@ -8,7 +8,7 @@
   </header>
 
   <!-- Filter -->
-  <div class="flex flex-wrap gap-3 armadin-table-wrap p-4 shadow-sm">
+  <div class="flex flex-wrap gap-3 sikep-table-wrap p-4 shadow-sm">
     <div class="flex flex-col gap-1 flex-1 min-w-[200px]">
       <label class="text-xs font-medium text-slate-600">Cari</label>
       <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)"
@@ -51,7 +51,7 @@
   </div>
 
   <!-- Table -->
-  <div class="armadin-table-wrap">
+  <div class="sikep-table-wrap">
     <p-table [value]="filtered()" [paginator]="filtered().length > 15" [rows]="15"
       [rowsPerPageOptions]="[15,30,50]" dataKey="id" [rowHover]="true" styleClass="text-sm"
       currentPageReportTemplate="{first}–{last} dari {totalRecords}" [showCurrentPageReport]="true">
@@ -62,6 +62,7 @@
           <th class="w-20 text-center">Tahun</th>
           <th class="w-28">Jenis</th>
           <th class="w-32">Status</th>
+          <th class="w-36">EWE</th>
           <th class="w-36 text-right">Odometer</th>
           <th class="w-20 text-center">Aksi</th>
         </tr>
@@ -73,6 +74,7 @@
           <td class="text-center text-slate-600">{{ v.tahun }}</td>
           <td><p-tag [severity]="jenisSeverity(v.jenisKendaraan)" [value]="v.jenisKendaraan" [rounded]="true"></p-tag></td>
           <td><p-tag [severity]="statusSeverity(v.status)" [value]="statusLabel(v.status)" [rounded]="true"></p-tag></td>
+          <td><p-tag [severity]="eweSeverity(v)" [value]="eweLabel(v)" [rounded]="true"></p-tag></td>
           <td class="text-right text-slate-700">{{ formatKm(v.odometerCurrent) }}</td>
           <td class="text-center">
             <p-button icon="pi pi-eye" severity="secondary" [text]="true" [rounded]="true" size="small"
@@ -81,7 +83,7 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="7" class="py-10 text-center text-sm text-slate-500">
+        <tr><td colspan="8" class="py-10 text-center text-sm text-slate-500">
           @if (search() || selectedStatus() || selectedJenis()) {
             Tidak ada kendaraan yang cocok dengan filter. <button class="text-primary-600 underline" (click)="onResetFilter()">Reset filter</button>
           } @else {

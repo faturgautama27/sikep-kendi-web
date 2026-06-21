@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "armadin-web": {
+    "sikep-kendi-web": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:class": {
@@ -94,13 +94,13 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "armadin-web:build:production"
+              "buildTarget": "sikep-kendi-web:build:production"
             },
             "preview": {
-              "buildTarget": "armadin-web:build:preview"
+              "buildTarget": "sikep-kendi-web:build:preview"
             },
             "development": {
-              "buildTarget": "armadin-web:build:development"
+              "buildTarget": "sikep-kendi-web:build:development"
             }
           },
           "defaultConfiguration": "development"

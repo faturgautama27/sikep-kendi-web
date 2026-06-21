@@ -28,11 +28,10 @@ interface JenisOption {
 
 const STATUS_OPTIONS: StatusOption[] = [
   { label: 'Draft', value: 'draft' },
-  { label: 'Menunggu Approval', value: 'awaiting_approval' },
-  { label: 'Disetujui', value: 'approved' },
-  { label: 'Ditolak', value: 'rejected' },
-  { label: 'Dalam Order Kerja', value: 'in_work_order' },
-  { label: 'Selesai', value: 'closed' },
+  { label: 'Menunggu Verifikasi', value: 'menunggu_verifikasi' },
+  { label: 'Terverifikasi', value: 'terverifikasi' },
+  { label: 'Ditolak', value: 'ditolak' },
+  { label: 'Work Order Terbuat', value: 'work_order_terbuat' },
 ];
 
 const JENIS_OPTIONS: JenisOption[] = [
@@ -44,16 +43,14 @@ const JENIS_OPTIONS: JenisOption[] = [
 
 const STATUS_LABEL: Record<PengajuanStatus, string> = {
   draft: 'Draft',
-  submitted: 'Submitted',
-  awaiting_approval: 'Menunggu',
-  approved: 'Disetujui',
-  rejected: 'Ditolak',
-  in_work_order: 'Dalam WO',
-  closed: 'Selesai',
+  menunggu_verifikasi: 'Menunggu Verifikasi',
+  terverifikasi: 'Terverifikasi',
+  ditolak: 'Ditolak',
+  work_order_terbuat: 'Work Order Terbuat',
 };
 
 /**
- * ARMADIN — halaman daftar pengajuan pemeliharaan.
+ * SiKeP KenDI — halaman daftar pengajuan pemeliharaan.
  *
  * Menampilkan list `Pengajuan` dari `PengajuanState` dengan filter teks,
  * status (multi), dan jenis. Aksi approve/reject hanya muncul untuk row
@@ -99,11 +96,12 @@ export class PengajuanListComponent {
   /** Hasil filter list yang dirender ke tabel. */
   protected readonly filteredList = computed<Pengajuan[]>(() => {
     const all = this.list();
+    const rows = Array.isArray(all) ? all : [];
     const q = this.searchQuery().trim().toLowerCase();
     const statuses = this.selectedStatuses();
     const jenis = this.selectedJenis();
 
-    return all.filter((p) => {
+    return rows.filter((p) => {
       if (q) {
         const haystack = `${p.nomor} ${p.judul}`.toLowerCase();
         if (!haystack.includes(q)) return false;
@@ -118,12 +116,10 @@ export class PengajuanListComponent {
   protected readonly statsByStatus = computed(() => {
     const counts: Record<PengajuanStatus, number> = {
       draft: 0,
-      submitted: 0,
-      awaiting_approval: 0,
-      approved: 0,
-      rejected: 0,
-      in_work_order: 0,
-      closed: 0,
+      menunggu_verifikasi: 0,
+      terverifikasi: 0,
+      ditolak: 0,
+      work_order_terbuat: 0,
     };
     for (const p of this.list()) {
       counts[p.status] = (counts[p.status] ?? 0) + 1;
@@ -159,7 +155,7 @@ export class PengajuanListComponent {
     this.messageService.add({
       severity: 'info',
       summary: `Approve ${p.nomor}`,
-      detail: 'Aksi approval akan diimplementasi pada task 7.x',
+      detail: 'Aksi verifikasi akan diimplementasi pada task berikutnya.',
       life: 3500,
     });
   }
@@ -168,8 +164,8 @@ export class PengajuanListComponent {
     event.stopPropagation();
     this.messageService.add({
       severity: 'info',
-      summary: `Reject ${p.nomor}`,
-      detail: 'Aksi penolakan akan diimplementasi pada task 7.x',
+      summary: `Tolak ${p.nomor}`,
+      detail: 'Aksi penolakan akan diimplementasi pada task berikutnya.',
       life: 3500,
     });
   }
@@ -187,16 +183,13 @@ export class PengajuanListComponent {
     switch (status) {
       case 'draft':
         return 'secondary';
-      case 'submitted':
-      case 'awaiting_approval':
+      case 'menunggu_verifikasi':
         return 'warn';
-      case 'approved':
-      case 'closed':
+      case 'terverifikasi':
+      case 'work_order_terbuat':
         return 'success';
-      case 'rejected':
+      case 'ditolak':
         return 'danger';
-      case 'in_work_order':
-        return 'info';
       default:
         return 'secondary';
     }

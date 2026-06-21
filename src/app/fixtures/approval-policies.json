@@ -12,14 +12,14 @@
       "jenis": "corrective",
       "jenjangNo": 2,
       "ambangNominalMin": 5000000,
-      "role": "kasubag"
+      "role": "verifikator"
     },
     {
       "id": "ap-corr-3",
       "jenis": "corrective",
       "jenjangNo": 3,
       "ambangNominalMin": 25000000,
-      "role": "kepala_dinas"
+      "role": "admin_sistem"
     },
     {
       "id": "ap-prev-1",
@@ -33,7 +33,7 @@
       "jenis": "preventive",
       "jenjangNo": 2,
       "ambangNominalMin": 3000000,
-      "role": "kasubag"
+      "role": "verifikator"
     },
     {
       "id": "ap-pred-1",
@@ -47,7 +47,7 @@
       "jenis": "predictive",
       "jenjangNo": 2,
       "ambangNominalMin": 5000000,
-      "role": "kasubag"
+      "role": "verifikator"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 
 import { ButtonModule } from 'primeng/button';
@@ -23,6 +24,7 @@ import type { Vehicle, VehicleStatus, VehicleType } from '@shared/models';
 })
 export class VehiclesListComponent {
   private readonly store = inject(Store);
+  private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
   private readonly all = this.store.selectSignal(VehiclesState.list);
@@ -65,7 +67,7 @@ export class VehiclesListComponent {
   }
 
   protected onView(v: Vehicle): void {
-    this.messageService.add({ severity: 'info', summary: v.nomorPolisi, detail: `${v.merk} ${v.tipe} ${v.tahun} · Odometer: ${this.formatKm(v.odometerCurrent)}`, life: 4000 });
+    this.router.navigate(['/vehicles', v.id], { queryParams: { tab: 'komponen' } });
   }
 
   protected statusSeverity(s: VehicleStatus): 'success' | 'warn' | 'secondary' {
@@ -85,5 +87,19 @@ export class VehiclesListComponent {
 
   protected formatKm(n: number): string {
     return new Intl.NumberFormat('id-ID').format(n) + ' km';
+  }
+
+  protected eweSeverity(vehicle: Vehicle): 'success' | 'warn' | 'danger' {
+    const kmCycle = vehicle.odometerCurrent % 20000;
+    if (kmCycle >= 18000) return 'danger';
+    if (kmCycle >= 15000) return 'warn';
+    return 'success';
+  }
+
+  protected eweLabel(vehicle: Vehicle): string {
+    const severity = this.eweSeverity(vehicle);
+    if (severity === 'danger') return 'EWE Tinggi';
+    if (severity === 'warn') return 'EWE Sedang';
+    return 'EWE Rendah';
   }
 }

@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Store } from '@ngxs/store';
+
 import { APP_ENV } from '@core/data-access/app-env.token';
+import { Login } from '@features/login/state';
+import { AuthState } from '@features/login/state';
 
 @Component({
   selector: 'app-login',
@@ -12,6 +16,7 @@ import { APP_ENV } from '@core/data-access/app-env.token';
 })
 export class LoginComponent {
   private readonly router = inject(Router);
+  private readonly store = inject(Store);
   protected readonly env = inject(APP_ENV);
 
   readonly username = signal('');
@@ -24,8 +29,8 @@ export class LoginComponent {
   protected readonly features = [
     { icon: 'pi pi-truck', label: 'Manajemen Armada Dinas' },
     { icon: 'pi pi-wrench', label: 'Pemeliharaan Terencana (PM/CM/PdM)' },
-    { icon: 'pi pi-receipt', label: 'Rekonsiliasi SPJ Eksternal' },
-    { icon: 'pi pi-list-check', label: 'Checklist Harian & Early Warning' },
+    { icon: 'pi pi-list-check', label: 'Draft Checklist & Verifikasi Work Order' },
+    { icon: 'pi pi-receipt', label: 'Penawaran, SHS, dan Pembayaran' },
     { icon: 'pi pi-shield', label: 'Audit Trail & Compliance Report' },
   ];
 
@@ -46,14 +51,24 @@ export class LoginComponent {
     this.errorMessage.set(null);
     this.submitting.set(true);
 
-    setTimeout(() => {
-      this.submitting.set(false);
-      // Role-based redirect: pengemudi → /driver, others → /dashboard
-      const username = this.username().trim();
-      const driverUsernames = ['pengemudi'];
-      const isDriver = driverUsernames.includes(username);
-      this.router.navigate([isDriver ? '/driver' : '/dashboard']);
-    }, 600);
+    const username = this.username().trim();
+    const password = this.password().trim();
+    this.store.dispatch(new Login(username, password)).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        const user = this.store.selectSnapshot(AuthState.user);
+        if (!user) {
+          this.errorMessage.set('Nama pengguna atau kata sandi tidak valid.');
+          return;
+        }
+        const isDriver = user.roles.includes('pengemudi');
+        this.router.navigate([isDriver ? '/driver' : '/dashboard']);
+      },
+      error: () => {
+        this.submitting.set(false);
+        this.errorMessage.set('Terjadi kesalahan saat login. Coba lagi.');
+      },
+    });
   }
 
   protected useDemoAccount(username: string): void {

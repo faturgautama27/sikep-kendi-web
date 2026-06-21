@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import type {
-  WorkOrder,
-  WorkOrderProgress,
-  WorkOrderEvidence,
-} from '@shared/models';
+import type { WorkOrder } from '@shared/models';
 import type {
   WorkOrderDataPort,
   WorkOrderFilter,
@@ -29,34 +25,5 @@ export class PreviewWorkOrderData implements WorkOrderDataPort {
 
   assignVendor(workOrderId: string, vendorId: string): Observable<WorkOrder> {
     return of({ id: workOrderId, vendorId } as unknown as WorkOrder);
-  }
-
-  addProgress(
-    workOrderId: string,
-    progress: Omit<WorkOrderProgress, 'id'>,
-  ): Observable<WorkOrderProgress> {
-    return of({ ...progress, id: 'preview' } as unknown as WorkOrderProgress);
-  }
-
-  addEvidence(
-    workOrderId: string,
-    evidence: Omit<WorkOrderEvidence, 'id'>,
-  ): Observable<WorkOrderEvidence> {
-    return of({ ...evidence, id: 'preview' } as unknown as WorkOrderEvidence);
-  }
-
-  complete(workOrderId: string, notes: string): Observable<WorkOrder> {
-    return of({ id: workOrderId, status: 'completed' } as unknown as WorkOrder);
-  }
-
-  validate(
-    workOrderId: string,
-    accepted: boolean,
-    reason?: string,
-  ): Observable<WorkOrder> {
-    return of({
-      id: workOrderId,
-      status: accepted ? 'validated_accepted' : 'validated_rejected',
-    } as unknown as WorkOrder);
   }
 }

@@ -1,7 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { tap } from 'rxjs';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
+import { AUDIT_DATA, type AuditDataPort } from '@core/data-access/ports/audit-data.port';
 import type { AuditLog } from '@shared/models';
 
 import { LoadAuditLogs, FilterAuditLogs, ExportAuditLog } from './audit.actions';
@@ -23,6 +26,29 @@ const INITIAL: AuditStateModel = { logs: [], filter: {} };
 @State<AuditStateModel>({ name: 'audit', defaults: INITIAL })
 @Injectable()
 export class AuditState {
+  private readonly env = inject(APP_ENV);
+  private readonly data = inject<AuditDataPort>(AUDIT_DATA);
+
+  private mapAudit(raw: Record<string, unknown>): AuditLog {
+    return {
+      id: String(raw['id'] ?? ''),
+      actorId: String(raw['actorId'] ?? 'system'),
+      actorName: String((raw['actor'] as { fullName?: string } | undefined)?.fullName ?? 'System'),
+      role: ((raw['actorRole'] as AuditLog['role'] | undefined) ?? 'system'),
+      action: String(raw['action'] ?? '-'),
+      entity: String(raw['entity'] ?? '-'),
+      entityId: raw['entityId'] ? String(raw['entityId']) : null,
+      entityRef: null,
+      before: (raw['before'] as Record<string, unknown> | null | undefined) ?? null,
+      after: (raw['after'] as Record<string, unknown> | null | undefined) ?? null,
+      occurredAt: String(raw['occurredAt'] ?? new Date().toISOString()),
+      ip: String(raw['ip'] ?? raw['ipAddress'] ?? '-'),
+      userAgent: String(raw['userAgent'] ?? '-'),
+      prevHash: String(raw['prevHash'] ?? '-'),
+      hash: String(raw['hash'] ?? '-'),
+    };
+  }
+
   @Selector()
   static logs(state: AuditStateModel): AuditLog[] {
     const { filter } = state;
@@ -47,11 +73,22 @@ export class AuditState {
   }
 
   @Action(LoadAuditLogs)
-  load(_ctx: StateContext<AuditStateModel>) {}
+  load(ctx: StateContext<AuditStateModel>) {
+    if (this.env.previewMode) return;
+    return this.data.list(ctx.getState().filter).pipe(
+      tap((result) => {
+        const logs = result.data.map((row) => this.mapAudit(row as unknown as Record<string, unknown>));
+        ctx.patchState({ logs });
+      }),
+    );
+  }
 
   @Action(FilterAuditLogs)
   applyFilter(ctx: StateContext<AuditStateModel>, action: FilterAuditLogs) {
     ctx.patchState({ filter: action.filter });
+    if (!this.env.previewMode) {
+      ctx.dispatch(new LoadAuditLogs());
+    }
   }
 
   @Action(ExportAuditLog)

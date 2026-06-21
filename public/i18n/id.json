@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "ARMADIN",
-    "tagline": "Armada Dinas Terkelola"
+    "name": "SiKeP KenDI",
+    "tagline": "Sistem Kendali Pemeliharaan Kendaraan Dinas"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -41,11 +41,12 @@
     "banner": "Mode Preview — Data Dummy"
   },
   "roles": {
-    "supir": "Supir",
+    "pengemudi": "Pengemudi",
     "vendor": "Vendor",
     "pengurus_barang": "Pengurus Barang",
-    "kasubag": "Kasubag",
+    "verifikator": "Verifikator",
+    "bendahara": "Bendahara",
     "admin_sistem": "Admin Sistem",
-    "auditor": "Auditor"
+    "system": "Sistem"
   }
 }

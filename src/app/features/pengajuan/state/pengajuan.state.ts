@@ -1,7 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { tap } from 'rxjs';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
+import { PENGAJUAN_DATA, type PengajuanDataPort } from '@core/data-access/ports/pengajuan-data.port';
 import type { Pengajuan, ApprovalPolicy, ApprovalStep } from '@shared/models';
 
 import {
@@ -31,9 +34,29 @@ function generatePengajuanNomor(): string {
   return `PMNT-${year}-${seq}`;
 }
 
+function normalizeStatus(rawStatus: string): Pengajuan['status'] {
+  switch (rawStatus) {
+    case 'submitted':
+    case 'awaiting_approval':
+      return 'menunggu_verifikasi';
+    case 'approved':
+    case 'closed':
+      return 'terverifikasi';
+    case 'rejected':
+      return 'ditolak';
+    case 'in_work_order':
+      return 'work_order_terbuat';
+    default:
+      return 'draft';
+  }
+}
+
 @State<PengajuanStateModel>({ name: 'pengajuan', defaults: INITIAL })
 @Injectable()
 export class PengajuanState {
+  private readonly env = inject(APP_ENV);
+  private readonly data = inject<PengajuanDataPort>(PENGAJUAN_DATA);
+
   @Selector()
   static list(state: PengajuanStateModel): Pengajuan[] {
     return state.list;
@@ -61,6 +84,7 @@ export class PengajuanState {
     // Attach approvalSteps to each pengajuan based on pengajuanId
     const enriched = list.map((p) => ({
       ...p,
+      status: normalizeStatus(p.status),
       approvalSteps: steps.filter((s) => s.pengajuanId === p.id),
     }));
     ctx.patchState({
@@ -71,10 +95,26 @@ export class PengajuanState {
   }
 
   @Action(LoadPengajuan)
-  load(_ctx: StateContext<PengajuanStateModel>, _action: LoadPengajuan) {}
+  load(ctx: StateContext<PengajuanStateModel>, action: LoadPengajuan) {
+    if (this.env.previewMode) return;
+    return this.data.list(action.filter).pipe(
+      tap((list) => {
+        ctx.patchState({ list });
+      }),
+    );
+  }
 
   @Action(CreatePengajuan)
   create(ctx: StateContext<PengajuanStateModel>, action: CreatePengajuan) {
+    if (!this.env.previewMode) {
+      return this.data.create(action.input).pipe(
+        tap((created) => {
+          ctx.patchState({ list: [created, ...ctx.getState().list] });
+          ctx.dispatch(new LoadPengajuan());
+        }),
+      );
+    }
+
     const newP: Pengajuan = {
       ...action.input,
       id: generateId('pmnt'),
@@ -88,6 +128,7 @@ export class PengajuanState {
       rejectedAt: null,
     };
     ctx.patchState({ list: [newP, ...ctx.getState().list] });
+    return;
   }
 
   @Action(SubmitPengajuan)
@@ -114,7 +155,12 @@ export class PengajuanState {
     ctx.patchState({
       list: state.list.map((p) =>
         p.id === action.id
-          ? { ...p, status: 'awaiting_approval' as const, approvalSteps: newSteps, submittedAt: new Date().toISOString() }
+          ? {
+              ...p,
+              status: 'menunggu_verifikasi' as const,
+              approvalSteps: newSteps,
+              submittedAt: new Date().toISOString(),
+            }
           : p,
       ),
       approvalSteps: [...state.approvalSteps, ...newSteps],
@@ -123,6 +169,14 @@ export class PengajuanState {
 
   @Action(ApprovePengajuan)
   approve(ctx: StateContext<PengajuanStateModel>, action: ApprovePengajuan) {
+    if (!this.env.previewMode) {
+      return this.data.approve(action.id, action.jenjangNo, action.comment).pipe(
+        tap(() => {
+          ctx.dispatch(new LoadPengajuan());
+        }),
+      );
+    }
+
     const state = ctx.getState();
     const target = state.list.find((p) => p.id === action.id);
     if (!target) return;
@@ -145,23 +199,32 @@ export class PengajuanState {
           ? {
               ...p,
               approvalSteps: updatedSteps,
-              status: allApproved ? ('approved' as const) : p.status,
+              status: allApproved ? ('terverifikasi' as const) : p.status,
               approvedAt: allApproved ? new Date().toISOString() : p.approvedAt,
             }
           : p,
       ),
     });
+    return;
   }
 
   @Action(RejectPengajuan)
   reject(ctx: StateContext<PengajuanStateModel>, action: RejectPengajuan) {
+    if (!this.env.previewMode) {
+      return this.data.reject(action.id, action.reason).pipe(
+        tap(() => {
+          ctx.dispatch(new LoadPengajuan());
+        }),
+      );
+    }
+
     const state = ctx.getState();
     ctx.patchState({
       list: state.list.map((p) =>
         p.id === action.id
           ? {
               ...p,
-              status: 'rejected' as const,
+              status: 'ditolak' as const,
               rejectedAt: new Date().toISOString(),
               approvalSteps: p.approvalSteps.map((s) =>
                 s.decision === 'pending'
@@ -177,10 +240,20 @@ export class PengajuanState {
           : p,
       ),
     });
+    return;
   }
 
   @Action(UpdateApprovalPolicies)
   updatePolicies(ctx: StateContext<PengajuanStateModel>, action: UpdateApprovalPolicies) {
+    if (!this.env.previewMode) {
+      return this.data.updateApprovalPolicies(action.policies).pipe(
+        tap((policies) => {
+          ctx.patchState({ approvalPolicies: policies });
+        }),
+      );
+    }
+
     ctx.patchState({ approvalPolicies: action.policies });
+    return;
   }
 }

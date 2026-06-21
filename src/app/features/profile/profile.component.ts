@@ -9,7 +9,7 @@ import { CardModule } from 'primeng/card';
 import { AuthState } from '@features/login/state';
 
 /**
- * ARMADIN — Halaman Profile.
+ * SiKeP KenDI — Halaman Profile.
  *
  * Menampilkan ringkas profil user aktif (avatar, nama, role, email, kontak,
  * unit kerja) dari `AuthState.user`. Menyediakan dua aksi:

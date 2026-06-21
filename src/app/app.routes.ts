@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/auth/auth.guard';
+import { permissionGuard } from '@core/auth/permission.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/login' },
@@ -26,18 +27,6 @@ export const routes: Routes = [
         loadComponent: () => import('@features/driver-app/driver-home.component').then(m => m.DriverHomeComponent),
       },
       {
-        path: 'checklist',
-        loadComponent: () => import('@features/driver-app/driver-checklist.component').then(m => m.DriverChecklistComponent),
-      },
-      {
-        path: 'checklist-history',
-        loadComponent: () => import('@features/driver-app/driver-checklist-history.component').then(m => m.DriverChecklistHistoryComponent),
-      },
-      {
-        path: 'fuel',
-        loadComponent: () => import('@features/driver-app/driver-fuel.component').then(m => m.DriverFuelComponent),
-      },
-      {
         path: 'notifications',
         loadComponent: () => import('@features/driver-app/driver-notifications.component').then(m => m.DriverNotificationsComponent),
       },
@@ -58,66 +47,125 @@ export const routes: Routes = [
       {
         path: 'vehicles',
         loadComponent: () => import('@features/vehicles/vehicles-list.component').then((m) => m.VehiclesListComponent),
-        data: { title: 'Kendaraan' },
+        canActivate: [permissionGuard],
+        data: { title: 'Kendaraan', requiredPermissions: ['kendaraan.read'] },
       },
       {
-        path: 'regulations',
-        loadComponent: () => import('@features/regulations/regulations-list.component').then((m) => m.RegulationsListComponent),
-        data: { title: 'Regulasi' },
-      },
-      {
-        path: 'spareparts',
-        loadComponent: () => import('@features/spareparts/spareparts-list.component').then((m) => m.SparepartsListComponent),
-        data: { title: 'Sparepart & Vendor' },
-      },
-      {
-        path: 'drivers',
-        loadComponent: () => import('@features/drivers/drivers-list.component').then((m) => m.DriversListComponent),
-        data: { title: 'Supir' },
-      },
-      {
-        path: 'checklist-templates',
-        loadComponent: () => import('@features/checklist/checklist-templates.component').then((m) => m.ChecklistTemplatesComponent),
-        data: { title: 'Template Checklist' },
-      },
-      {
-        path: 'checklist-executions',
-        loadComponent: () => import('@features/checklist/checklist-executions.component').then((m) => m.ChecklistExecutionsComponent),
-        data: { title: 'Eksekusi Checklist' },
+        path: 'vehicles/:id',
+        loadComponent: () => import('@features/vehicles/vehicle-detail.component').then((m) => m.VehicleDetailComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Detail Kendaraan', requiredPermissions: ['kendaraan.read'] },
       },
       {
         path: 'pengajuan',
         loadComponent: () => import('@features/pengajuan/pengajuan-list.component').then((m) => m.PengajuanListComponent),
-        data: { title: 'Pengajuan Pemeliharaan' },
+        canActivate: [permissionGuard],
+        data: { title: 'Pengajuan Pemeliharaan', requiredPermissions: ['pengajuan.read'] },
       },
       {
         path: 'work-orders',
         loadComponent: () => import('@features/work-orders/work-orders-list.component').then((m) => m.WorkOrdersListComponent),
-        data: { title: 'Order Kerja' },
+        canActivate: [permissionGuard],
+        data: { title: 'Work Order', requiredPermissions: ['work_order.read'] },
       },
       {
-        path: 'fuel',
-        loadComponent: () => import('@features/fuel/fuel-list.component').then((m) => m.FuelListComponent),
-        data: { title: 'BBM' },
+        path: 'work-orders/:id/draft-review',
+        loadComponent: () => import('@features/work-orders/draft-review.component').then((m) => m.DraftReviewComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Review Draft Checklist', requiredPermissions: ['draft_checklist.review'] },
       },
       {
-        path: 'spj',
-        loadComponent: () => import('@features/spj/spj-list.component').then((m) => m.SpjListComponent),
-        data: { title: 'SPJ Rekonsiliasi' },
+        path: 'work-orders/:id/verifikasi',
+        loadComponent: () => import('@features/work-orders/verifikasi-work-order.component').then((m) => m.VerifikasiWorkOrderComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Verifikasi Harga', requiredPermissions: ['verifikasi.shs'] },
+      },
+      {
+        path: 'work-orders/:id/pembayaran',
+        loadComponent: () => import('@features/work-orders/pembayaran-work-order.component').then((m) => m.PembayaranWorkOrderComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Proses Pembayaran', requiredPermissions: ['pembayaran.proses'] },
+      },
+      {
+        path: 'darurat',
+        loadComponent: () => import('@features/darurat/darurat-list.component').then((m) => m.DaruratListComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Laporan Darurat', requiredPermissions: ['darurat.read'] },
+      },
+      {
+        path: 'darurat/new',
+        loadComponent: () => import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Buat Laporan Darurat', requiredPermissions: ['darurat.create'] },
       },
       {
         path: 'audit',
         loadComponent: () => import('@features/audit/audit-list.component').then((m) => m.AuditListComponent),
-        data: { title: 'Audit Trail' },
+        canActivate: [permissionGuard],
+        data: { title: 'Audit Trail', requiredPermissions: ['audit_log.read'] },
       },
       {
-        path: 'analytics',
-        loadComponent: () => import('@features/analytics/analytics.component').then((m) => m.AnalyticsComponent),
-        data: { title: 'Analytics' },
+        path: 'vendor/dashboard',
+        loadComponent: () => import('@features/vendor/vendor-dashboard.component').then((m) => m.VendorDashboardComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Portal Vendor Dashboard', requiredPermissions: ['work_order.read'] },
+      },
+      {
+        path: 'vendor/work-orders',
+        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        canActivate: [permissionGuard],
+        data: {
+          title: 'Portal Vendor Notifikasi WO',
+          requiredPermissions: ['work_order.read'],
+          vendorView: 'notifikasi',
+        },
+      },
+      {
+        path: 'vendor/draft-checklists',
+        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        canActivate: [permissionGuard],
+        data: {
+          title: 'Portal Vendor Draft Checklist',
+          requiredPermissions: ['draft_checklist.create'],
+          vendorView: 'draft',
+        },
+      },
+      {
+        path: 'vendor/penawaran-invoice',
+        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        canActivate: [permissionGuard],
+        data: {
+          title: 'Portal Vendor Penawaran & Invoice',
+          requiredPermissions: ['penawaran.create'],
+          vendorView: 'penawaran',
+        },
+      },
+      {
+        path: 'vendor/riwayat',
+        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        canActivate: [permissionGuard],
+        data: {
+          title: 'Portal Vendor Riwayat',
+          requiredPermissions: ['penawaran.read'],
+          vendorView: 'riwayat',
+        },
+      },
+      {
+        path: 'vendor/work-orders/:id/draft',
+        loadComponent: () => import('@features/vendor/vendor-draft-checklist.component').then((m) => m.VendorDraftChecklistComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Portal Vendor Draft Checklist', requiredPermissions: ['draft_checklist.create'] },
+      },
+      {
+        path: 'vendor/work-orders/:id/penawaran',
+        loadComponent: () => import('@features/vendor/vendor-penawaran.component').then((m) => m.VendorPenawaranComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Portal Vendor Penawaran', requiredPermissions: ['penawaran.create'] },
       },
       {
         path: 'admin',
         loadComponent: () => import('@features/admin/admin.component').then((m) => m.AdminComponent),
+        canActivate: [permissionGuard],
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'users' },
           {
@@ -128,16 +176,8 @@ export const routes: Routes = [
             path: 'roles',
             loadComponent: () => import('@features/admin/roles-list/roles-list.component').then((m) => m.RolesListComponent),
           },
-          {
-            path: 'approval-policies',
-            loadComponent: () => import('@features/admin/approval-policies/approval-policies.component').then((m) => m.ApprovalPoliciesComponent),
-          },
-          {
-            path: 'notification-thresholds',
-            loadComponent: () => import('@features/admin/notification-thresholds/notification-thresholds.component').then((m) => m.NotificationThresholdsComponent),
-          },
         ],
-        data: { title: 'Admin' },
+        data: { title: 'Admin', requiredPermissions: ['user.manage'] },
       },
       {
         path: 'profile',

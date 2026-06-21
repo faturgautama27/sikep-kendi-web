@@ -1,0 +1,19 @@
+{
+  "pembayaran": [
+    {
+      "workOrderId": "wo-001",
+      "metodePembayaran": "Transfer Bank",
+      "totalDibayar": 2950000,
+      "tanggalPembayaran": "2026-06-20T16:00:00+07:00",
+      "buktiTransferId": "img-bukti-wo-001",
+      "status": "PAID"
+    },
+    {
+      "workOrderId": "wo-003",
+      "metodePembayaran": "Transfer Bank",
+      "totalDibayar": 1850000,
+      "tanggalPembayaran": "2026-06-20T17:00:00+07:00",
+      "status": "MENUNGGU"
+    }
+  ]
+}

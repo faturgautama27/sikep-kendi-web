@@ -1,0 +1,23 @@
+{
+  "verifikasiHarga": [
+    {
+      "workOrderId": "wo-001",
+      "status": "DRAFT_SHS",
+      "shsItems": [
+        {
+          "namaItem": "Brake pad set",
+          "hargaVendor": 1200000,
+          "hargaStandart": 1100000,
+          "selisih": 100000,
+          "keterangan": "Masih dalam toleransi"
+        }
+      ]
+    },
+    {
+      "workOrderId": "wo-003",
+      "status": "REVISI_DIMINTA",
+      "catatanRevisi": "Mohon update rincian biaya jasa dan part.",
+      "shsItems": []
+    }
+  ]
+}

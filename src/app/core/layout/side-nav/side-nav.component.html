@@ -14,14 +14,15 @@
   <!-- Nav grouped -->
   <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
 
-    @for (group of navGroups; track group.label) {
+    @for (group of visibleNavGroups(); track group.label) {
       <div>
         <p class="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
           {{ group.label }}
         </p>
-        @for (item of group.items; track item.route) {
+        @for (item of group.items; track item.label + ':' + item.route) {
           <a [routerLink]="item.route"
             routerLinkActive
+            [routerLinkActiveOptions]="{ exact: true }"
             #rla="routerLinkActive"
             class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all"
             [class]="rla.isActive

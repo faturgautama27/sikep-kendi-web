@@ -1,0 +1,23 @@
+{
+  "penawaran": [
+    {
+      "id": "pnw-wo-001-1",
+      "workOrderId": "wo-001",
+      "versi": 1,
+      "totalBiaya": 2950000,
+      "status": "DIKIRIM",
+      "nomorInvoice": "INV-BMS-2026-0001",
+      "createdAt": "2026-06-20T14:30:00+07:00"
+    },
+    {
+      "id": "pnw-wo-002-1",
+      "workOrderId": "wo-002",
+      "versi": 1,
+      "totalBiaya": 3600000,
+      "status": "REVISI",
+      "catatanPerubahan": "Mohon sesuaikan harga item suspensi dengan SHS.",
+      "nomorInvoice": "INV-BMS-2026-0002",
+      "createdAt": "2026-06-20T15:10:00+07:00"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<section class="flex flex-col gap-4">
+  <app-page-header
+    [title]="'Proses Pembayaran'"
+    [subtitle]="'Bendahara memproses pembayaran dan upload bukti transfer.'"
+  />
+
+  <div class="rounded-xl border border-slate-200 bg-white p-4">
+    <p class="text-sm text-slate-600">Status pembayaran: <span class="font-semibold">{{ record()?.status || 'MENUNGGU' }}</span></p>
+    <p class="mt-1 text-xs text-slate-500">Bukti transfer: {{ record()?.buktiTransferId || '-' }}</p>
+  </div>
+
+  <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-3">
+    <input pInputText placeholder="Metode pembayaran" [(ngModel)]="metodePembayaran" />
+    <input pInputText type="number" placeholder="Total dibayar" [(ngModel)]="totalDibayar" />
+    <button pButton type="button" label="Proses Pembayaran" icon="pi pi-send" (click)="proses()"></button>
+  </div>
+
+  <div class="flex gap-2">
+    <input pInputText class="w-72" placeholder="ID Bukti Transfer" [(ngModel)]="buktiTransferId" />
+    <button pButton type="button" label="Upload Bukti" icon="pi pi-upload" (click)="uploadBukti()"></button>
+  </div>
+</section>

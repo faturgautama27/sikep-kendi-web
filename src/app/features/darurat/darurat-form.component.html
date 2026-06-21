@@ -1,0 +1,20 @@
+<section class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+  <app-page-header
+    [title]="'Form Laporan Darurat'"
+    [subtitle]="'Input kejadian darurat pengemudi: kendaraan, deskripsi, lokasi, dan total pengeluaran.'"
+  />
+
+  <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
+    <input pInputText placeholder="ID Kendaraan" [(ngModel)]="kendaraanId" />
+    <input pInputText placeholder="Label Kendaraan (contoh D 1234 AB)" [(ngModel)]="kendaraanLabel" />
+    <input pInputText placeholder="Nama Pengemudi" [(ngModel)]="pengemudiNama" />
+    <input pInputText placeholder="Lokasi Kejadian" [(ngModel)]="lokasiKejadian" />
+    <input pInputText type="number" placeholder="Total Pengeluaran" [(ngModel)]="totalPengeluaran" />
+    <textarea pTextarea rows="4" placeholder="Deskripsi darurat" [(ngModel)]="deskripsiDarurat"></textarea>
+  </div>
+
+  <div class="flex justify-end gap-2">
+    <button pButton type="button" severity="secondary" label="Batal" [outlined]="true" (click)="router.navigateByUrl('/darurat')"></button>
+    <button pButton type="button" label="Simpan Laporan" icon="pi pi-save" (click)="submit()"></button>
+  </div>
+</section>

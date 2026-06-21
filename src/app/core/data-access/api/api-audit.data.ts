@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import type { AuditLog } from '@shared/models';
 import type {
   AuditDataPort,
@@ -11,6 +11,12 @@ import type {
   AuditExportStatus,
 } from '../ports/audit-data.port';
 import { APP_ENV } from '../app-env.token';
+
+interface AuditEnvelope<T> {
+  success?: boolean;
+  data?: T;
+  meta?: { nextCursor?: string | number | null };
+}
 
 /**
  * Production HttpClient-based implementation of AuditDataPort.
@@ -41,7 +47,25 @@ export class ApiAuditData implements AuditDataPort {
     if (pagination?.limit !== undefined) {
       params = params.set('limit', String(pagination.limit));
     }
-    return this.http.get<AuditListResult>(this.url('/audit-logs'), { params });
+    return this.http
+      .get<AuditListResult | AuditEnvelope<AuditLog[]>>(this.url('/audit-logs'), { params })
+      .pipe(
+        // Keep adapter output stable even if backend response envelope changes.
+        // This avoids touching consumers in state/components.
+        map((resp) => {
+          if ((resp as AuditEnvelope<AuditLog[]>).success) {
+            const env = resp as AuditEnvelope<AuditLog[]>;
+            return {
+              data: env.data ?? [],
+              nextCursor:
+                env.meta?.nextCursor !== undefined && env.meta.nextCursor !== null
+                  ? String(env.meta.nextCursor)
+                  : null,
+            };
+          }
+          return resp as AuditListResult;
+        }),
+      );
   }
 
   getById(id: string): Observable<AuditLog> {

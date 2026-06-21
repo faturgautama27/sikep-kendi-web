@@ -3,12 +3,12 @@
   <header class="flex flex-col gap-1">
     <h1 class="text-2xl font-bold text-primary-900">Manajemen Pengguna</h1>
     <p class="text-sm text-slate-500">
-      Daftar pengguna sistem ARMADIN dengan informasi role dan status aktif.
+      Daftar pengguna sistem SiKeP KenDI dengan informasi role dan status aktif.
     </p>
   </header>
 
   <!-- Tabel Users -->
-  <div class="armadin-table-wrap">
+  <div class="sikep-table-wrap">
     <p-table
       [value]="users()"
       [paginator]="true"
@@ -40,15 +40,16 @@
           </td>
           <td class="text-slate-700">{{ user.fullName }}</td>
           <td>
-            <p-chip
-              [label]="user.role"
-              styleClass="text-xs font-medium"
-            ></p-chip>
+            <div class="flex flex-wrap gap-1">
+              @for (role of user.roles; track role) {
+                <p-chip [label]="role" styleClass="text-xs font-medium"></p-chip>
+              }
+            </div>
           </td>
           <td>
             <p-tag
-              [value]="user.isActive ? 'Aktif' : 'Nonaktif'"
-              [severity]="user.isActive ? 'success' : 'secondary'"
+              [value]="user.active ? 'Aktif' : 'Nonaktif'"
+              [severity]="user.active ? 'success' : 'secondary'"
               [rounded]="true"
             ></p-tag>
           </td>

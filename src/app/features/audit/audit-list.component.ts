@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 
@@ -11,7 +11,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
-import { AuditState, FilterAuditLogs } from '@features/audit/state';
+import { AuditState, FilterAuditLogs, LoadAuditLogs } from '@features/audit/state';
 import type { AuditLog, RoleName } from '@shared/models';
 
 interface ActorOption {
@@ -50,14 +50,12 @@ const ENTITY_OPTIONS: SelectOption[] = [
   { label: 'Vehicle', value: 'Vehicle' },
   { label: 'Pengajuan', value: 'Pengajuan' },
   { label: 'WorkOrder', value: 'WorkOrder' },
-  { label: 'SpjExternal', value: 'SpjExternal' },
-  { label: 'FuelTransaction', value: 'FuelTransaction' },
-  { label: 'ChecklistExecution', value: 'ChecklistExecution' },
-  { label: 'ChecklistTemplateVersion', value: 'ChecklistTemplateVersion' },
+  { label: 'DraftChecklist', value: 'DraftChecklist' },
+  { label: 'Penawaran', value: 'Penawaran' },
+  { label: 'VerifikasiHarga', value: 'VerifikasiHarga' },
+  { label: 'Pembayaran', value: 'Pembayaran' },
+  { label: 'Darurat', value: 'Darurat' },
   { label: 'User', value: 'User' },
-  { label: 'Sparepart', value: 'Sparepart' },
-  { label: 'Driver', value: 'Driver' },
-  { label: 'Regulation', value: 'Regulation' },
   { label: 'Notification', value: 'Notification' },
   { label: 'AuditLog', value: 'AuditLog' },
 ];
@@ -83,7 +81,7 @@ const ACTION_OPTIONS: SelectOption[] = [
 ];
 
 /**
- * ARMADIN — Halaman Audit Trail.
+ * SiKeP KenDI — Halaman Audit Trail.
  *
  * Menampilkan tabel `AuditState.logs` dengan filter (rentang tanggal, aktor,
  * role, entitas, aksi). Filter dispatch ke `FilterAuditLogs` action sehingga
@@ -114,9 +112,13 @@ const ACTION_OPTIONS: SelectOption[] = [
   templateUrl: './audit-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AuditListComponent {
+export class AuditListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly messageService = inject(MessageService);
+
+  ngOnInit(): void {
+    this.store.dispatch(new LoadAuditLogs());
+  }
 
   /** Logs ter-filter dari NGXS state. Filter di-apply oleh `AuditState.logs` selector. */
   protected readonly logs = this.store.selectSignal(AuditState.logs);

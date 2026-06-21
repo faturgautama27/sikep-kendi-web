@@ -19,7 +19,7 @@ interface ThresholdRow {
 }
 
 /**
- * ARMADIN — Halaman Notification Preferences (read-only Phase 1).
+ * SiKeP KenDI — Halaman Notification Preferences (read-only Phase 1).
  *
  * Menampilkan preferensi notifikasi untuk user yang sedang login (filter
  * berdasarkan `AuthState.user.id`) dalam tabel severity × channel × enabled,

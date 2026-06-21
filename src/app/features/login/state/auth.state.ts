@@ -1,7 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { catchError, map, of, tap } from 'rxjs';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
+import { AUTH_DATA, type AuthDataPort, type AuthSession } from '@core/data-access/ports/auth-data.port';
 import type { RoleName, User } from '@shared/models';
 
 import {
@@ -10,6 +13,15 @@ import {
   Logout,
   SetCurrentUser,
 } from './auth.actions';
+
+const VALID_ROLES: RoleName[] = [
+  'pengemudi',
+  'pengurus_barang',
+  'vendor',
+  'verifikator',
+  'bendahara',
+  'admin_sistem',
+];
 
 /**
  * Shape state slice `auth`.
@@ -54,6 +66,9 @@ const INITIAL: AuthStateModel = {
 })
 @Injectable()
 export class AuthState {
+  private readonly env = inject(APP_ENV);
+  private readonly authData = inject<AuthDataPort>(AUTH_DATA);
+
   @Selector()
   static user(state: AuthStateModel): User | null {
     return state.user;
@@ -88,7 +103,8 @@ export class AuthState {
     ctx: StateContext<AuthStateModel>,
     action: HydrateFromFixtures,
   ): void {
-    ctx.patchState({ knownUsers: action.payload.users as User[] });
+    const users = (action.payload.users as User[]).map((user) => this.normalizeUser(user));
+    ctx.patchState({ knownUsers: users });
   }
 
   /**
@@ -105,9 +121,21 @@ export class AuthState {
    * validasi form.
    */
   @Action(Login)
-  login(ctx: StateContext<AuthStateModel>, action: Login): void {
+  login(ctx: StateContext<AuthStateModel>, action: Login) {
+    if (!this.env.previewMode) {
+      return this.authData.login(action.username.trim(), action.password).pipe(
+        tap((session) => {
+          ctx.patchState({
+            user: this.normalizeApiUser(session.user),
+            token: session.accessToken,
+          });
+        }),
+      );
+    }
+
     const known = ctx.getState().knownUsers;
-    const user = known.find((u) => u.username === action.username);
+    const username = action.username.trim().toLowerCase();
+    const user = known.find((u) => u.username.toLowerCase() === username);
     if (!user) {
       ctx.patchState({ user: null, token: null });
       return;
@@ -116,12 +144,23 @@ export class AuthState {
       user,
       token: `preview-token-${user.id}-${Date.now()}`,
     });
+    return;
   }
 
   /** Reset sesi ke unauthenticated. `knownUsers` cache dipertahankan. */
   @Action(Logout)
-  logout(ctx: StateContext<AuthStateModel>): void {
+  logout(ctx: StateContext<AuthStateModel>) {
+    if (!this.env.previewMode) {
+      return this.authData.logout().pipe(
+        catchError(() => of(void 0)),
+        tap(() => {
+          ctx.patchState({ user: null, token: null });
+        }),
+      );
+    }
+
     ctx.patchState({ user: null, token: null });
+    return;
   }
 
   /**
@@ -133,10 +172,20 @@ export class AuthState {
   loadCurrentUser(
     ctx: StateContext<AuthStateModel>,
     action: LoadCurrentUser,
-  ): void {
+  ) {
+    if (!this.env.previewMode) {
+      return this.authData.getCurrentUser().pipe(
+        map((user) => (user ? this.normalizeApiUser(user) : null)),
+        tap((user) => {
+          ctx.patchState({ user });
+        }),
+      );
+    }
+
     const user =
       ctx.getState().knownUsers.find((u) => u.id === action.userId) ?? null;
     ctx.patchState({ user });
+    return;
   }
 
   /** Set user dan token secara eksplisit. */
@@ -145,6 +194,55 @@ export class AuthState {
     ctx: StateContext<AuthStateModel>,
     action: SetCurrentUser,
   ): void {
-    ctx.patchState({ user: action.user, token: action.token });
+    ctx.patchState({
+      user: action.user ? this.normalizeUser(action.user) : null,
+      token: action.token,
+    });
+  }
+
+  private normalizeUser(user: User): User {
+    return {
+      ...user,
+      roles: this.normalizeRoles(user.roles),
+      permissions: this.normalizePermissions(user.permissions),
+    };
+  }
+
+  private normalizeApiUser(raw: AuthSession['user']): User {
+    const nowIso = new Date().toISOString();
+
+    return this.normalizeUser({
+      id: String(raw.id),
+      username: raw.username,
+      fullName: raw.fullName,
+      email: raw.email,
+      contact: raw.contact ?? null,
+      unitKerja: raw.unitKerja ?? '-',
+      roles: raw.roles as RoleName[],
+      permissions: raw.permissions,
+      active: raw.active ?? true,
+      forceChangePassword: raw.forceChangePassword ?? false,
+      lastLoginAt: raw.lastLoginAt ?? null,
+      createdAt: raw.createdAt ?? nowIso,
+    });
+  }
+
+  private normalizeRoles(roles: unknown): RoleName[] {
+    if (!Array.isArray(roles)) return [];
+    const valid = new Set(VALID_ROLES);
+    const mapped = roles
+      .filter((role): role is string => typeof role === 'string')
+      .map((role) => role.trim())
+      .filter((role): role is RoleName => valid.has(role as RoleName));
+    return Array.from(new Set(mapped));
+  }
+
+  private normalizePermissions(permissions: unknown): string[] {
+    if (!Array.isArray(permissions)) return [];
+    const mapped = permissions
+      .filter((permission): permission is string => typeof permission === 'string')
+      .map((permission) => permission.trim())
+      .filter((permission) => permission.length > 0);
+    return Array.from(new Set(mapped));
   }
 }
