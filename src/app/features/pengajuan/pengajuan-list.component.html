@@ -16,9 +16,7 @@
   </header>
 
   <!-- Filter bar -->
-  <div
-    class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4"
-  >
+  <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
     <div class="flex flex-1 flex-col gap-1">
       <label for="search" class="text-xs font-medium text-slate-600">Cari nomor / judul</label>
       <span class="p-input-icon-left">
@@ -94,7 +92,7 @@
           <th class="w-28">Kendaraan</th>
           <th>Judul</th>
           <th class="w-40 text-right">Total Estimasi</th>
-          <th class="w-36">Status</th>
+          <th class="w-64">Status</th>
           <th class="w-28">Dibuat</th>
           <th class="w-44 text-right">Aksi</th>
         </tr>
@@ -142,23 +140,6 @@
                 size="small"
                 (onClick)="onOpenDetail(p)"
               ></p-button>
-              @if (p.status === 'menunggu_verifikasi') {
-                <p-button
-                  icon="pi pi-check"
-                  label="Verifikasi"
-                  severity="success"
-                  size="small"
-                  (onClick)="onApprove(p, $event)"
-                ></p-button>
-                <p-button
-                  icon="pi pi-times"
-                  label="Reject"
-                  severity="danger"
-                  [outlined]="true"
-                  size="small"
-                  (onClick)="onReject(p, $event)"
-                ></p-button>
-              }
             </div>
           </td>
         </tr>
@@ -175,12 +156,7 @@
   </div>
 
   <!-- Statistik per status -->
-  <p-panel
-    header="Statistik Pengajuan"
-    [toggleable]="true"
-    [collapsed]="true"
-    styleClass="text-sm"
-  >
+  <p-panel header="Statistik Pengajuan" [toggleable]="true" [collapsed]="true" styleClass="text-sm">
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
       @for (s of statsByStatus(); track s.status) {
         <div

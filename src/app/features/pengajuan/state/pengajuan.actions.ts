@@ -25,6 +25,26 @@ export class CreatePengajuan {
   ) {}
 }
 
+export class UpdatePengajuan {
+  static readonly type = '[Pengajuan] Update';
+  readonly type = UpdatePengajuan.type;
+  constructor(
+    public readonly id: string,
+    public readonly input: Partial<Omit<
+      Pengajuan,
+      | 'id'
+      | 'nomor'
+      | 'status'
+      | 'createdAt'
+      | 'approvalSteps'
+      | 'workOrderId'
+      | 'submittedAt'
+      | 'approvedAt'
+      | 'rejectedAt'
+    >>,
+  ) {}
+}
+
 export class SubmitPengajuan {
   static readonly type = '[Pengajuan] Submit';
   readonly type = SubmitPengajuan.type;

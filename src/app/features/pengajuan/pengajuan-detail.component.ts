@@ -10,6 +10,8 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 
+import { PENGAJUAN_DATA, type PengajuanDataPort } from '@core/data-access/ports/pengajuan-data.port';
+
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
@@ -22,6 +24,7 @@ import { PageHeaderComponent } from '@core/layout';
 import { PengajuanState } from './state/pengajuan.state';
 import { ApprovePengajuan, RejectPengajuan } from './state/pengajuan.actions';
 import type { Pengajuan, PengajuanStatus } from '@shared/models';
+import { CommonModule } from '@angular/common';
 
 const STATUS_LABEL: Record<PengajuanStatus, string> = {
   draft: 'Draft',
@@ -42,6 +45,7 @@ const DUMMY_VENDORS = [
   selector: 'app-pengajuan-detail',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     RouterLink,
     ButtonModule,
@@ -62,6 +66,7 @@ export class PengajuanDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly store = inject(Store);
   private readonly msg = inject(MessageService);
+  private readonly dataPort = inject<PengajuanDataPort>(PENGAJUAN_DATA);
 
   protected readonly pengajuanId = signal<string>('');
   protected readonly pengajuan = signal<Pengajuan | null>(null);
@@ -90,8 +95,10 @@ export class PengajuanDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.pengajuanId.set(id);
-    const all = this.store.selectSnapshot(PengajuanState.list);
-    this.pengajuan.set(all.find((p) => p.id === id) ?? null);
+    this.dataPort.getById(id).subscribe({
+      next: (res) => this.pengajuan.set(res),
+      error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Pengajuan tidak ditemukan.' })
+    });
   }
 
   protected statusSeverity(s: PengajuanStatus): 'warn' | 'success' | 'danger' | 'secondary' | 'info' {

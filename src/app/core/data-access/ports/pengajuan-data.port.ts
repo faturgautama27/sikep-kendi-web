@@ -30,6 +30,7 @@ export interface PengajuanDataPort {
   list(filter?: PengajuanFilter): Observable<Pengajuan[]>;
   getById(id: string): Observable<Pengajuan>;
   create(input: PengajuanCreateInput): Observable<Pengajuan>;
+  update(id: string, input: Partial<PengajuanCreateInput>): Observable<Pengajuan>;
   submit(id: string): Observable<Pengajuan>;
   approve(id: string, vendorId: string, komentarVerifikasi?: string): Observable<Pengajuan>;
   reject(id: string, reason: string): Observable<Pengajuan>;

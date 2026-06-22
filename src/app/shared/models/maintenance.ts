@@ -1,7 +1,7 @@
 import type { Uuid, Timestamp, Money } from './common';
 import type { Image } from './image';
 
-export type PengajuanJenis = 'preventive' | 'corrective' | 'predictive';
+export type PengajuanJenis = 'SERVIS_RUTIN' | 'PERBAIKAN_KERUSAKAN';
 export type PengajuanStatus =
   | 'draft'
   | 'menunggu_verifikasi'
@@ -31,9 +31,19 @@ export interface Pengajuan {
   workOrderId: Uuid | null;
   photos: Image[];
   createdAt: Timestamp;
+  updatedAt?: Timestamp;
   submittedAt: Timestamp | null;
   approvedAt: Timestamp | null;
   rejectedAt: Timestamp | null;
+  vehicleMerk?: string;
+  vehicleModel?: string;
+  vehicleTahun?: number;
+  odometerSaatPengajuan?: number;
+  odometerSaatIni?: number;
+  verifikasiOlehId?: string | null;
+  verifikasiAt?: Timestamp | null;
+  komentarVerifikasi?: string | null;
+  alasanPenolakan?: string | null;
 }
 
 export interface PengajuanSparepart {

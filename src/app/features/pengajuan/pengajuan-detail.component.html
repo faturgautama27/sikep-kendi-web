@@ -2,45 +2,84 @@
 
 @if (pengajuan(); as p) {
   <section class="flex flex-col gap-5 max-w-3xl">
-    <app-page-header [title]="'Pengajuan ' + p.nomor" subtitle="Detail pengajuan pemeliharaan kendaraan.">
-      <ng-template #actions>
+    <app-page-header
+      [title]="'Pengajuan ' + p.nomor"
+      subtitle="Detail pengajuan pemeliharaan kendaraan."
+    >
+      <div page-header-action class="flex gap-2">
         <a routerLink="/pengajuan">
-          <p-button label="Kembali" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" />
+          <p-button
+            label="Kembali"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+          />
         </a>
-      </ng-template>
+        @if (p.status === 'draft' || p.status === 'menunggu_verifikasi') {
+          <a [routerLink]="['/pengajuan', p.id, 'edit']">
+            <p-button label="Edit" icon="pi pi-pencil" [outlined]="true" />
+          </a>
+        }
+      </div>
     </app-page-header>
 
     <!-- Status Banner -->
-    <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p-tag [value]="statusLabel(p.status)" [severity]="statusSeverity(p.status)" styleClass="text-base px-3 py-1" />
-      <span class="text-sm text-slate-500">Dibuat {{ formatDate(p.createdAt) }}</span>
+    <div
+      class="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+    >
+      <div class="flex items-center gap-3">
+        <p-tag
+          [value]="statusLabel(p.status)"
+          [severity]="statusSeverity(p.status)"
+          styleClass="text-base px-3 py-1"
+        />
+        <span class="text-sm text-slate-500">Dibuat {{ formatDate(p.createdAt) }}</span>
+      </div>
+      <div class="text-xs text-slate-400">
+        Terakhir diupdate: {{ formatDate(p.updatedAt ?? p.createdAt) }}
+      </div>
     </div>
 
     <!-- Data -->
-    <div class="flex flex-col gap-0 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div
+      class="flex flex-col gap-0 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+    >
       <div class="border-b border-slate-100 px-5 py-3">
         <h2 class="font-semibold text-slate-800">Informasi Pengajuan</h2>
       </div>
       <div class="divide-y divide-slate-50 text-sm">
         <div class="flex px-5 py-3">
-          <span class="w-40 text-slate-500">Kendaraan</span>
-          <span class="font-medium">{{ p.vehiclePlate }}</span>
+          <span class="w-48 text-slate-500">Kendaraan</span>
+          <span class="font-medium"
+            >{{ p.vehiclePlate }} ({{ p.vehicleMerk }} {{ p.vehicleModel }} -
+            {{ p.vehicleTahun }})</span
+          >
         </div>
         <div class="flex px-5 py-3">
-          <span class="w-40 text-slate-500">Jenis</span>
+          <span class="w-48 text-slate-500">Odometer saat diajukan</span>
+          <span class="font-medium">{{ p.odometerSaatPengajuan | number }} km</span>
+        </div>
+        <div class="flex px-5 py-3">
+          <span class="w-48 text-slate-500">Jenis Pengajuan</span>
           <span class="font-medium capitalize">{{ p.jenis }}</span>
         </div>
         <div class="flex px-5 py-3">
-          <span class="w-40 text-slate-500">Diajukan oleh</span>
+          <span class="w-48 text-slate-500">Diajukan oleh</span>
           <span class="font-medium">{{ p.createdByName || '—' }}</span>
         </div>
-        <div class="flex px-5 py-3">
-          <span class="w-40 text-slate-500">Diajukan pada</span>
-          <span class="font-medium">{{ formatDate(p.submittedAt) }}</span>
-        </div>
+        @if (p.submittedAt) {
+          <div class="flex px-5 py-3">
+            <span class="w-48 text-slate-500">Diajukan pada</span>
+            <span class="font-medium">{{ formatDate(p.submittedAt) }}</span>
+          </div>
+        }
         <div class="flex flex-col gap-1 px-5 py-3">
-          <span class="text-slate-500">Deskripsi</span>
-          <p class="mt-1 rounded-md bg-slate-50 p-3 text-slate-700 leading-relaxed">{{ p.deskripsi }}</p>
+          <span class="text-slate-500">Deskripsi Kerusakan / Pekerjaan</span>
+          <p
+            class="mt-1 rounded-md bg-slate-50 p-3 text-slate-700 leading-relaxed whitespace-pre-line"
+          >
+            {{ p.deskripsi }}
+          </p>
         </div>
         @if (p.status === 'ditolak') {
           <div class="flex flex-col gap-1 px-5 py-3 bg-red-50">
@@ -51,7 +90,10 @@
         @if (p.workOrderId) {
           <div class="flex px-5 py-3 bg-green-50">
             <span class="w-40 text-slate-500">Work Order</span>
-            <a [routerLink]="['/work-orders', p.workOrderId]" class="text-blue-600 font-medium underline">
+            <a
+              [routerLink]="['/work-orders', p.workOrderId]"
+              class="text-blue-600 font-medium underline"
+            >
               Lihat Work Order
             </a>
           </div>
@@ -63,49 +105,100 @@
     @if (isMenunggu()) {
       <div class="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <p-button label="Setujui Pengajuan" icon="pi pi-check" (onClick)="openApproveDialog()" />
-        <p-button label="Tolak Pengajuan" icon="pi pi-times" severity="danger" [outlined]="true" (onClick)="openRejectDialog()" />
+        <p-button
+          label="Tolak Pengajuan"
+          icon="pi pi-times"
+          severity="danger"
+          [outlined]="true"
+          (onClick)="openRejectDialog()"
+        />
       </div>
     }
   </section>
 } @else {
   <div class="p-10 text-center text-slate-400">
     <p>Pengajuan tidak ditemukan.</p>
-    <a routerLink="/pengajuan" class="text-blue-600 underline text-sm mt-2 block">Kembali ke daftar</a>
+    <a routerLink="/pengajuan" class="text-blue-600 underline text-sm mt-2 block"
+      >Kembali ke daftar</a
+    >
   </div>
 }
 
 <!-- Dialog Setujui -->
-<p-dialog header="Setujui Pengajuan" [(visible)]="approveDialogVisible" [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+<p-dialog
+  header="Setujui Pengajuan"
+  [(visible)]="approveDialogVisible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
   <form [formGroup]="approveForm" class="flex flex-col gap-4 pt-2">
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Pilih Vendor <span class="text-red-500">*</span></label>
-      <p-select formControlName="vendorId" [options]="vendorOpts" optionLabel="label" optionValue="value"
-        placeholder="-- Pilih Vendor --" class="w-full" />
+      <p-select
+        formControlName="vendorId"
+        [options]="vendorOpts"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="-- Pilih Vendor --"
+        class="w-full"
+      />
       @if (approveForm.get('vendorId')!.invalid && approveForm.get('vendorId')!.touched) {
         <small class="text-red-500">Vendor wajib dipilih.</small>
       }
     </div>
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Komentar (opsional)</label>
-      <textarea pTextarea formControlName="komentarVerifikasi" rows="3" placeholder="Catatan untuk vendor..." class="w-full resize-none"></textarea>
+      <textarea
+        pTextarea
+        formControlName="komentarVerifikasi"
+        rows="3"
+        placeholder="Catatan untuk vendor..."
+        class="w-full resize-none"
+      ></textarea>
     </div>
   </form>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="approveDialogVisible.set(false)" />
-    <p-button label="Setujui & Buat Work Order" icon="pi pi-check" [loading]="processing()" (onClick)="submitApprove()" />
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="approveDialogVisible.set(false)"
+    />
+    <p-button
+      label="Setujui & Buat Work Order"
+      icon="pi pi-check"
+      [loading]="processing()"
+      (onClick)="submitApprove()"
+    />
   </ng-template>
 </p-dialog>
 
 <!-- Dialog Tolak -->
-<p-dialog header="Tolak Pengajuan" [(visible)]="rejectDialogVisible" [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+<p-dialog
+  header="Tolak Pengajuan"
+  [(visible)]="rejectDialogVisible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
   <form [formGroup]="rejectForm" class="flex flex-col gap-4 pt-2">
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Alasan Penolakan <span class="text-red-500">*</span></label>
-      <textarea pTextarea formControlName="alasanPenolakan" rows="4"
-        placeholder="Jelaskan alasan penolakan pengajuan ini (min 10 karakter)..." class="w-full resize-none"></textarea>
+      <label class="text-sm font-medium"
+        >Alasan Penolakan <span class="text-red-500">*</span></label
+      >
+      <textarea
+        pTextarea
+        formControlName="alasanPenolakan"
+        rows="4"
+        placeholder="Jelaskan alasan penolakan pengajuan ini (min 10 karakter)..."
+        class="w-full resize-none"
+      ></textarea>
       <div class="flex justify-between text-xs text-slate-400">
         <span>
-          @if (rejectForm.get('alasanPenolakan')!.invalid && rejectForm.get('alasanPenolakan')!.touched) {
+          @if (
+            rejectForm.get('alasanPenolakan')!.invalid && rejectForm.get('alasanPenolakan')!.touched
+          ) {
             <span class="text-red-500">Alasan penolakan wajib diisi (10–500 karakter).</span>
           }
         </span>
@@ -114,7 +207,18 @@
     </div>
   </form>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="rejectDialogVisible.set(false)" />
-    <p-button label="Tolak Pengajuan" severity="danger" icon="pi pi-times" [loading]="processing()" (onClick)="submitReject()" />
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="rejectDialogVisible.set(false)"
+    />
+    <p-button
+      label="Tolak Pengajuan"
+      severity="danger"
+      icon="pi pi-times"
+      [loading]="processing()"
+      (onClick)="submitReject()"
+    />
   </ng-template>
 </p-dialog>

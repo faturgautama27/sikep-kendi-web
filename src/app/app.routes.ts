@@ -75,6 +75,12 @@ export const routes: Routes = [
         data: { title: 'Buat Pengajuan', requiredPermissions: ['pengajuan.create'] },
       },
       {
+        path: 'pengajuan/:id/edit',
+        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then((m) => m.PengajuanFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Edit Pengajuan', requiredPermissions: ['pengajuan.create'] },
+      },
+      {
         path: 'pengajuan/:id',
         loadComponent: () => import('@features/pengajuan/pengajuan-detail.component').then((m) => m.PengajuanDetailComponent),
         canActivate: [permissionGuard],

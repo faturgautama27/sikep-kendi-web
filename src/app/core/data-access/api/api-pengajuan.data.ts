@@ -44,14 +44,14 @@ export class ApiPengajuanData implements PengajuanDataPort {
   }
 
   private mapJenis(jenis: string | undefined): Pengajuan['jenis'] {
-    const value = (jenis ?? '').toLowerCase();
-    if (value === 'preventive' || value === 'corrective' || value === 'predictive') {
+    const value = (jenis ?? '').toUpperCase();
+    if (value === 'SERVIS_RUTIN' || value === 'PERBAIKAN_KERUSAKAN') {
       return value;
     }
-    return 'corrective';
+    return 'PERBAIKAN_KERUSAKAN';
   }
 
-  private mapPengajuan(raw: ApiPengajuanRow): Pengajuan {
+  private mapPengajuan(raw: any): Pengajuan {
     const id = String(raw['id'] ?? '');
     const createdAt = String(raw['createdAt'] ?? new Date().toISOString());
     const fotos = Array.isArray(raw['fotos'])
@@ -60,17 +60,24 @@ export class ApiPengajuanData implements PengajuanDataPort {
 
     const jenisRaw = (raw['jenis'] as string | undefined) ?? (raw['jenisPengajuan'] as string | undefined);
 
+    const odometer = raw['kendaraan'] ? Number(raw['kendaraan']['odometerSaatIni']) : 0;
+    console.log(odometer);
+
     return {
       id,
       nomor: String(raw['nomor'] ?? `PMNT-${String(raw['id'] ?? '-').padStart(4, '0')}`),
       jenis: this.mapJenis(jenisRaw),
       vehicleId: String(raw['vehicleId'] ?? raw['kendaraanId'] ?? ''),
       vehiclePlate: String((raw['kendaraan'] as { nomorPolisi?: string } | undefined)?.nomorPolisi ?? '-'),
+      vehicleMerk: String((raw['kendaraan'] as { merk?: string } | undefined)?.merk ?? '-'),
+      vehicleModel: String((raw['kendaraan'] as { model?: string } | undefined)?.model ?? '-'),
+      vehicleTahun: Number((raw['kendaraan'] as { tahun?: number } | undefined)?.tahun ?? 0),
       regulationVersionId: String(raw['regulationVersionId'] ?? raw['regulasiVersiId'] ?? '-'),
       judul: String(raw['judul'] ?? raw['deskripsiKerusakan'] ?? 'Pengajuan Pemeliharaan'),
       deskripsi: String(raw['deskripsi'] ?? raw['deskripsiKerusakan'] ?? '-'),
       kategoriKerusakan: (raw['kategoriKerusakan'] as string | null | undefined) ?? null,
       totalEstimasi: Number(raw['totalEstimasi'] ?? 0),
+      odometerSaatPengajuan: odometer,
       status: this.mapStatus(raw['status'] as string | undefined),
       createdBy: String(raw['createdBy'] ?? raw['pengemudiId'] ?? 'system'),
       createdByName: String((raw['pengemudi'] as { fullName?: string } | undefined)?.fullName ?? '-'),
@@ -81,9 +88,14 @@ export class ApiPengajuanData implements PengajuanDataPort {
       workOrderId: (raw['workOrderId'] as string | null | undefined) ?? null,
       photos: fotos as Pengajuan['photos'],
       createdAt,
+      updatedAt: (raw['updatedAt'] as string | undefined) ?? createdAt,
       submittedAt: (raw['submittedAt'] as string | null | undefined) ?? null,
       approvedAt: (raw['approvedAt'] as string | null | undefined) ?? null,
       rejectedAt: (raw['rejectedAt'] as string | null | undefined) ?? null,
+      verifikasiOlehId: (raw['verifikasiOlehId'] as string | null | undefined) ?? null,
+      verifikasiAt: (raw['verifikasiAt'] as string | null | undefined) ?? null,
+      komentarVerifikasi: (raw['komentarVerifikasi'] as string | null | undefined) ?? null,
+      alasanPenolakan: (raw['alasanPenolakan'] as string | null | undefined) ?? null,
     };
   }
 
@@ -130,13 +142,27 @@ export class ApiPengajuanData implements PengajuanDataPort {
   create(input: PengajuanCreateInput): Observable<Pengajuan> {
     return this.http
       .post<ApiPengajuanRow | ApiEnvelope<ApiPengajuanRow>>(this.url('/pengajuan'), {
-        clientUuid: `web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        clientUuid: crypto.randomUUID(),
         kendaraanId: Number(input.vehicleId),
         jenisPengajuan: input.jenis.toUpperCase(),
         deskripsiKerusakan: input.deskripsi || input.judul,
-        odometerSaatPengajuan: input.totalEstimasi > 0 ? Number(input.totalEstimasi) : 0,
+        odometerSaatPengajuan: input.odometerSaatPengajuan ? Number(input.odometerSaatPengajuan) : 0,
         fotoIds: [],
       })
+      .pipe(
+        map((resp) => this.mapPengajuan(this.unwrapOne(resp))),
+      );
+  }
+
+  update(id: string, input: Partial<PengajuanCreateInput>): Observable<Pengajuan> {
+    const payload: any = {};
+    if (input.vehicleId !== undefined) payload.kendaraanId = Number(input.vehicleId);
+    if (input.jenis !== undefined) payload.jenisPengajuan = input.jenis.toUpperCase();
+    if (input.deskripsi !== undefined) payload.deskripsiKerusakan = input.deskripsi;
+    if (input.odometerSaatPengajuan !== undefined) payload.odometerSaatPengajuan = Number(input.odometerSaatPengajuan);
+    
+    return this.http
+      .patch<ApiPengajuanRow | ApiEnvelope<ApiPengajuanRow>>(this.url(`/pengajuan/${id}`), payload)
       .pipe(
         map((resp) => this.mapPengajuan(this.unwrapOne(resp))),
       );

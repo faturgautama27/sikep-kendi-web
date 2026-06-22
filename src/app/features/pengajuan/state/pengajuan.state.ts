@@ -10,6 +10,7 @@ import type { Pengajuan, ApprovalPolicy, ApprovalStep } from '@shared/models';
 import {
   LoadPengajuan,
   CreatePengajuan,
+  UpdatePengajuan,
   SubmitPengajuan,
   ApprovePengajuan,
   RejectPengajuan,
@@ -128,6 +129,32 @@ export class PengajuanState {
       rejectedAt: null,
     };
     ctx.patchState({ list: [newP, ...ctx.getState().list] });
+    return;
+  }
+
+  @Action(UpdatePengajuan)
+  update(ctx: StateContext<PengajuanStateModel>, action: UpdatePengajuan) {
+    if (!this.env.previewMode) {
+      return this.data.update(action.id, action.input).pipe(
+        tap((updated) => {
+          const list = [...ctx.getState().list];
+          const idx = list.findIndex(p => p.id === action.id);
+          if (idx !== -1) {
+            list[idx] = updated;
+            ctx.patchState({ list });
+          }
+          ctx.dispatch(new LoadPengajuan());
+        }),
+      );
+    }
+
+    const state = ctx.getState();
+    const list = [...state.list];
+    const idx = list.findIndex(p => p.id === action.id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...action.input };
+      ctx.patchState({ list });
+    }
     return;
   }
 

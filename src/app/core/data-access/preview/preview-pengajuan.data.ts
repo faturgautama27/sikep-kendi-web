@@ -28,6 +28,10 @@ export class PreviewPengajuanData implements PengajuanDataPort {
     return of({ ...input, id: 'preview', status: 'draft' } as unknown as Pengajuan);
   }
 
+  update(id: string, input: Partial<PengajuanCreateInput>): Observable<Pengajuan> {
+    return of({ ...input, id, status: 'draft' } as unknown as Pengajuan);
+  }
+
   submit(id: string): Observable<Pengajuan> {
     return of({ id, status: 'submitted' } as unknown as Pengajuan);
   }

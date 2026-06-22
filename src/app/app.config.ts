@@ -111,7 +111,6 @@ export const appConfig: ApplicationConfig = {
       withNgxsStoragePlugin({
         keys: ['auth', 'ui'],
       }),
-      ...(!environment.production ? [withNgxsLoggerPlugin({ disabled: false })] : []),
     ),
     providePrimeNG({
       theme: {

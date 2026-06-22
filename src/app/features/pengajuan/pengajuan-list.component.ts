@@ -37,9 +37,8 @@ const STATUS_OPTIONS: StatusOption[] = [
 
 const JENIS_OPTIONS: JenisOption[] = [
   { label: 'Semua jenis', value: null },
-  { label: 'Preventive', value: 'preventive' },
-  { label: 'Corrective', value: 'corrective' },
-  { label: 'Predictive', value: 'predictive' },
+  { label: 'Servis Rutin', value: 'SERVIS_RUTIN' },
+  { label: 'Perbaikan Kerusakan', value: 'PERBAIKAN_KERUSAKAN' },
 ];
 
 const STATUS_LABEL: Record<PengajuanStatus, string> = {
@@ -180,12 +179,10 @@ export class PengajuanListComponent {
   /** Mapping jenis → severity Tag (corrective=warn, preventive=info, predictive=secondary/help). */
   protected jenisSeverity(jenis: PengajuanJenis): 'info' | 'warn' | 'secondary' {
     switch (jenis) {
-      case 'corrective':
-        return 'warn';
-      case 'preventive':
+      case 'SERVIS_RUTIN':
         return 'info';
-      case 'predictive':
-        return 'secondary';
+      case 'PERBAIKAN_KERUSAKAN':
+        return 'warn';
     }
   }
 
@@ -195,12 +192,10 @@ export class PengajuanListComponent {
 
   protected jenisLabel(jenis: PengajuanJenis): string {
     switch (jenis) {
-      case 'corrective':
-        return 'Corrective';
-      case 'preventive':
-        return 'Preventive';
-      case 'predictive':
-        return 'Predictive';
+      case 'PERBAIKAN_KERUSAKAN':
+        return 'Perbaikan';
+      case 'SERVIS_RUTIN':
+        return 'Servis';
     }
   }
 
