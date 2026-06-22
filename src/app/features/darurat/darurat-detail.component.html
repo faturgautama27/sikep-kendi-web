@@ -1,6 +1,6 @@
 <p-toast />
 
-<section class="mx-auto flex w-full max-w-4xl flex-col gap-5">
+<section class="flex w-full max-w-4xl flex-col gap-5">
   @if (laporan(); as row) {
     <app-page-header
       [title]="'Detail Darurat #' + row.id"
@@ -108,6 +108,47 @@
         }
       </div>
     </div>
+
+    <!-- Foto Bukti -->
+    @if (row.fotos && row.fotos.length > 0) {
+      <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="mb-4 text-lg font-semibold text-slate-800">Foto Bukti Laporan</h3>
+
+        <div class="flex flex-col gap-6">
+          <!-- Foto Kerusakan -->
+          <div>
+            <h4 class="text-sm font-medium text-slate-500 mb-3">Kondisi Kerusakan</h4>
+            <div class="flex flex-wrap gap-4">
+              @for (foto of row.fotos; track foto.id) {
+                @if (foto.tipe === 'KERUSAKAN') {
+                  <div
+                    class="w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    <img [src]="foto.url" alt="Foto Kerusakan" class="w-full h-full object-cover" />
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Foto Invoice -->
+          <div>
+            <h4 class="text-sm font-medium text-slate-500 mb-3">Bukti Invoice/Struk</h4>
+            <div class="flex flex-wrap gap-4">
+              @for (foto of row.fotos; track foto.id) {
+                @if (foto.tipe === 'INVOICE') {
+                  <div
+                    class="w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    <img [src]="foto.url" alt="Foto Invoice" class="w-full h-full object-cover" />
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
   } @else {
     <div class="p-8 text-center text-slate-500">Memuat laporan...</div>
   }

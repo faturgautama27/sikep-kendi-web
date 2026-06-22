@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import type { Image } from '@shared/models';
 import type {
   ImageDataPort,
@@ -49,6 +50,8 @@ export class ApiImageData implements ImageDataPort {
   upload(file: File): Observable<Image> {
     const form = new FormData();
     form.append('file', file);
-    return this.http.post<Image>(this.url('/images'), form);
+    return this.http.post<any>(this.url('/images'), form).pipe(
+      map(res => ({ id: String(res.imageId), url: res.signedUrl } as unknown as Image))
+    );
   }
 }

@@ -15,6 +15,7 @@ export interface LaporanDaruratFoto {
   imageId: number;
   urutan: number;
   image?: Image;
+  url?: string;
 }
 
 export interface LaporanDarurat {

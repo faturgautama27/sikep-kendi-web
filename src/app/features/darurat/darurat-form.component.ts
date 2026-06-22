@@ -52,8 +52,8 @@ export class DaruratFormComponent implements OnInit {
   protected readonly daruratId = signal<string | null>(null);
   protected readonly isEditMode = computed(() => !!this.daruratId());
 
-  protected readonly fotoKerusakanIds = signal<string[]>([]);
-  protected readonly fotoInvoiceIds = signal<string[]>([]);
+  protected readonly fotoKerusakanIds = signal<{ id: string; url: string }[]>([]);
+  protected readonly fotoInvoiceIds = signal<{ id: string; url: string }[]>([]);
 
   private readonly allVehicles = this.store.selectSignal(VehiclesState.list);
   protected readonly vehicleOpts = computed(() =>
@@ -87,8 +87,8 @@ export class DaruratFormComponent implements OnInit {
           });
           
           if (res.fotos) {
-            const kerusakan = res.fotos.filter(f => f.tipe === 'KERUSAKAN').map(f => String(f.imageId));
-            const invoice = res.fotos.filter(f => f.tipe === 'INVOICE').map(f => String(f.imageId));
+            const kerusakan = res.fotos.filter(f => f.tipe === 'KERUSAKAN').map((f: any) => ({ id: String(f.imageId), url: f?.url ?? '' }));
+            const invoice = res.fotos.filter(f => f.tipe === 'INVOICE').map((f: any) => ({ id: String(f.imageId), url: f?.url ?? '' }));
             this.fotoKerusakanIds.set(kerusakan);
             this.fotoInvoiceIds.set(invoice);
           }
@@ -110,11 +110,17 @@ export class DaruratFormComponent implements OnInit {
       })
     ).subscribe(images => {
       this.submitting.set(false);
-      const newIds = images.map(img => String(img.id));
-      this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), ...newIds]);
+      const newItems = images.map(img => ({ id: String(img.id), url: img.url }));
+      this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), ...newItems]);
       uploader.clear();
       this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto kerusakan berhasil diupload' });
     });
+  }
+
+  protected removeKerusakan(index: number) {
+    const arr = [...this.fotoKerusakanIds()];
+    arr.splice(index, 1);
+    this.fotoKerusakanIds.set(arr);
   }
 
   protected onUploadInvoice(event: any, uploader: any) {
@@ -129,11 +135,17 @@ export class DaruratFormComponent implements OnInit {
       })
     ).subscribe(images => {
       this.submitting.set(false);
-      const newIds = images.map(img => String(img.id));
-      this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), ...newIds]);
+      const newItems = images.map(img => ({ id: String(img.id), url: img.url }));
+      this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), ...newItems]);
       uploader.clear();
       this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto invoice berhasil diupload' });
     });
+  }
+
+  protected removeInvoice(index: number) {
+    const arr = [...this.fotoInvoiceIds()];
+    arr.splice(index, 1);
+    this.fotoInvoiceIds.set(arr);
   }
 
   protected submit(): void {
@@ -161,8 +173,8 @@ export class DaruratFormComponent implements OnInit {
       lokasiKejadian: val.lokasiKejadian!,
       totalPengeluaran: val.totalPengeluaran!,
       deskripsiDarurat: val.deskripsiDarurat!,
-      fotoKerusakanIds: this.fotoKerusakanIds().map(String),
-      fotoInvoiceIds: this.fotoInvoiceIds().map(String),
+      fotoKerusakanIds: this.fotoKerusakanIds().map(x => x.id),
+      fotoInvoiceIds: this.fotoInvoiceIds().map(x => x.id),
     };
 
     const action = this.isEditMode()

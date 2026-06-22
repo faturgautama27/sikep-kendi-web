@@ -66,50 +66,76 @@
     </div>
 
     <!-- Upload Foto Kerusakan -->
-    <div class="flex flex-col gap-1 md:col-span-2 mt-2">
+    <div class="flex flex-col gap-2 md:col-span-2 mt-2">
       <label class="text-sm font-medium">Foto Bukti Kerusakan <span class="text-red-500">*</span></label>
+      
+      @if (fotoKerusakanIds().length > 0) {
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+          @for (img of fotoKerusakanIds(); track img.id; let idx = $index) {
+            <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+              @if (img.url) {
+                <img [src]="img.url" alt="Kerusakan" class="w-full h-full object-cover" />
+              } @else {
+                <div class="w-full h-full flex items-center justify-center text-slate-400">
+                  <i class="pi pi-image text-2xl"></i>
+                </div>
+              }
+              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" (onClick)="removeKerusakan(idx)" pTooltip="Hapus Foto"></p-button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
       <p-fileupload 
         #fuKerusakan
         mode="advanced" 
         [multiple]="true" 
         accept="image/*" 
         [maxFileSize]="10000000"
-        chooseLabel="Pilih Foto"
+        chooseLabel="Pilih Tambahan Foto"
         uploadLabel="Upload"
         cancelLabel="Batal"
         [customUpload]="true"
         (uploadHandler)="onUploadKerusakan($event, fuKerusakan)">
-        <ng-template pTemplate="content">
-          @if (fotoKerusakanIds().length > 0) {
-            <div class="mt-2 text-sm text-green-600 font-medium">
-              <i class="pi pi-check-circle mr-1"></i> {{ fotoKerusakanIds().length }} foto berhasil diupload.
-            </div>
-          }
-        </ng-template>
       </p-fileupload>
     </div>
 
     <!-- Upload Foto Invoice -->
-    <div class="flex flex-col gap-1 md:col-span-2 mt-2">
+    <div class="flex flex-col gap-2 md:col-span-2 mt-2">
       <label class="text-sm font-medium">Foto Bukti Invoice/Struk <span class="text-red-500">*</span></label>
+      
+      @if (fotoInvoiceIds().length > 0) {
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+          @for (img of fotoInvoiceIds(); track img.id; let idx = $index) {
+            <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+              @if (img.url) {
+                <img [src]="img.url" alt="Invoice" class="w-full h-full object-cover" />
+              } @else {
+                <div class="w-full h-full flex items-center justify-center text-slate-400">
+                  <i class="pi pi-file text-2xl"></i>
+                </div>
+              }
+              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" (onClick)="removeInvoice(idx)" pTooltip="Hapus Foto"></p-button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
       <p-fileupload 
         #fuInvoice
         mode="advanced" 
         [multiple]="true" 
         accept="image/*" 
         [maxFileSize]="10000000"
-        chooseLabel="Pilih Foto"
+        chooseLabel="Pilih Tambahan Foto"
         uploadLabel="Upload"
         cancelLabel="Batal"
         [customUpload]="true"
         (uploadHandler)="onUploadInvoice($event, fuInvoice)">
-        <ng-template pTemplate="content">
-          @if (fotoInvoiceIds().length > 0) {
-            <div class="mt-2 text-sm text-green-600 font-medium">
-              <i class="pi pi-check-circle mr-1"></i> {{ fotoInvoiceIds().length }} foto berhasil diupload.
-            </div>
-          }
-        </ng-template>
       </p-fileupload>
     </div>
   </div>

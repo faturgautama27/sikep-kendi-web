@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +29,6 @@ const STATUS_OPTIONS = [
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     TableModule,
     TagModule,

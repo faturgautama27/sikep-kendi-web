@@ -5,28 +5,63 @@
       <p class="text-sm text-slate-500">{{ unreadCount() }} notifikasi belum dibaca</p>
     </div>
     @if (unreadCount() > 0) {
-      <p-button label="Tandai Semua Dibaca" icon="pi pi-check-circle" severity="secondary" [outlined]="true" size="small" (onClick)="markAllRead()" />
+      <p-button
+        label="Tandai Semua Dibaca"
+        icon="pi pi-check-circle"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (onClick)="markAllRead()"
+      />
     }
   </header>
 
-  <p-selectbutton [(ngModel)]="filter" [options]="filterOpts" optionLabel="label" optionValue="value" />
+  <p-selectbutton
+    [(ngModel)]="filter"
+    [options]="filterOpts"
+    optionLabel="label"
+    optionValue="value"
+  />
 
   <div class="flex flex-col gap-2">
     @for (n of rows(); track n.id) {
-      <div (click)="markRead(n)" class="flex gap-3 p-4 rounded-xl border cursor-pointer transition-colors"
-        [class.bg-blue-50]="!n.readAt" [class.border-blue-200]="!n.readAt"
-        [class.bg-white]="!!n.readAt" [class.border-slate-200]="!!n.readAt"
-        [class.hover:bg-slate-50]="!!n.readAt">
-        <i [class]="severityIcon(n.severity) + ' ' + severityClass(n.severity) + ' text-lg mt-0.5 flex-shrink-0'"></i>
+      <div
+        (click)="markRead(n)"
+        class="flex gap-3 p-4 rounded-xl border cursor-pointer transition-colors"
+        [class.bg-blue-50]="!n.readAt"
+        [class.border-blue-200]="!n.readAt"
+        [class.bg-white]="!!n.readAt"
+        [class.border-slate-200]="!!n.readAt"
+        [class.hover:bg-slate-50]="!!n.readAt"
+      >
+        <i
+          [class]="
+            severityIcon(n.severity) + ' ' + severityClass(n.severity) + ' text-lg mt-0.5 shrink-0'
+          "
+        ></i>
         <div class="flex-1 min-w-0">
           <div class="flex items-start justify-between gap-2">
-            <p class="font-medium text-sm" [class.text-slate-900]="!n.readAt" [class.text-slate-600]="!!n.readAt">{{ n.title }}</p>
-            <span class="text-xs text-slate-400 whitespace-nowrap">{{ formatDate(n.createdAt) }}</span>
+            <p
+              class="font-medium text-sm"
+              [class.text-slate-900]="!n.readAt"
+              [class.text-slate-600]="!!n.readAt"
+            >
+              {{ n.title }}
+            </p>
+            <span class="text-xs text-slate-400 whitespace-nowrap">{{
+              formatDate(n.createdAt)
+            }}</span>
           </div>
           <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ n.message }}</p>
-          @if (n.entityRef) { <span class="text-xs font-mono text-primary-600 mt-1 inline-block">{{ n.entityRef }}</span> }
+          @if (n.entityRef) {
+            <span class="text-xs font-mono text-primary-600 mt-1 inline-block">{{
+              n.entityRef
+            }}</span>
+          }
         </div>
-        @if (!n.readAt) { <span class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2"></span> }
+        @if (!n.readAt) {
+          <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2"></span>
+        }
       </div>
     } @empty {
       <div class="text-center text-slate-400 py-10">
