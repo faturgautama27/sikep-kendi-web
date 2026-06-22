@@ -3,15 +3,18 @@
 
 @if (vehicle(); as v) {
   <section class="flex flex-col gap-5">
-    <app-page-header [title]="v.nomorPolisi + ' — ' + v.merk + ' ' + v.tipe" [subtitle]="v.unitKerja">
-      <ng-template #actions>
+    <app-page-header
+      [title]="v.nomorPolisi + ' — ' + v.merk + ' ' + v.tipe"
+      [subtitle]="v.unitKerja"
+    >
+      <div page-header-action class="flex gap-2">
         <a routerLink="/vehicles">
           <p-button label="Kembali" icon="pi pi-arrow-left" severity="secondary" [text]="true" />
         </a>
         <a [routerLink]="['/vehicles', vehicleId(), 'edit']">
           <p-button label="Edit" icon="pi pi-pencil" severity="secondary" [outlined]="true" />
         </a>
-      </ng-template>
+      </div>
     </app-page-header>
 
     <!-- Info cards -->
@@ -30,8 +33,18 @@
       </div>
       <div class="rounded-lg border border-slate-200 bg-white p-3">
         <p class="text-xs text-slate-500">Status</p>
-        <p-tag [value]="v.status === 'active' ? 'Aktif' : v.status === 'in_repair' ? 'Dalam Perbaikan' : 'Nonaktif'"
-          [severity]="v.status === 'active' ? 'success' : v.status === 'in_repair' ? 'warn' : 'secondary'" />
+        <p-tag
+          [value]="
+            v.status === 'active'
+              ? 'Aktif'
+              : v.status === 'in_repair'
+                ? 'Dalam Perbaikan'
+                : 'Nonaktif'
+          "
+          [severity]="
+            v.status === 'active' ? 'success' : v.status === 'in_repair' ? 'warn' : 'secondary'
+          "
+        />
       </div>
     </div>
 
@@ -52,7 +65,7 @@
             <th>Tanggal Pasang</th>
             <th class="w-36 text-center">Sisa Umur</th>
             <th class="w-36 text-center">Sisa KM</th>
-            <th class="w-36 text-center">Status EWE</th>
+            <th class="w-36 text-center">Status Peringatan</th>
             <th class="w-24 text-right">Aksi</th>
           </tr>
         </ng-template>
@@ -79,17 +92,31 @@
             </td>
             <td class="text-right">
               <div class="flex justify-end gap-1">
-                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
-                  pTooltip="Edit" (onClick)="openEditDialog(k)" />
-                <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
-                  pTooltip="Hapus" (onClick)="confirmDelete(k)" />
+                <p-button
+                  icon="pi pi-pencil"
+                  [text]="true"
+                  severity="secondary"
+                  size="small"
+                  pTooltip="Edit"
+                  (onClick)="openEditDialog(k)"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  size="small"
+                  pTooltip="Hapus"
+                  (onClick)="confirmDelete(k)"
+                />
               </div>
             </td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>
           <tr>
-            <td colspan="6" class="py-8 text-center text-slate-400">Belum ada komponen. Klik "Tambah Komponen" untuk memulai.</td>
+            <td colspan="6" class="py-8 text-center text-slate-400">
+              Belum ada komponen. Klik "Tambah Komponen" untuk memulai.
+            </td>
           </tr>
         </ng-template>
       </p-table>
@@ -105,12 +132,16 @@
   [(visible)]="dialogVisible"
   [modal]="true"
   [style]="{ width: '480px' }"
-  [draggable]="false">
-
+  [draggable]="false"
+>
   <form [formGroup]="komponenForm" class="flex flex-col gap-4 pt-2">
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Nama Komponen <span class="text-red-500">*</span></label>
-      <input pInputText formControlName="namaKomponen" placeholder="Contoh: Kampas Rem Depan, Oli Mesin" />
+      <input
+        pInputText
+        formControlName="namaKomponen"
+        placeholder="Contoh: Kampas Rem Depan, Oli Mesin"
+      />
       @if (komponenForm.get('namaKomponen')!.invalid && komponenForm.get('namaKomponen')!.touched) {
         <small class="text-red-500">Nama komponen wajib diisi.</small>
       }
@@ -118,27 +149,61 @@
 
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Tanggal Pasang <span class="text-red-500">*</span></label>
-      <p-datepicker formControlName="tanggalPasang" dateFormat="dd/mm/yy" [maxDate]="today"
-        [showIcon]="true" class="w-full" placeholder="dd/mm/yyyy" />
-      @if (komponenForm.get('tanggalPasang')!.invalid && komponenForm.get('tanggalPasang')!.touched) {
+      <p-datepicker
+        formControlName="tanggalPasang"
+        dateFormat="dd/mm/yy"
+        [maxDate]="today"
+        [showIcon]="true"
+        class="w-full"
+        placeholder="dd/mm/yyyy"
+        appendTo="body"
+      />
+      @if (
+        komponenForm.get('tanggalPasang')!.invalid && komponenForm.get('tanggalPasang')!.touched
+      ) {
         <small class="text-red-500">Tanggal pasang wajib diisi.</small>
       }
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Umur Estimasi (bulan) <span class="text-red-500">*</span></label>
-        <p-inputnumber formControlName="umurEstimasiBulan" [min]="1" [max]="360" suffix=" bln" class="w-full" />
+        <label class="text-sm font-medium"
+          >Umur Estimasi (bulan) <span class="text-red-500">*</span></label
+        >
+        <p-inputnumber
+          formControlName="umurEstimasiBulan"
+          [min]="1"
+          [max]="360"
+          suffix=" bln"
+          class="w-full"
+        />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">KM Estimasi Ganti <span class="text-red-500">*</span></label>
-        <p-inputnumber formControlName="kmGantiEstimasi" [min]="1" [useGrouping]="true" suffix=" km" class="w-full" />
+        <label class="text-sm font-medium"
+          >KM Estimasi Ganti <span class="text-red-500">*</span></label
+        >
+        <p-inputnumber
+          formControlName="kmGantiEstimasi"
+          [min]="1"
+          [useGrouping]="true"
+          suffix=" km"
+          class="w-full"
+        />
       </div>
     </div>
   </form>
 
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editingKomponenId() ? 'Simpan Perubahan' : 'Tambah'" icon="pi pi-check" (onClick)="saveKomponen()" />
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="dialogVisible.set(false)"
+    />
+    <p-button
+      [label]="editingKomponenId() ? 'Simpan Perubahan' : 'Tambah'"
+      icon="pi pi-check"
+      (onClick)="saveKomponen()"
+    />
   </ng-template>
 </p-dialog>

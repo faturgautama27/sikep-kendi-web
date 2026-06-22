@@ -22,10 +22,12 @@ import type { PenawaranRecord } from '@features/penawaran/state';
 
 type PenawaranStatus = 'DRAFT' | 'DIKIRIM' | 'DIVERIFIKASI' | 'REVISI';
 
-@Component({ selector: 'app-vendor-penawaran', standalone: true,
+@Component({
+  selector: 'app-vendor-penawaran', standalone: true,
   imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, InputNumberModule, TextareaModule, InputTextModule, TableModule, TagModule, ToastModule, PageHeaderComponent],
   providers: [MessageService, ConfirmationService],
-  templateUrl: './vendor-penawaran.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
+  templateUrl: './vendor-penawaran.component.html', changeDetection: ChangeDetectionStrategy.OnPush
+})
 export class VendorPenawaranComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);

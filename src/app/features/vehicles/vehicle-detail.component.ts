@@ -9,6 +9,10 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { HttpClient } from '@angular/common/http';
+
+import { APP_ENV } from '@core/data-access/app-env.token';
+import { VEHICLE_DATA, type VehicleDataPort } from '@core/data-access/ports/vehicle-data.port';
 
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -53,30 +57,15 @@ export class VehicleDetailComponent implements OnInit {
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
 
+  private readonly env = inject(APP_ENV);
+  private readonly http = inject(HttpClient);
+  private readonly dataPort = inject<VehicleDataPort>(VEHICLE_DATA);
+
   protected readonly vehicleId = signal<string>('');
   protected readonly vehicle = signal<Vehicle | null>(null);
   protected readonly today = new Date();
 
-  private readonly komponenList = signal<Komponen[]>([
-    {
-      id: 'kom-1',
-      kendaraanId: '',
-      namaKomponen: 'Kampas Rem Depan',
-      tanggalPasang: '2026-01-14',
-      umurEstimasiBulan: 12,
-      kmGantiEstimasi: 15000,
-      eweStatus: 'KUNING',
-    },
-    {
-      id: 'kom-2',
-      kendaraanId: '',
-      namaKomponen: 'Oli Mesin',
-      tanggalPasang: '2026-04-01',
-      umurEstimasiBulan: 6,
-      kmGantiEstimasi: 10000,
-      eweStatus: 'HIJAU',
-    },
-  ]);
+  private readonly komponenList = signal<Komponen[]>([]);
 
   protected readonly activeKomponen = computed(() =>
     this.komponenList().filter((k) => !k.isDeleted),
@@ -99,7 +88,59 @@ export class VehicleDetailComponent implements OnInit {
       (state: { vehicles: { list: Vehicle[] } }) =>
         state.vehicles.list.find((x) => x.id === id),
     );
-    if (v) this.vehicle.set(v);
+    if (v) {
+      this.vehicle.set(v);
+    } else {
+      this.dataPort.getById(id).subscribe({
+        next: (res) => this.vehicle.set(res),
+        error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Kendaraan tidak ditemukan.' })
+      });
+    }
+
+    this.loadKomponen(id);
+  }
+
+  private loadKomponen(id: string): void {
+    if (this.env.previewMode) {
+      this.komponenList.set([
+        {
+          id: 'kom-1',
+          kendaraanId: id,
+          namaKomponen: 'Kampas Rem Depan',
+          tanggalPasang: '2026-01-14',
+          umurEstimasiBulan: 12,
+          kmGantiEstimasi: 15000,
+          eweStatus: 'KUNING',
+        },
+        {
+          id: 'kom-2',
+          kendaraanId: id,
+          namaKomponen: 'Oli Mesin',
+          tanggalPasang: '2026-04-01',
+          umurEstimasiBulan: 6,
+          kmGantiEstimasi: 10000,
+          eweStatus: 'HIJAU',
+        },
+      ]);
+      return;
+    }
+
+    this.http.get<any[]>(`${this.env.apiBaseUrl}/vehicles/${id}/komponen`).subscribe({
+      next: (res) => {
+        const mapped = res.map((r) => ({
+          id: String(r.id),
+          kendaraanId: String(r.kendaraanId),
+          namaKomponen: r.namaKomponen,
+          tanggalPasang: r.tanggalPasang.split('T')[0],
+          umurEstimasiBulan: r.umurEstimasiBulan,
+          kmGantiEstimasi: r.kmGantiEstimasi,
+          isDeleted: r.isDeleted,
+          eweStatus: this.calcEwe(r.umurEstimasiBulan, r.tanggalPasang),
+        }));
+        this.komponenList.set(mapped);
+      },
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal memuat komponen' }),
+    });
   }
 
   protected openAddDialog(): void {
@@ -127,31 +168,58 @@ export class VehicleDetailComponent implements OnInit {
     const raw = this.komponenForm.getRawValue();
     const tanggal = (raw.tanggalPasang as Date).toISOString().slice(0, 10);
     const editId = this.editingKomponenId();
-    if (editId) {
-      this.komponenList.update((list) =>
-        list.map((k) =>
-          k.id === editId
-            ? { ...k, namaKomponen: raw.namaKomponen!, tanggalPasang: tanggal,
-                umurEstimasiBulan: raw.umurEstimasiBulan!, kmGantiEstimasi: raw.kmGantiEstimasi!,
-                eweStatus: this.calcEwe(raw.umurEstimasiBulan!, tanggal) }
-            : k,
-        ),
-      );
-      this.msg.add({ severity: 'success', summary: 'Komponen diperbarui.' });
-    } else {
-      const newK: Komponen = {
-        id: `kom-${Date.now()}`,
-        kendaraanId: this.vehicleId(),
-        namaKomponen: raw.namaKomponen!,
-        tanggalPasang: tanggal,
-        umurEstimasiBulan: raw.umurEstimasiBulan!,
-        kmGantiEstimasi: raw.kmGantiEstimasi!,
-        eweStatus: this.calcEwe(raw.umurEstimasiBulan!, tanggal),
-      };
-      this.komponenList.update((list) => [newK, ...list]);
-      this.msg.add({ severity: 'success', summary: 'Komponen ditambahkan.' });
+    const vehicleId = this.vehicleId();
+
+    const payload = {
+      namaKomponen: raw.namaKomponen!,
+      tanggalPasang: tanggal,
+      umurEstimasiBulan: raw.umurEstimasiBulan!,
+      kmGantiEstimasi: raw.kmGantiEstimasi!,
+    };
+
+    if (this.env.previewMode) {
+      if (editId) {
+        this.komponenList.update((list) =>
+          list.map((k) =>
+            k.id === editId
+              ? { ...k, ...payload, eweStatus: this.calcEwe(payload.umurEstimasiBulan, payload.tanggalPasang) }
+              : k,
+          ),
+        );
+        this.msg.add({ severity: 'success', summary: 'Komponen diperbarui.' });
+      } else {
+        const newK: Komponen = {
+          id: `kom-${Date.now()}`,
+          kendaraanId: vehicleId,
+          ...payload,
+          eweStatus: this.calcEwe(payload.umurEstimasiBulan, payload.tanggalPasang),
+        };
+        this.komponenList.update((list) => [newK, ...list]);
+        this.msg.add({ severity: 'success', summary: 'Komponen ditambahkan.' });
+      }
+      this.dialogVisible.set(false);
+      return;
     }
-    this.dialogVisible.set(false);
+
+    if (editId) {
+      this.http.patch(`${this.env.apiBaseUrl}/vehicles/${vehicleId}/komponen/${editId}`, payload).subscribe({
+        next: () => {
+          this.loadKomponen(vehicleId);
+          this.msg.add({ severity: 'success', summary: 'Komponen diperbarui.' });
+          this.dialogVisible.set(false);
+        },
+        error: () => this.msg.add({ severity: 'error', summary: 'Gagal memperbarui komponen' })
+      });
+    } else {
+      this.http.post(`${this.env.apiBaseUrl}/vehicles/${vehicleId}/komponen`, payload).subscribe({
+        next: () => {
+          this.loadKomponen(vehicleId);
+          this.msg.add({ severity: 'success', summary: 'Komponen ditambahkan.' });
+          this.dialogVisible.set(false);
+        },
+        error: () => this.msg.add({ severity: 'error', summary: 'Gagal menambahkan komponen' })
+      });
+    }
   }
 
   protected confirmDelete(k: Komponen): void {
@@ -162,10 +230,21 @@ export class VehicleDetailComponent implements OnInit {
       acceptLabel: 'Hapus',
       rejectLabel: 'Batal',
       accept: () => {
-        this.komponenList.update((list) =>
-          list.map((item) => (item.id === k.id ? { ...item, isDeleted: true } : item)),
-        );
-        this.msg.add({ severity: 'info', summary: 'Komponen dihapus.' });
+        if (this.env.previewMode) {
+          this.komponenList.update((list) =>
+            list.map((item) => (item.id === k.id ? { ...item, isDeleted: true } : item)),
+          );
+          this.msg.add({ severity: 'info', summary: 'Komponen dihapus.' });
+          return;
+        }
+
+        this.http.delete(`${this.env.apiBaseUrl}/vehicles/${this.vehicleId()}/komponen/${k.id}`).subscribe({
+          next: () => {
+            this.loadKomponen(this.vehicleId());
+            this.msg.add({ severity: 'info', summary: 'Komponen dihapus.' });
+          },
+          error: () => this.msg.add({ severity: 'error', summary: 'Gagal menghapus komponen' })
+        });
       },
     });
   }

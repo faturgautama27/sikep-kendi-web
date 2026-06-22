@@ -26,6 +26,7 @@ import { PageHeaderComponent } from '@core/layout';
 import { VehiclesState } from './state/vehicles.state';
 import { CreateVehicle, UpdateVehicle, RetireVehicle } from './state/vehicles.actions';
 import type { Vehicle } from '@shared/models';
+import { VEHICLE_DATA, type VehicleDataPort } from '@core/data-access/ports/vehicle-data.port';
 
 interface SelectOpt { label: string; value: string }
 
@@ -67,6 +68,7 @@ export class VehicleFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
+  private readonly dataPort = inject<VehicleDataPort>(VEHICLE_DATA);
 
   protected readonly currentYear = new Date().getFullYear();
   protected readonly statusOpts = STATUS_OPTS;
@@ -103,21 +105,30 @@ export class VehicleFormComponent implements OnInit {
           state.vehicles.list.find((x) => x.id === id),
       );
       if (v) {
-        this.form.patchValue({
-          nomorPolisi: v.nomorPolisi,
-          merk: v.merk,
-          tipe: v.tipe,
-          tahun: v.tahun,
-          jenisKendaraan: v.jenisKendaraan,
-          odometerCurrent: v.odometerCurrent,
-          status: v.status,
-          unitKerja: v.unitKerja,
-          nomorInventaris: v.nomorInventaris,
-          nomorRangka: v.nomorRangka,
-          nomorMesin: v.nomorMesin,
+        this.patchForm(v);
+      } else {
+        this.dataPort.getById(id).subscribe({
+          next: (res) => this.patchForm(res),
+          error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Kendaraan tidak ditemukan.' })
         });
       }
     }
+  }
+
+  private patchForm(v: Vehicle): void {
+    this.form.patchValue({
+      nomorPolisi: v.nomorPolisi,
+      merk: v.merk,
+      tipe: v.tipe,
+      tahun: v.tahun,
+      jenisKendaraan: v.jenisKendaraan,
+      odometerCurrent: v.odometerCurrent,
+      status: v.status,
+      unitKerja: v.unitKerja,
+      nomorInventaris: v.nomorInventaris,
+      nomorRangka: v.nomorRangka,
+      nomorMesin: v.nomorMesin,
+    });
   }
 
   protected onNopolInput(event: Event): void {
@@ -142,10 +153,17 @@ export class VehicleFormComponent implements OnInit {
     };
 
     if (this.isEditMode()) {
-      this.store.dispatch(new UpdateVehicle(this.vehicleId()!, raw));
-      this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Data kendaraan berhasil diperbarui.' });
-      this.saving.set(false);
-      this.router.navigate(['/vehicles', this.vehicleId()]);
+      this.store.dispatch(new UpdateVehicle(this.vehicleId()!, raw)).subscribe({
+        next: () => {
+          this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Data kendaraan berhasil diperbarui.' });
+          this.saving.set(false);
+          setTimeout(() => this.router.navigate(['/vehicles', this.vehicleId()]), 1500);
+        },
+        error: (err: Error) => {
+          this.saving.set(false);
+          this.msg.add({ severity: 'error', summary: 'Error', detail: err?.message ?? 'Gagal menyimpan.' });
+        }
+      });
     } else {
       this.store
         .dispatch(new CreateVehicle({ ...raw, baselinePhotos: [] }))
@@ -153,7 +171,7 @@ export class VehicleFormComponent implements OnInit {
           next: () => {
             this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Kendaraan berhasil ditambahkan.' });
             this.saving.set(false);
-            this.router.navigate(['/vehicles']);
+            setTimeout(() => this.router.navigate(['/vehicles']), 1500);
           },
           error: (err: Error) => {
             this.saving.set(false);

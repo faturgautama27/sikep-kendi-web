@@ -129,6 +129,7 @@ export class VehiclesState {
           ctx.patchState({
             list: state.list.map((v) => (v.id === updatedFromApi.id ? updatedFromApi : v)),
           });
+          ctx.dispatch(new LoadVehicles());
         }),
       );
     }

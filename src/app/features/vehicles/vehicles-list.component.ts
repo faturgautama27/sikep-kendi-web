@@ -98,8 +98,8 @@ export class VehiclesListComponent {
 
   protected eweLabel(vehicle: Vehicle): string {
     const severity = this.eweSeverity(vehicle);
-    if (severity === 'danger') return 'EWE Tinggi';
-    if (severity === 'warn') return 'EWE Sedang';
-    return 'EWE Rendah';
+    if (severity === 'danger') return 'Kritis';
+    if (severity === 'warn') return 'Waspada';
+    return 'Normal';
   }
 }
