@@ -1,3 +1,5 @@
+import { DaruratCreateInput } from '@core/data-access/ports/darurat-data.port';
+
 export class LoadDarurat {
   static readonly type = '[Darurat] Load';
   readonly type = LoadDarurat.type;
@@ -6,7 +8,13 @@ export class LoadDarurat {
 export class CreateDarurat {
   static readonly type = '[Darurat] Create';
   readonly type = CreateDarurat.type;
-  constructor(public readonly payload: Record<string, unknown>) {}
+  constructor(public readonly payload: DaruratCreateInput) {}
+}
+
+export class UpdateDarurat {
+  static readonly type = '[Darurat] Update';
+  readonly type = UpdateDarurat.type;
+  constructor(public readonly id: string, public readonly payload: Partial<DaruratCreateInput>) {}
 }
 
 export class VerifikasiDarurat {
@@ -14,8 +22,8 @@ export class VerifikasiDarurat {
   readonly type = VerifikasiDarurat.type;
   constructor(
     public readonly id: string,
-    public readonly accepted: boolean,
-    public readonly notes?: string,
+    public readonly approved: boolean,
+    public readonly alasan?: string,
   ) {}
 }
 

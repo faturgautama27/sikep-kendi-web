@@ -10,7 +10,6 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { PageHeaderComponent } from '@core/layout';
 import { WorkOrdersState } from '@features/work-orders/state';
 import type { WorkOrder, WorkOrderStatus } from '@shared/models';
 
@@ -22,7 +21,7 @@ const STATUS_OPTS = [
 ];
 
 @Component({ selector: 'app-vendor-history', standalone: true,
-  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, MultiSelectModule, TableModule, TagModule, TooltipModule, PageHeaderComponent],
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, MultiSelectModule, TableModule, TagModule, TooltipModule],
   templateUrl: './vendor-history.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class VendorHistoryComponent {
   private readonly store = inject(Store);
@@ -33,13 +32,18 @@ export class VendorHistoryComponent {
   protected readonly statusOpts = STATUS_OPTS;
 
   protected readonly rows = computed<WorkOrder[]>(() => {
-    const nomor = this.filterNomor().toLowerCase();
+    const nomor = this.filterNomor().trim().toLowerCase();
     const statusFilter = this.filterStatus();
     return this.all()
       .filter(w => DONE_STATUSES.includes(w.status))
       .filter(w => !nomor || w.nomor.toLowerCase().includes(nomor) || w.vehiclePlate.toLowerCase().includes(nomor))
       .filter(w => statusFilter.length === 0 || statusFilter.includes(w.status));
   });
+
+  protected onResetFilter(): void {
+    this.filterNomor.set('');
+    this.filterStatus.set([]);
+  }
 
   protected statusSeverity(s: WorkOrderStatus): 'success' | 'danger' | 'secondary' {
     return s === 'validated_accepted' ? 'success' : s === 'validated_rejected' ? 'danger' : 'secondary';

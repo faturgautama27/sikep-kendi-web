@@ -129,6 +129,18 @@ export const routes: Routes = [
         data: { title: 'Buat Laporan Darurat', requiredPermissions: ['darurat.create'] },
       },
       {
+        path: 'darurat/:id/edit',
+        loadComponent: () => import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Edit Laporan Darurat', requiredPermissions: ['darurat.create'] },
+      },
+      {
+        path: 'darurat/:id',
+        loadComponent: () => import('@features/darurat/darurat-detail.component').then((m) => m.DaruratDetailComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Detail Laporan Darurat', requiredPermissions: ['darurat.read'] },
+      },
+      {
         path: 'audit',
         loadComponent: () => import('@features/audit/audit-list.component').then((m) => m.AuditListComponent),
         canActivate: [permissionGuard],

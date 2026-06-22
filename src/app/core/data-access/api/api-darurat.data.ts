@@ -1,9 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
-import type { DaruratDataPort } from '../ports/darurat-data.port';
+import type { DaruratDataPort, DaruratFilter, DaruratCreateInput } from '../ports/darurat-data.port';
 import { APP_ENV } from '../app-env.token';
+import { LaporanDarurat } from '@shared/models';
+
+interface ApiEnvelope<T> {
+  data: T;
+  meta?: any;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ApiDaruratData implements DaruratDataPort {
@@ -14,31 +20,62 @@ export class ApiDaruratData implements DaruratDataPort {
     return `${this.env.apiBaseUrl}${path}`;
   }
 
-  list(query?: Record<string, string | number | boolean | null | undefined>): Observable<unknown> {
+  private unwrapOne(res: any): LaporanDarurat {
+    return res.data ? res.data : res;
+  }
+
+  private unwrapList(res: any): LaporanDarurat[] {
+    return res.data ? res.data : res;
+  }
+
+  list(query?: DaruratFilter): Observable<LaporanDarurat[]> {
     let params = new HttpParams();
     if (query) {
-      for (const [key, value] of Object.entries(query)) {
-        if (value !== null && value !== undefined) {
-          params = params.set(key, String(value));
-        }
-      }
+      if (query.status) params = params.set('status', query.status);
+      if (query.limit) params = params.set('limit', query.limit);
+      if (query.cursor) params = params.set('cursor', query.cursor);
     }
-    return this.http.get<unknown>(this.url('/darurat'), { params });
+    return this.http.get<any>(this.url('/darurat'), { params }).pipe(
+      map(res => this.unwrapList(res))
+    );
   }
 
-  detail(id: string): Observable<unknown> {
-    return this.http.get<unknown>(this.url(`/darurat/${id}`));
+  detail(id: string): Observable<LaporanDarurat> {
+    return this.http.get<any>(this.url(`/darurat/${id}`)).pipe(
+      map(res => this.unwrapOne(res))
+    );
   }
 
-  create(payload: Record<string, unknown>): Observable<unknown> {
-    return this.http.post<unknown>(this.url('/darurat'), payload);
+  create(payload: DaruratCreateInput): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url('/darurat'), {
+      ...payload,
+      clientUuid: crypto.randomUUID(),
+      kendaraanId: Number(payload.kendaraanId),
+      fotoKerusakanIds: payload.fotoKerusakanIds || [],
+      fotoInvoiceIds: payload.fotoInvoiceIds || [],
+    }).pipe(
+      map(res => this.unwrapOne(res))
+    );
   }
 
-  verifikasi(id: string, payload: Record<string, unknown>): Observable<unknown> {
-    return this.http.post<unknown>(this.url(`/darurat/${id}/verifikasi`), payload);
+  update(id: string, payload: Partial<DaruratCreateInput>): Observable<LaporanDarurat> {
+    const formatted: any = { ...payload };
+    if (formatted.kendaraanId) formatted.kendaraanId = Number(formatted.kendaraanId);
+    
+    return this.http.patch<any>(this.url(`/darurat/${id}`), formatted).pipe(
+      map(res => this.unwrapOne(res))
+    );
   }
 
-  approveReimbursement(id: string): Observable<unknown> {
-    return this.http.post<unknown>(this.url(`/darurat/${id}/approve-reimbursement`), {});
+  verifikasi(id: string, approved: boolean, alasan?: string): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/verifikasi`), { approved, alasan }).pipe(
+      map(res => this.unwrapOne(res))
+    );
+  }
+
+  approveReimbursement(id: string): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/approve-reimbursement`), {}).pipe(
+      map(res => this.unwrapOne(res))
+    );
   }
 }

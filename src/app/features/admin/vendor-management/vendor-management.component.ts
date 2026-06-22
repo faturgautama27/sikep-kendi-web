@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { PageHeaderComponent } from '@core/layout';
 import type { VendorAdmin } from '@shared/models';
 
 const INITIAL: VendorAdmin[] = [
@@ -19,7 +19,7 @@ const INITIAL: VendorAdmin[] = [
 ];
 
 @Component({ selector: 'app-vendor-management', standalone: true,
-  imports: [ReactiveFormsModule, ButtonModule, ConfirmDialogModule, DialogModule, InputTextModule, TableModule, TagModule, ToastModule, TooltipModule, PageHeaderComponent],
+  imports: [ReactiveFormsModule, FormsModule, ButtonModule, ConfirmDialogModule, DialogModule, InputTextModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vendor-management.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class VendorManagementComponent {
@@ -27,6 +27,34 @@ export class VendorManagementComponent {
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   protected readonly vendors = signal<VendorAdmin[]>(INITIAL);
+  protected readonly searchQuery = signal('');
+  protected readonly selectedStatus = signal<boolean | null>(null);
+
+  protected readonly filteredVendors = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const status = this.selectedStatus();
+
+    return this.vendors().filter((v) => {
+      if (q) {
+        const haystack = `${v.namaVendor} ${v.email} ${v.kontak}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (status !== null && v.isAktif !== status) return false;
+      return true;
+    });
+  });
+
+  protected readonly statusOpts = [
+    { label: 'Semua Status', value: null },
+    { label: 'Aktif', value: true },
+    { label: 'Nonaktif', value: false },
+  ];
+
+  protected onResetFilter(): void {
+    this.searchQuery.set('');
+    this.selectedStatus.set(null);
+  }
+
   protected readonly dialogVisible = signal(false);
   protected readonly editingId = signal<string | null>(null);
   protected readonly emailConflict = signal(false);

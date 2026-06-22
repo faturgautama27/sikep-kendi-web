@@ -32,7 +32,7 @@ export interface ImageDataPort {
   getById(id: string): Observable<Image>;
   getSignedUrl(id: string): Observable<SignedImageUrl>;
   requestCaptureToken(vehicleId: string): Observable<CaptureToken>;
-  upload(file: File, meta: ImageUploadMeta): Observable<Image>;
+  upload(file: File, meta?: ImageUploadMeta): Observable<Image>;
 }
 
 export const IMAGE_DATA = new InjectionToken<ImageDataPort>('IMAGE_DATA');

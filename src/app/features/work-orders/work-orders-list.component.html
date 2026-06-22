@@ -1,31 +1,47 @@
 <div class="flex flex-col gap-5">
   <!-- Header -->
-  <header class="flex flex-col gap-1">
-    <h1 class="text-2xl font-bold text-primary-900">Order Kerja</h1>
-    <p class="text-sm text-slate-500">
-      Daftar Work Order beserta progres pengerjaan dan dokumentasi evidence dari vendor.
-    </p>
+  <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Order Kerja</h1>
+      <p class="text-sm text-slate-500">
+        Daftar Work Order beserta progres pengerjaan dan dokumentasi evidence dari vendor.
+      </p>
+    </div>
   </header>
 
   <!-- Filter bar -->
-  <div
-    class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4"
-  >
+  <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
+    <div class="flex flex-1 flex-col gap-1">
+      <label for="search" class="text-xs font-medium text-slate-600">Cari nomor / kendaraan / vendor</label>
+      <span class="p-input-icon-left">
+        <input
+          pInputText
+          id="search"
+          class="w-full"
+          placeholder="cth. WO-2025 atau B 1234 CD"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </span>
+    </div>
+
     <div class="flex flex-col gap-1 md:w-72">
       <label for="status" class="text-xs font-medium text-slate-600">Status</label>
-      <p-select
+      <p-multiSelect
         inputId="status"
         [options]="statusOptions"
         optionLabel="label"
         optionValue="value"
         placeholder="Semua status"
-        [ngModel]="selectedStatus()"
-        (ngModelChange)="selectedStatus.set($event)"
+        [maxSelectedLabels]="2"
+        selectedItemsLabel="{0} status dipilih"
+        [ngModel]="selectedStatuses()"
+        (ngModelChange)="selectedStatuses.set($event)"
         styleClass="w-full"
-      ></p-select>
+      ></p-multiSelect>
     </div>
 
-    <div class="flex flex-col gap-1 md:w-96">
+    <div class="flex flex-col gap-1 md:w-80">
       <label for="vendor" class="text-xs font-medium text-slate-600">Vendor</label>
       <p-select
         inputId="vendor"
@@ -92,7 +108,15 @@
               (onClick)="onToggleExpand(wo)"
             ></p-button>
           </td>
-          <td class="font-semibold text-primary-700">{{ wo.nomor }}</td>
+          <td>
+            <button
+              type="button"
+              class="font-semibold text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              (click)="onToggleExpand(wo)"
+            >
+              {{ wo.nomor }}
+            </button>
+          </td>
           <td class="text-slate-700">{{ wo.pengajuanNomor }}</td>
           <td class="font-mono text-xs text-slate-700">{{ wo.vehiclePlate }}</td>
           <td class="text-slate-700">{{ wo.vendorNama }}</td>
@@ -219,4 +243,23 @@
       </ng-template>
     </p-table>
   </div>
+
+  <!-- Statistik per status -->
+  <p-panel header="Statistik Work Order" [toggleable]="true" [collapsed]="true" styleClass="text-sm">
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+      @for (s of statsByStatus(); track s.status) {
+        <div
+          class="flex flex-col items-start gap-1 rounded-md border border-slate-200 bg-surface-alt px-3 py-2"
+        >
+          <p-tag
+            [value]="s.label"
+            [severity]="s.severity"
+            [rounded]="true"
+            styleClass="text-[10px]"
+          ></p-tag>
+          <span class="text-2xl font-bold text-primary-900">{{ s.count }}</span>
+        </div>
+      }
+    </div>
+  </p-panel>
 </div>

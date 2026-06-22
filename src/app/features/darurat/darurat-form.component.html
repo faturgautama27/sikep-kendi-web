@@ -1,20 +1,131 @@
-<section class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+<p-toast />
+<section class="flex w-full max-w-3xl flex-col gap-5">
   <app-page-header
-    [title]="'Form Laporan Darurat'"
-    [subtitle]="'Input kejadian darurat pengemudi: kendaraan, deskripsi, lokasi, dan total pengeluaran.'"
+    [title]="isEditMode() ? 'Edit Laporan Darurat' : 'Buat Laporan Darurat'"
+    [subtitle]="
+      isEditMode()
+        ? 'Perbarui data laporan kejadian darurat.'
+        : 'Input kejadian darurat pengemudi: kendaraan, deskripsi, lokasi, dan pengeluaran.'
+    "
   />
 
-  <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-2">
-    <input pInputText placeholder="ID Kendaraan" [(ngModel)]="kendaraanId" />
-    <input pInputText placeholder="Label Kendaraan (contoh D 1234 AB)" [(ngModel)]="kendaraanLabel" />
-    <input pInputText placeholder="Nama Pengemudi" [(ngModel)]="pengemudiNama" />
-    <input pInputText placeholder="Lokasi Kejadian" [(ngModel)]="lokasiKejadian" />
-    <input pInputText type="number" placeholder="Total Pengeluaran" [(ngModel)]="totalPengeluaran" />
-    <textarea pTextarea rows="4" placeholder="Deskripsi darurat" [(ngModel)]="deskripsiDarurat"></textarea>
+  <div
+    class="grid grid-cols-2 gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+    [formGroup]="form"
+  >
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Kendaraan</label>
+      <p-select
+        formControlName="kendaraanId"
+        [options]="vehicleOpts()"
+        placeholder="Pilih Kendaraan"
+        styleClass="w-full"
+        appendTo="body"
+      ></p-select>
+      @if (form.controls.kendaraanId.invalid && form.controls.kendaraanId.touched) {
+        <small class="text-red-500">Kendaraan harus dipilih.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Lokasi Kejadian</label>
+      <input
+        pInputText
+        formControlName="lokasiKejadian"
+        placeholder="Contoh: Jl. Sudirman km 2"
+        class="w-full"
+      />
+      @if (form.controls.lokasiKejadian.invalid && form.controls.lokasiKejadian.touched) {
+        <small class="text-red-500">Lokasi kejadian wajib diisi.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Total Pengeluaran (Opsional)</label>
+      <p-inputnumber
+        formControlName="totalPengeluaran"
+        mode="currency"
+        currency="IDR"
+        locale="id-ID"
+        styleClass="w-full"
+      ></p-inputnumber>
+    </div>
+
+    <div class="flex flex-col gap-1 md:col-span-2">
+      <label class="text-sm font-medium">Deskripsi Kejadian</label>
+      <textarea
+        pTextarea
+        formControlName="deskripsiDarurat"
+        rows="4"
+        placeholder="Jelaskan secara detail kejadian darurat"
+        class="w-full"
+      ></textarea>
+      @if (form.controls.deskripsiDarurat.invalid && form.controls.deskripsiDarurat.touched) {
+        <small class="text-red-500">Deskripsi kejadian wajib diisi (minimal 10 karakter).</small>
+      }
+    </div>
+
+    <!-- Upload Foto Kerusakan -->
+    <div class="flex flex-col gap-1 md:col-span-2 mt-2">
+      <label class="text-sm font-medium">Foto Bukti Kerusakan <span class="text-red-500">*</span></label>
+      <p-fileupload 
+        #fuKerusakan
+        mode="advanced" 
+        [multiple]="true" 
+        accept="image/*" 
+        [maxFileSize]="10000000"
+        chooseLabel="Pilih Foto"
+        uploadLabel="Upload"
+        cancelLabel="Batal"
+        [customUpload]="true"
+        (uploadHandler)="onUploadKerusakan($event, fuKerusakan)">
+        <ng-template pTemplate="content">
+          @if (fotoKerusakanIds().length > 0) {
+            <div class="mt-2 text-sm text-green-600 font-medium">
+              <i class="pi pi-check-circle mr-1"></i> {{ fotoKerusakanIds().length }} foto berhasil diupload.
+            </div>
+          }
+        </ng-template>
+      </p-fileupload>
+    </div>
+
+    <!-- Upload Foto Invoice -->
+    <div class="flex flex-col gap-1 md:col-span-2 mt-2">
+      <label class="text-sm font-medium">Foto Bukti Invoice/Struk <span class="text-red-500">*</span></label>
+      <p-fileupload 
+        #fuInvoice
+        mode="advanced" 
+        [multiple]="true" 
+        accept="image/*" 
+        [maxFileSize]="10000000"
+        chooseLabel="Pilih Foto"
+        uploadLabel="Upload"
+        cancelLabel="Batal"
+        [customUpload]="true"
+        (uploadHandler)="onUploadInvoice($event, fuInvoice)">
+        <ng-template pTemplate="content">
+          @if (fotoInvoiceIds().length > 0) {
+            <div class="mt-2 text-sm text-green-600 font-medium">
+              <i class="pi pi-check-circle mr-1"></i> {{ fotoInvoiceIds().length }} foto berhasil diupload.
+            </div>
+          }
+        </ng-template>
+      </p-fileupload>
+    </div>
   </div>
 
   <div class="flex justify-end gap-2">
-    <button pButton type="button" severity="secondary" label="Batal" [outlined]="true" (click)="router.navigateByUrl('/darurat')"></button>
-    <button pButton type="button" label="Simpan Laporan" icon="pi pi-save" (click)="submit()"></button>
+    <p-button
+      severity="secondary"
+      label="Batal"
+      [outlined]="true"
+      (onClick)="router.navigateByUrl('/darurat')"
+    />
+    <p-button
+      [label]="isEditMode() ? 'Simpan Perubahan' : 'Kirim Laporan'"
+      icon="pi pi-save"
+      [loading]="submitting()"
+      (onClick)="submit()"
+    />
   </div>
 </section>

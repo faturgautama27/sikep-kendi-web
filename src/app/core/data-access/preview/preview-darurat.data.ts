@@ -1,27 +1,32 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 
-import type { DaruratDataPort } from '../ports/darurat-data.port';
+import type { DaruratDataPort, DaruratFilter, DaruratCreateInput } from '../ports/darurat-data.port';
+import { LaporanDarurat } from '@shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class PreviewDaruratData implements DaruratDataPort {
-  list(): Observable<unknown> {
-    return of({ data: [], nextCursor: null });
+  list(query?: DaruratFilter): Observable<LaporanDarurat[]> {
+    return of([]);
   }
 
-  detail(id: string): Observable<unknown> {
-    return of({ id });
+  detail(id: string): Observable<LaporanDarurat> {
+    return of({ id } as unknown as LaporanDarurat);
   }
 
-  create(payload: Record<string, unknown>): Observable<unknown> {
-    return of(payload);
+  create(payload: DaruratCreateInput): Observable<LaporanDarurat> {
+    return of(payload as unknown as LaporanDarurat);
   }
 
-  verifikasi(id: string, payload: Record<string, unknown>): Observable<unknown> {
-    return of({ id, ...payload });
+  update(id: string, payload: Partial<DaruratCreateInput>): Observable<LaporanDarurat> {
+    return of({ id, ...payload } as unknown as LaporanDarurat);
   }
 
-  approveReimbursement(id: string): Observable<unknown> {
-    return of({ id, status: 'REIMBURSE_APPROVED' });
+  verifikasi(id: string, approved: boolean, alasan?: string): Observable<LaporanDarurat> {
+    return of({ id, status: approved ? 'TERVERIFIKASI' : 'DITOLAK', alasan } as unknown as LaporanDarurat);
+  }
+
+  approveReimbursement(id: string): Observable<LaporanDarurat> {
+    return of({ id, status: 'REIMBURSE_APPROVED' } as unknown as LaporanDarurat);
   }
 }

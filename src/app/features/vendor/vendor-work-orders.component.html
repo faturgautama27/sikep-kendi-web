@@ -1,56 +1,106 @@
-<section class="flex flex-col gap-5">
-  <app-page-header [title]="headerTitle()" [subtitle]="headerSubtitle()" />
+<div class="flex flex-col gap-5">
+  <!-- Header -->
+  <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">{{ headerTitle() }}</h1>
+      <p class="text-sm text-slate-500">
+        {{ headerSubtitle() }}
+      </p>
+    </div>
+  </header>
 
+  <!-- Filter bar -->
+  <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
+    <div class="flex flex-1 flex-col gap-1">
+      <label for="search" class="text-xs font-medium text-slate-600">Cari nomor WO / kendaraan</label>
+      <span class="p-input-icon-left">
+        <input
+          pInputText
+          id="search"
+          class="w-full"
+          placeholder="cth. WO-2025 atau B 1234 CD"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </span>
+    </div>
+
+    <p-button
+      icon="pi pi-filter-slash"
+      label="Reset"
+      severity="secondary"
+      [text]="true"
+      (onClick)="onResetFilter()"
+    ></p-button>
+  </div>
+
+  <!-- Tabel WO Vendor -->
   <div class="sikep-table-wrap">
-    <p-table [value]="rows()" dataKey="id" [rowHover]="true" styleClass="text-sm"
-      [paginator]="rows().length > 15" [rows]="15">
+    <p-table 
+      [value]="filteredList()" 
+      [paginator]="true" 
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      dataKey="id" 
+      [rowHover]="true" 
+      [stripedRows]="true"
+      currentPageReportTemplate="{first}–{last} dari {totalRecords} work order"
+      [showCurrentPageReport]="true"
+      responsiveLayout="scroll"
+      styleClass="text-sm"
+    >
       <ng-template #header>
         <tr>
-          <th>Nomor WO</th>
-          <th>Kendaraan</th>
-          <th>Pengajuan</th>
-          <th class="w-32 text-center">Status</th>
+          <th class="w-40">Nomor WO</th>
+          <th class="w-32">Kendaraan</th>
+          <th class="w-40">Pengajuan</th>
+          <th class="w-32">Status</th>
           <th class="w-36 text-right">Nominal</th>
-          <th>Ditugaskan</th>
+          <th class="w-32">Ditugaskan</th>
           <th class="w-52 text-right">Aksi</th>
         </tr>
       </ng-template>
 
       <ng-template #body let-row>
         <tr>
-          <td class="font-mono font-semibold text-primary-700">{{ row.nomor }}</td>
           <td>
-            <div class="font-medium">{{ row.vehiclePlate }}</div>
-            <div class="text-xs text-slate-400">{{ row.vendorNama }}</div>
+            <a
+              class="font-semibold text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              [routerLink]="primaryActionRoute(row)"
+            >
+              {{ row.nomor }}
+            </a>
           </td>
-          <td class="text-xs text-slate-500 font-mono">{{ row.pengajuanNomor }}</td>
-          <td class="text-center">
-            <p-tag [value]="statusLabel(row.status)" [severity]="statusSeverity(row.status)" [rounded]="true" />
+          <td>
+            <div class="font-mono text-xs font-medium text-slate-700">{{ row.vehiclePlate }}</div>
+            <div class="text-[10px] text-slate-400">{{ row.vendorNama }}</div>
           </td>
-          <td class="text-right font-medium">{{ formatCurrency(row.totalNominal) }}</td>
-          <td class="text-xs text-slate-400">{{ formatDate(row.assignedAt) }}</td>
-          <td class="text-right">
+          <td class="text-xs font-mono text-slate-500">{{ row.pengajuanNomor }}</td>
+          <td>
+            <p-tag [value]="statusLabel(row.status)" [severity]="statusSeverity(row.status)" [rounded]="true"></p-tag>
+          </td>
+          <td class="text-right font-medium text-slate-800">{{ formatCurrency(row.totalNominal) }}</td>
+          <td class="text-xs text-slate-500">{{ formatDate(row.assignedAt) }}</td>
+          <td>
             <div class="flex justify-end gap-1">
-              <!-- Primary action: kontekstual berdasarkan view -->
               @if (currentView === 'notifikasi' || currentView === 'draft') {
                 <a [routerLink]="['/vendor/work-orders', row.id, 'draft']">
-                  <p-button label="Draft Checklist" icon="pi pi-list-check" size="small" />
+                  <p-button label="Draft Checklist" icon="pi pi-list-check" size="small"></p-button>
                 </a>
               }
               @if (currentView === 'penawaran') {
                 <a [routerLink]="['/vendor/work-orders', row.id, 'penawaran']">
-                  <p-button label="Penawaran" icon="pi pi-receipt" size="small" />
+                  <p-button label="Penawaran" icon="pi pi-receipt" size="small"></p-button>
                 </a>
               }
               @if (currentView === 'riwayat') {
                 <a [routerLink]="['/vendor/work-orders', row.id, 'draft']">
-                  <p-button label="Lihat Detail" icon="pi pi-eye" severity="secondary" [outlined]="true" size="small" />
+                  <p-button label="Detail" icon="pi pi-eye" severity="secondary" [text]="true" size="small"></p-button>
                 </a>
               }
-              <!-- Sekunder: akses ke penawaran jika sudah di tahap draft selesai -->
               @if (currentView === 'notifikasi' && (row.status === 'in_progress' || row.status === 'completed')) {
                 <a [routerLink]="['/vendor/work-orders', row.id, 'penawaran']">
-                  <p-button label="Penawaran" icon="pi pi-receipt" severity="secondary" [outlined]="true" size="small" />
+                  <p-button label="Penawaran" icon="pi pi-receipt" severity="secondary" [outlined]="true" size="small"></p-button>
                 </a>
               }
             </div>
@@ -60,12 +110,12 @@
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="7" class="py-10 text-center text-sm text-slate-400">
-            <i class="pi pi-inbox text-3xl mb-2 block"></i>
+          <td colspan="7" class="py-10 text-center text-sm text-slate-500">
+            <i class="pi pi-inbox text-3xl mb-2 block text-slate-300"></i>
             {{ emptyMessage() }}
           </td>
         </tr>
       </ng-template>
     </p-table>
   </div>
-</section>
+</div>

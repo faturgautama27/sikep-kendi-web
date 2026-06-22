@@ -9,12 +9,11 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { PageHeaderComponent } from '@core/layout';
 import { NotificationsState, MarkAsRead, MarkAllAsRead } from '@features/notifications/state';
 import type { Notification } from '@shared/models';
 
 @Component({ selector: 'app-vendor-notifications', standalone: true,
-  imports: [FormsModule, ButtonModule, SelectButtonModule, TableModule, TagModule, TooltipModule, PageHeaderComponent],
+  imports: [FormsModule, ButtonModule, SelectButtonModule, TableModule, TagModule, TooltipModule],
   templateUrl: './vendor-notifications.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class VendorNotificationsComponent {
   private readonly store = inject(Store);

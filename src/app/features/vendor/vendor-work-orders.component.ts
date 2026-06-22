@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 
 import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { PageHeaderComponent } from '@core/layout';
 import { WorkOrdersState } from '@features/work-orders/state';
 import type { WorkOrder, WorkOrderStatus } from '@shared/models';
 
@@ -34,7 +36,16 @@ const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'da
 @Component({
   selector: 'app-vendor-work-orders',
   standalone: true,
-  imports: [RouterLink, ButtonModule, TableModule, TagModule, TooltipModule, PageHeaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ButtonModule,
+    InputTextModule,
+    TableModule,
+    TagModule,
+    TooltipModule,
+  ],
   templateUrl: './vendor-work-orders.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -64,9 +75,20 @@ export class VendorWorkOrdersComponent {
     }
   });
 
-  protected readonly rows = computed(() =>
-    this.allRows().filter(r => this.matchByView(r, this.currentView))
-  );
+  protected readonly searchQuery = signal('');
+
+  protected readonly filteredList = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const rows = this.allRows().filter(r => this.matchByView(r, this.currentView));
+
+    return rows.filter((wo) => {
+      if (q) {
+        const haystack = `${wo.nomor} ${wo.vehiclePlate}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  });
 
   protected readonly emptyMessage = computed(() => {
     switch (this.currentView) {
@@ -84,6 +106,10 @@ export class VendorWorkOrdersComponent {
       case 'riwayat': return ['validated_accepted', 'validated_rejected'].includes(row.status);
       default: return ['assigned', 'received', 'in_progress'].includes(row.status);
     }
+  }
+
+  protected onResetFilter(): void {
+    this.searchQuery.set('');
   }
 
   protected statusLabel(s: WorkOrderStatus): string { return STATUS_LABELS[s] ?? s; }

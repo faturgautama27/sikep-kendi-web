@@ -1,12 +1,25 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
+import { LaporanDarurat, DaruratStatus } from '@shared/models';
+
+export interface DaruratFilter {
+  status?: DaruratStatus;
+  limit?: number;
+  cursor?: number;
+}
+
+export type DaruratCreateInput = Pick<
+  LaporanDarurat,
+  'kendaraanId' | 'deskripsiDarurat' | 'lokasiKejadian' | 'totalPengeluaran'
+> & { fotoKerusakanIds?: string[]; fotoInvoiceIds?: string[] };
 
 export interface DaruratDataPort {
-  list(query?: Record<string, string | number | boolean | null | undefined>): Observable<unknown>;
-  detail(id: string): Observable<unknown>;
-  create(payload: Record<string, unknown>): Observable<unknown>;
-  verifikasi(id: string, payload: Record<string, unknown>): Observable<unknown>;
-  approveReimbursement(id: string): Observable<unknown>;
+  list(query?: DaruratFilter): Observable<LaporanDarurat[]>;
+  detail(id: string): Observable<LaporanDarurat>;
+  create(payload: DaruratCreateInput): Observable<LaporanDarurat>;
+  update(id: string, payload: Partial<DaruratCreateInput>): Observable<LaporanDarurat>;
+  verifikasi(id: string, approved: boolean, alasan?: string): Observable<LaporanDarurat>;
+  approveReimbursement(id: string): Observable<LaporanDarurat>;
 }
 
 export const DARURAT_DATA = new InjectionToken<DaruratDataPort>('DARURAT_DATA');

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { ChipModule } from 'primeng/chip';
@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -26,7 +27,7 @@ const ROLE_OPTS = [
 ];
 
 @Component({ selector: 'app-admin-users-list', standalone: true,
-  imports: [ReactiveFormsModule, ButtonModule, ChipModule, ConfirmDialogModule, DialogModule, InputTextModule, MultiSelectModule, TableModule, TagModule, ToastModule, TooltipModule],
+  imports: [ReactiveFormsModule, FormsModule, ButtonModule, ChipModule, ConfirmDialogModule, DialogModule, InputTextModule, MultiSelectModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './users-list.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class UsersListComponent {
@@ -41,15 +42,53 @@ export class UsersListComponent {
   );
   private readonly localUsers = signal<User[]>([]);
 
+  protected readonly searchQuery = signal('');
+  protected readonly selectedRoles = signal<RoleName[]>([]);
+  protected readonly selectedStatus = signal<boolean | null>(null);
+
   protected readonly users = computed<User[]>(() => {
+    let list: User[];
     const local = this.localUsers();
-    if (local.length > 0) return local;
-    const fromState = this.knownUsers();
-    if (fromState.length > 0) { this.localUsers.set(fromState); return fromState; }
-    const snap = this.fixtures.snapshot.users as User[];
-    this.localUsers.set(snap);
-    return snap;
+    if (local.length > 0) {
+      list = local;
+    } else {
+      const fromState = this.knownUsers();
+      if (fromState.length > 0) {
+        this.localUsers.set(fromState);
+        list = fromState;
+      } else {
+        const snap = this.fixtures.snapshot.users as User[];
+        this.localUsers.set(snap);
+        list = snap;
+      }
+    }
+
+    const q = this.searchQuery().trim().toLowerCase();
+    const roles = this.selectedRoles();
+    const status = this.selectedStatus();
+
+    return list.filter((u) => {
+      if (q) {
+        const haystack = `${u.username} ${u.fullName} ${u.email}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (roles.length > 0 && !u.roles.some((r) => roles.includes(r))) return false;
+      if (status !== null && u.active !== status) return false;
+      return true;
+    });
   });
+
+  protected onResetFilter(): void {
+    this.searchQuery.set('');
+    this.selectedRoles.set([]);
+    this.selectedStatus.set(null);
+  }
+
+  protected readonly statusOpts = [
+    { label: 'Semua Status', value: null },
+    { label: 'Aktif', value: true },
+    { label: 'Nonaktif', value: false },
+  ];
 
   protected readonly roleOpts = ROLE_OPTS;
   protected readonly dialogVisible = signal(false);

@@ -2,9 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { CommonModule } from '@angular/common';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
+import { PanelModule } from 'primeng/panel';
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -14,10 +18,37 @@ import { TooltipModule } from 'primeng/tooltip';
 import { VehiclesState } from './state';
 import type { Vehicle, VehicleStatus, VehicleType } from '@shared/models';
 
+const STATUS_OPTIONS: { label: string; value: VehicleStatus }[] = [
+  { label: 'Aktif', value: 'active' },
+  { label: 'Dalam Perbaikan', value: 'in_repair' },
+  { label: 'Pensiun', value: 'retired' },
+];
+
+const JENIS_OPTIONS: { label: string; value: VehicleType | null }[] = [
+  { label: 'Semua jenis', value: null },
+  { label: 'Mobil', value: 'mobil' },
+  { label: 'Motor', value: 'motor' },
+  { label: 'Truk', value: 'truk' },
+  { label: 'Bus', value: 'bus' },
+  { label: 'Lainnya', value: 'lainnya' },
+];
+
 @Component({
   selector: 'app-vehicles-list',
   standalone: true,
-  imports: [FormsModule, ButtonModule, InputTextModule, TableModule, TagModule, ToastModule, TooltipModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    InputTextModule,
+    MultiSelectModule,
+    SelectModule,
+    PanelModule,
+    TableModule,
+    TagModule,
+    ToastModule,
+    TooltipModule,
+  ],
   providers: [MessageService],
   templateUrl: './vehicles-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,40 +56,49 @@ import type { Vehicle, VehicleStatus, VehicleType } from '@shared/models';
 export class VehiclesListComponent {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
-  private readonly messageService = inject(MessageService);
+
+  protected readonly statusOptions = STATUS_OPTIONS;
+  protected readonly jenisOptions = JENIS_OPTIONS;
 
   private readonly all = this.store.selectSignal(VehiclesState.list);
   protected readonly search = signal('');
-  protected readonly selectedStatus = signal<VehicleStatus | null>(null);
+  protected readonly selectedStatuses = signal<VehicleStatus[]>([]);
   protected readonly selectedJenis = signal<VehicleType | null>(null);
 
-  protected readonly filtered = computed(() => {
+  protected readonly filteredList = computed(() => {
     const q = this.search().toLowerCase();
-    const st = this.selectedStatus();
+    const statuses = this.selectedStatuses();
     const jn = this.selectedJenis();
     return this.all().filter(v => {
       if (q && !`${v.nomorPolisi} ${v.merk} ${v.tipe}`.toLowerCase().includes(q)) return false;
-      if (st && v.status !== st) return false;
+      if (statuses.length > 0 && !statuses.includes(v.status)) return false;
       if (jn && v.jenisKendaraan !== jn) return false;
       return true;
     });
   });
 
-  protected readonly activeCount = computed(() => this.all().filter(v => v.status === 'active').length);
-  protected readonly inRepairCount = computed(() => this.all().filter(v => v.status === 'in_repair').length);
-  protected readonly retiredCount = computed(() => this.all().filter(v => v.status === 'retired').length);
-
-  protected onStatusChange(val: string): void {
-    this.selectedStatus.set(val ? val as VehicleStatus : null);
-  }
-
-  protected onJenisChange(val: string): void {
-    this.selectedJenis.set(val ? val as VehicleType : null);
-  }
+  protected readonly statsByStatus = computed(() => {
+    const counts: Record<VehicleStatus, number> = {
+      active: 0,
+      in_repair: 0,
+      retired: 0,
+    };
+    for (const v of this.all() || []) {
+      if (counts[v.status] !== undefined) {
+        counts[v.status]++;
+      }
+    }
+    return STATUS_OPTIONS.map((s) => ({
+      label: s.label,
+      status: s.value,
+      count: counts[s.value],
+      severity: this.statusSeverity(s.value),
+    }));
+  });
 
   protected onResetFilter(): void {
     this.search.set('');
-    this.selectedStatus.set(null);
+    this.selectedStatuses.set([]);
     this.selectedJenis.set(null);
   }
 

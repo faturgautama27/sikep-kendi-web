@@ -1,54 +1,117 @@
 <p-toast /><p-confirmDialog />
-<section class="flex flex-col gap-5">
-  <header class="flex items-center justify-between">
+<div class="flex flex-col gap-5">
+  <!-- Header -->
+  <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div>
       <h1 class="text-2xl font-bold text-primary-900">Manajemen Pengguna</h1>
       <p class="text-sm text-slate-500">Kelola akun, role, dan akses pengguna sistem.</p>
     </div>
-    <p-button label="Tambah Pengguna" icon="pi pi-user-plus" (onClick)="openAdd()" />
+    <p-button label="Tambah Pengguna" icon="pi pi-user-plus" (onClick)="openAdd()"></p-button>
   </header>
 
+  <!-- Filter bar -->
+  <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
+    <div class="flex flex-1 flex-col gap-1">
+      <label for="search" class="text-xs font-medium text-slate-600">Cari nama / username / email</label>
+      <span class="p-input-icon-left">
+        <input
+          pInputText
+          id="search"
+          class="w-full"
+          placeholder="cth. Budi atau admin"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </span>
+    </div>
+
+    <div class="flex flex-col gap-1 md:w-64">
+      <label for="role" class="text-xs font-medium text-slate-600">Role</label>
+      <p-multiSelect
+        inputId="role"
+        [options]="roleOpts"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Semua role"
+        [maxSelectedLabels]="2"
+        selectedItemsLabel="{0} role dipilih"
+        [ngModel]="selectedRoles()"
+        (ngModelChange)="selectedRoles.set($event)"
+        styleClass="w-full"
+      ></p-multiSelect>
+    </div>
+
+    <div class="flex flex-col gap-1 md:w-48">
+      <label for="status" class="text-xs font-medium text-slate-600">Status</label>
+      <p-select
+        inputId="status"
+        [options]="statusOpts"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Semua status"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+
+    <p-button
+      icon="pi pi-filter-slash"
+      label="Reset"
+      severity="secondary"
+      [text]="true"
+      (onClick)="onResetFilter()"
+    ></p-button>
+  </div>
+
   <div class="sikep-table-wrap">
-    <p-table [value]="users()" dataKey="id" [rowHover]="true" styleClass="text-sm" [paginator]="users().length > 15" [rows]="15">
+    <p-table [value]="users()" dataKey="id" [rowHover]="true" [stripedRows]="true" styleClass="text-sm" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]">
       <ng-template #header>
         <tr>
           <th>Nama Lengkap</th>
           <th>Username</th>
           <th>Email</th>
           <th>Role</th>
-          <th class="w-20 text-center">Status</th>
+          <th class="w-24 text-center">Status</th>
           <th class="w-36 text-right">Aksi</th>
         </tr>
       </ng-template>
       <ng-template #body let-u>
         <tr>
-          <td class="font-medium">{{ u.fullName }}</td>
-          <td class="font-mono text-xs">{{ u.username }}</td>
-          <td>{{ u.email }}</td>
+          <td class="font-medium text-slate-800">{{ u.fullName }}</td>
+          <td class="font-mono text-xs text-primary-700">{{ u.username }}</td>
+          <td class="text-slate-600">{{ u.email }}</td>
           <td>
             <div class="flex flex-wrap gap-1">
               @for (r of u.roles; track r) {
-                <p-chip [label]="roleLabel(r)" styleClass="text-xs py-0" />
+                <p-chip [label]="roleLabel(r)" styleClass="text-[10px] py-0 px-2" />
               }
             </div>
           </td>
           <td class="text-center">
-            <p-tag [value]="u.active ? 'Aktif' : 'Nonaktif'" [severity]="u.active ? 'success' : 'secondary'" />
+            <p-tag [value]="u.active ? 'Aktif' : 'Nonaktif'" [severity]="u.active ? 'success' : 'secondary'" [rounded]="true" />
           </td>
           <td class="text-right">
             <div class="flex justify-end gap-1">
-              <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" pTooltip="Edit" (onClick)="openEdit(u)" />
-              <p-button icon="pi pi-key" [text]="true" severity="warn" size="small" pTooltip="Reset Password" (onClick)="resetPassword(u)" />
-              <p-button [icon]="u.active ? 'pi pi-user-minus' : 'pi pi-user-plus'" [text]="true" [severity]="u.active ? 'danger' : 'success'"
+              <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" size="small" pTooltip="Edit" (onClick)="openEdit(u)"></p-button>
+              <p-button icon="pi pi-key" [text]="true" [rounded]="true" severity="warn" size="small" pTooltip="Reset Password" (onClick)="resetPassword(u)"></p-button>
+              <p-button [icon]="u.active ? 'pi pi-user-minus' : 'pi pi-user-plus'" [text]="true" [rounded]="true" [severity]="u.active ? 'danger' : 'success'"
                 size="small" [pTooltip]="u.id === currentUserId() ? 'Tidak dapat menonaktifkan akun sendiri' : (u.active ? 'Nonaktifkan' : 'Aktifkan')"
-                [disabled]="u.id === currentUserId()" (onClick)="toggleActive(u)" />
+                [disabled]="u.id === currentUserId()" (onClick)="toggleActive(u)"></p-button>
             </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6" class="py-10 text-center text-sm text-slate-500">
+            Tidak ada pengguna yang cocok dengan filter saat ini.
           </td>
         </tr>
       </ng-template>
     </p-table>
   </div>
-</section>
+</div>
 
 <p-dialog [header]="editingId() ? 'Edit Pengguna' : 'Tambah Pengguna'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
   <form [formGroup]="form" class="flex flex-col gap-4 pt-2">

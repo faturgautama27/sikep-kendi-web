@@ -1,5 +1,6 @@
 export * from './common';
 export * from './user';
+export * from './darurat';
 export * from './vehicle';
 export * from './driver';
 export * from './sparepart';

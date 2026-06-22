@@ -16,14 +16,13 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { PageHeaderComponent } from '@core/layout';
 import { CreateDraftChecklist, SubmitDraft, DraftChecklistState } from '@features/draft-checklist/state';
 import type { DraftChecklistItem, DraftChecklistRecord } from '@features/draft-checklist/state';
 
 type DraftStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK';
 
 @Component({ selector: 'app-vendor-draft-checklist', standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, DialogModule, InputNumberModule, TextareaModule, TableModule, TabsModule, TagModule, ToastModule, PageHeaderComponent],
+  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, DialogModule, InputNumberModule, TextareaModule, TableModule, TabsModule, TagModule, ToastModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vendor-draft-checklist.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class VendorDraftChecklistComponent {

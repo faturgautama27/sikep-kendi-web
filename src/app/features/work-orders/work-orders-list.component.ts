@@ -5,6 +5,9 @@ import { Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ImageModule } from 'primeng/image';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -82,6 +85,9 @@ function evidencePlaceholder(kategori: string): string {
     ButtonModule,
     CardModule,
     ImageModule,
+    InputTextModule,
+    MultiSelectModule,
+    PanelModule,
     SelectModule,
     TableModule,
     TagModule,
@@ -104,7 +110,8 @@ export class WorkOrdersListComponent {
   ]);
 
   /** Filter signals. */
-  protected readonly selectedStatus = signal<WorkOrderStatus | null>(null);
+  protected readonly searchQuery = signal('');
+  protected readonly selectedStatuses = signal<WorkOrderStatus[]>([]);
   protected readonly selectedVendor = signal<string | null>(null);
 
   /** Set yang menandai row mana yang sedang ter-expand. */
@@ -112,17 +119,45 @@ export class WorkOrdersListComponent {
 
   protected readonly filteredList = computed<WorkOrder[]>(() => {
     const all = this.list();
-    const status = this.selectedStatus();
+    const q = this.searchQuery().trim().toLowerCase();
+    const statuses = this.selectedStatuses();
     const vendor = this.selectedVendor();
     return all.filter((wo) => {
-      if (status && wo.status !== status) return false;
+      if (q) {
+        const haystack = `${wo.nomor} ${wo.pengajuanNomor} ${wo.vehiclePlate} ${wo.vendorNama}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (statuses.length > 0 && !statuses.includes(wo.status)) return false;
       if (vendor && wo.vendorId !== vendor) return false;
       return true;
     });
   });
 
+  protected readonly statsByStatus = computed(() => {
+    const counts: Record<string, number> = {
+      assigned: 0,
+      received: 0,
+      in_progress: 0,
+      completed: 0,
+      validated_accepted: 0,
+      validated_rejected: 0,
+    };
+    for (const wo of this.list() || []) {
+      if (counts[wo.status] !== undefined) {
+        counts[wo.status]++;
+      }
+    }
+    return STATUS_OPTIONS.filter(s => s.value !== null).map((s) => ({
+      label: s.label,
+      status: s.value,
+      count: counts[s.value as string],
+      severity: this.statusSeverity(s.value as WorkOrderStatus),
+    }));
+  });
+
   protected onResetFilter(): void {
-    this.selectedStatus.set(null);
+    this.searchQuery.set('');
+    this.selectedStatuses.set([]);
     this.selectedVendor.set(null);
   }
 

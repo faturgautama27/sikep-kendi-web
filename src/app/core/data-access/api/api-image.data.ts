@@ -46,10 +46,9 @@ export class ApiImageData implements ImageDataPort {
     });
   }
 
-  upload(file: File, meta: ImageUploadMeta): Observable<Image> {
+  upload(file: File): Observable<Image> {
     const form = new FormData();
     form.append('file', file);
-    form.append('meta', JSON.stringify(meta));
-    return this.http.post<Image>(this.url('/images/upload'), form);
+    return this.http.post<Image>(this.url('/images'), form);
   }
 }

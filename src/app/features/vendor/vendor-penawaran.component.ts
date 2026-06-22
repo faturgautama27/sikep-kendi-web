@@ -15,7 +15,6 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { PageHeaderComponent } from '@core/layout';
 import { DraftChecklistState } from '@features/draft-checklist/state';
 import { CreatePenawaran, PenawaranState, RequestRevisiPenawaran, SubmitPenawaran, SubmitRevisiPenawaran } from '@features/penawaran/state';
 import type { PenawaranRecord } from '@features/penawaran/state';
@@ -24,7 +23,7 @@ type PenawaranStatus = 'DRAFT' | 'DIKIRIM' | 'DIVERIFIKASI' | 'REVISI';
 
 @Component({
   selector: 'app-vendor-penawaran', standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, InputNumberModule, TextareaModule, InputTextModule, TableModule, TagModule, ToastModule, PageHeaderComponent],
+  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, InputNumberModule, TextareaModule, InputTextModule, TableModule, TagModule, ToastModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vendor-penawaran.component.html', changeDetection: ChangeDetectionStrategy.OnPush
 })

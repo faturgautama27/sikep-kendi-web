@@ -1,0 +1,169 @@
+<p-toast />
+
+<section class="mx-auto flex w-full max-w-4xl flex-col gap-5">
+  @if (laporan(); as row) {
+    <app-page-header
+      [title]="'Detail Darurat #' + row.id"
+      [subtitle]="'Informasi kejadian darurat dan riwayat status.'"
+    >
+      <div page-header-action class="flex gap-2">
+        <p-button
+          icon="pi pi-arrow-left"
+          label="Kembali"
+          [outlined]="true"
+          severity="secondary"
+          [routerLink]="['/darurat']"
+        />
+        @if (isWaitingVerifikasi) {
+          <p-button
+            icon="pi pi-pencil"
+            label="Edit Laporan"
+            severity="info"
+            [routerLink]="['/darurat', row.id, 'edit']"
+          />
+        }
+      </div>
+    </app-page-header>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <!-- Info Kejadian -->
+      <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="mb-4 text-lg font-semibold text-slate-800">Informasi Laporan</h3>
+        <div class="flex flex-col gap-3">
+          <div>
+            <span class="block text-sm text-slate-500">Tanggal Kejadian</span>
+            <span class="font-medium text-slate-800">{{
+              row.createdAt | date: 'dd MMMM yyyy, HH:mm'
+            }}</span>
+          </div>
+          <div>
+            <span class="block text-sm text-slate-500">Status</span>
+            @let st = getStatusProps(row.status);
+            <p-tag [severity]="st.severity" [value]="st.label" />
+          </div>
+          <div>
+            <span class="block text-sm text-slate-500">Kendaraan</span>
+            <span class="font-medium text-slate-800"
+              >{{ row.kendaraan?.nomorPolisi || row.kendaraan?.id || '-' }} -
+              {{ row.kendaraan?.merk }} {{ row.kendaraan?.tipe }}</span
+            >
+          </div>
+          <div>
+            <span class="block text-sm text-slate-500">Pengemudi</span>
+            <span class="font-medium text-slate-800">{{ row.pengemudi?.fullName }}</span>
+          </div>
+          <div>
+            <span class="block text-sm text-slate-500">Lokasi Kejadian</span>
+            <span class="font-medium text-slate-800">{{ row.lokasiKejadian || '-' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deskripsi & Biaya -->
+      <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-4">
+        <div>
+          <h3 class="mb-2 text-lg font-semibold text-slate-800">Deskripsi Kejadian</h3>
+          <p class="text-slate-700 whitespace-pre-wrap">{{ row.deskripsiDarurat }}</p>
+        </div>
+
+        <div>
+          <h3 class="mb-2 text-lg font-semibold text-slate-800">Estimasi / Pengeluaran</h3>
+          <div class="text-2xl font-bold text-primary-600">
+            Rp {{ row.totalPengeluaran | number: '1.0-0' : 'id-ID' }}
+          </div>
+        </div>
+
+        <!-- Aksi -->
+        @if (isWaitingVerifikasi) {
+          <div class="mt-auto pt-4 border-t border-slate-100 flex gap-2">
+            <p-button
+              label="Verifikasi (Setuju)"
+              icon="pi pi-check"
+              severity="success"
+              class="flex-1"
+              styleClass="w-full"
+              (onClick)="openVerifikasi(true)"
+            ></p-button>
+            <p-button
+              label="Tolak"
+              icon="pi pi-times"
+              severity="danger"
+              class="flex-1"
+              styleClass="w-full"
+              (onClick)="openVerifikasi(false)"
+            ></p-button>
+          </div>
+        }
+
+        @if (isWaitingApprove) {
+          <div class="mt-auto pt-4 border-t border-slate-100">
+            <p-button
+              label="Approve Reimbursement"
+              icon="pi pi-check-circle"
+              severity="success"
+              styleClass="w-full"
+              (onClick)="openApprove()"
+            ></p-button>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="p-8 text-center text-slate-500">Memuat laporan...</div>
+  }
+</section>
+
+<!-- Dialog Verifikasi -->
+<p-dialog
+  [header]="verifikasiApproved ? 'Verifikasi Laporan' : 'Tolak Laporan'"
+  [(visible)]="verifikasiDialogVisible"
+  [modal]="true"
+  [style]="{ width: '25vw' }"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    <p>
+      Apakah Anda yakin ingin {{ verifikasiApproved ? 'memverifikasi' : 'menolak' }} laporan darurat
+      ini?
+    </p>
+    @if (!verifikasiApproved) {
+      <div class="flex flex-col gap-1">
+        <label>Alasan Penolakan</label>
+        <textarea pTextarea [(ngModel)]="verifikasiAlasan" rows="3" class="w-full"></textarea>
+      </div>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="verifikasiDialogVisible = false"
+    />
+    <p-button
+      [label]="verifikasiApproved ? 'Verifikasi' : 'Tolak'"
+      [severity]="verifikasiApproved ? 'success' : 'danger'"
+      (onClick)="submitVerifikasi()"
+    />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog Approve Reimbursement -->
+<p-dialog
+  header="Approve Reimbursement"
+  [(visible)]="approveDialogVisible"
+  [modal]="true"
+  [style]="{ width: '25vw' }"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    <p>Apakah Anda menyetujui pengajuan reimbursement untuk laporan darurat ini?</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="approveDialogVisible = false"
+    />
+    <p-button label="Approve" severity="success" (onClick)="submitApprove()" />
+  </ng-template>
+</p-dialog>

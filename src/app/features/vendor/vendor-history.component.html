@@ -1,14 +1,55 @@
-<section class="flex flex-col gap-5">
-  <app-page-header title="Riwayat Work Order" subtitle="Daftar Work Order yang telah diselesaikan." />
+<div class="flex flex-col gap-5">
+  <!-- Header -->
+  <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary-900">Riwayat Work Order</h1>
+      <p class="text-sm text-slate-500">Daftar Work Order yang telah diselesaikan.</p>
+    </div>
+  </header>
 
-  <div class="flex gap-3 flex-wrap">
-    <input pInputText [(ngModel)]="filterNomor" placeholder="Cari nomor WO / plat..." class="w-60" />
-    <p-multiselect [(ngModel)]="filterStatus" [options]="statusOpts" optionLabel="label" optionValue="value"
-      placeholder="Filter status..." display="chip" class="w-64" />
+  <!-- Filter bar -->
+  <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
+    <div class="flex flex-1 flex-col gap-1">
+      <label for="search" class="text-xs font-medium text-slate-600">Cari nomor WO / plat</label>
+      <span class="p-input-icon-left">
+        <input
+          pInputText
+          id="search"
+          class="w-full"
+          placeholder="cth. WO-001 atau D 123"
+          [ngModel]="filterNomor()"
+          (ngModelChange)="filterNomor.set($event)"
+        />
+      </span>
+    </div>
+
+    <div class="flex flex-col gap-1 md:w-64">
+      <label for="status" class="text-xs font-medium text-slate-600">Status</label>
+      <p-multiSelect
+        inputId="status"
+        [options]="statusOpts"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Semua status"
+        [maxSelectedLabels]="2"
+        selectedItemsLabel="{0} status dipilih"
+        [ngModel]="filterStatus()"
+        (ngModelChange)="filterStatus.set($event)"
+        styleClass="w-full"
+      ></p-multiSelect>
+    </div>
+
+    <p-button
+      icon="pi pi-filter-slash"
+      label="Reset"
+      severity="secondary"
+      [text]="true"
+      (onClick)="onResetFilter()"
+    ></p-button>
   </div>
 
   <div class="sikep-table-wrap">
-    <p-table [value]="rows()" dataKey="id" styleClass="text-sm" [rowHover]="true" [paginator]="rows().length > 20" [rows]="20">
+    <p-table [value]="rows()" dataKey="id" styleClass="text-sm" [rowHover]="true" [stripedRows]="true" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]">
       <ng-template #header>
         <tr>
           <th>Nomor WO</th>
@@ -23,19 +64,19 @@
       </ng-template>
       <ng-template #body let-w>
         <tr>
-          <td class="font-mono font-medium">{{ w.nomor }}</td>
-          <td>{{ w.vehiclePlate }}</td>
-          <td class="text-xs text-slate-400">{{ w.pengajuanNomor }}</td>
-          <td class="text-center"><p-tag [value]="statusLabel(w.status)" [severity]="statusSeverity(w.status)" /></td>
-          <td class="text-right">{{ formatCurrency(w.totalNominal) }}</td>
-          <td class="text-xs text-slate-400">{{ formatDate(w.completedAt) }}</td>
-          <td class="text-xs text-slate-400">{{ formatDate(w.validatedAt) }}</td>
-          <td><a [routerLink]="['/vendor/work-orders', w.id, 'draft']" class="text-primary-600 text-xs hover:underline">Detail</a></td>
+          <td class="font-mono font-medium text-primary-700">{{ w.nomor }}</td>
+          <td class="font-semibold text-slate-800">{{ w.vehiclePlate }}</td>
+          <td class="text-xs text-slate-600">{{ w.pengajuanNomor }}</td>
+          <td class="text-center"><p-tag [value]="statusLabel(w.status)" [severity]="statusSeverity(w.status)" [rounded]="true" /></td>
+          <td class="text-right font-medium text-slate-800">{{ formatCurrency(w.totalNominal) }}</td>
+          <td class="text-xs text-slate-500">{{ formatDate(w.completedAt) }}</td>
+          <td class="text-xs text-slate-500">{{ formatDate(w.validatedAt) }}</td>
+          <td class="text-center"><a [routerLink]="['/vendor/work-orders', w.id, 'draft']" class="text-primary-600 text-xs hover:underline font-semibold">Detail</a></td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="8" class="text-center text-slate-400 py-8">Belum ada riwayat WO yang selesai.</td></tr>
+        <tr><td colspan="8" class="py-10 text-center text-sm text-slate-500">Belum ada riwayat WO yang cocok dengan filter.</td></tr>
       </ng-template>
     </p-table>
   </div>
-</section>
+</div>
