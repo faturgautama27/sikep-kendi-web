@@ -6,25 +6,8 @@ import type { VehicleDataPort } from '../ports/vehicle-data.port';
 import { APP_ENV } from '../app-env.token';
 
 interface VehicleListResponse {
-  success?: boolean;
   data?: ApiVehicle[];
-  meta?: { nextCursor?: number | null };
   nextCursor?: number | null;
-}
-
-interface VehicleItemResponse {
-  success?: boolean;
-  data?: ApiVehicle;
-}
-
-interface OdometerListResponse {
-  success?: boolean;
-  data?: ApiOdometerReading[];
-}
-
-interface OdometerItemResponse {
-  success?: boolean;
-  data?: ApiOdometerReading;
 }
 
 interface ApiVehicle {
@@ -135,38 +118,26 @@ export class ApiVehicleData implements VehicleDataPort {
   }
 
   getById(id: string): Observable<Vehicle> {
-    return this.http.get<ApiVehicle | VehicleItemResponse>(this.url(`/vehicles/${id}`)).pipe(
-      map((resp) => {
-        const row = (resp as VehicleItemResponse).data ?? (resp as ApiVehicle);
-        return this.mapVehicle(row);
-      }),
+    return this.http.get<ApiVehicle>(this.url(`/vehicles/${id}`)).pipe(
+      map((resp) => this.mapVehicle(resp)),
     );
   }
 
   create(input: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>): Observable<Vehicle> {
-    return this.http.post<ApiVehicle | VehicleItemResponse>(this.url('/vehicles'), input).pipe(
-      map((resp) => {
-        const row = (resp as VehicleItemResponse).data ?? (resp as ApiVehicle);
-        return this.mapVehicle(row);
-      }),
+    return this.http.post<ApiVehicle>(this.url('/vehicles'), input).pipe(
+      map((resp) => this.mapVehicle(resp)),
     );
   }
 
   update(id: string, patch: Partial<Vehicle>): Observable<Vehicle> {
-    return this.http.patch<ApiVehicle | VehicleItemResponse>(this.url(`/vehicles/${id}`), patch).pipe(
-      map((resp) => {
-        const row = (resp as VehicleItemResponse).data ?? (resp as ApiVehicle);
-        return this.mapVehicle(row);
-      }),
+    return this.http.patch<ApiVehicle>(this.url(`/vehicles/${id}`), patch).pipe(
+      map((resp) => this.mapVehicle(resp)),
     );
   }
 
   retire(id: string): Observable<Vehicle> {
-    return this.http.patch<ApiVehicle | VehicleItemResponse>(this.url(`/vehicles/${id}`), { status: 'NONAKTIF' }).pipe(
-      map((resp) => {
-        const row = (resp as VehicleItemResponse).data ?? (resp as ApiVehicle);
-        return this.mapVehicle(row);
-      }),
+    return this.http.patch<ApiVehicle>(this.url(`/vehicles/${id}`), { status: 'NONAKTIF' }).pipe(
+      map((resp) => this.mapVehicle(resp)),
     );
   }
 
@@ -182,11 +153,8 @@ export class ApiVehicleData implements VehicleDataPort {
   }
 
   listOdometerReadings(vehicleId: string): Observable<OdometerReading[]> {
-    return this.http.get<ApiOdometerReading[] | OdometerListResponse>(this.url(`/vehicles/${vehicleId}/odometer`)).pipe(
-      map((resp) => {
-        const rows = Array.isArray(resp) ? resp : ((resp as OdometerListResponse).data ?? []);
-        return rows.map((row) => this.mapOdometer(row, vehicleId));
-      }),
+    return this.http.get<ApiOdometerReading[]>(this.url(`/vehicles/${vehicleId}/odometer`)).pipe(
+      map((rows) => rows.map((row) => this.mapOdometer(row, vehicleId))),
     );
   }
 
@@ -194,14 +162,11 @@ export class ApiVehicleData implements VehicleDataPort {
     vehicleId: string,
     reading: Omit<OdometerReading, 'id'>,
   ): Observable<OdometerReading> {
-    return this.http.post<ApiOdometerReading | OdometerItemResponse>(
+    return this.http.post<ApiOdometerReading>(
       this.url(`/vehicles/${vehicleId}/odometer`),
       reading,
     ).pipe(
-      map((resp) => {
-        const row = (resp as OdometerItemResponse).data ?? (resp as ApiOdometerReading);
-        return this.mapOdometer(row, vehicleId);
-      }),
+      map((row) => this.mapOdometer(row, vehicleId)),
     );
   }
 }

@@ -174,6 +174,7 @@ export class VehicleFormComponent implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Nonaktifkan',
       rejectLabel: 'Batal',
+      acceptButtonStyleClass: 'danger',
       accept: () => {
         this.store.dispatch(new RetireVehicle(this.vehicleId()!));
         this.msg.add({ severity: 'warn', summary: 'Kendaraan dinonaktifkan.' });

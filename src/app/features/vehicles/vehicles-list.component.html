@@ -8,7 +8,7 @@
   </header>
 
   <!-- Filter -->
-  <div class="flex flex-wrap gap-3 sikep-table-wrap p-4 shadow-sm">
+  <div class="flex flex-wrap gap-3 armadin-table-wrap p-4 shadow-sm">
     <div class="flex flex-col gap-1 flex-1 min-w-[200px]">
       <label class="text-xs font-medium text-slate-600">Cari</label>
       <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)"
@@ -51,7 +51,7 @@
   </div>
 
   <!-- Table -->
-  <div class="sikep-table-wrap">
+  <div class="armadin-table-wrap">
     <p-table [value]="filtered()" [paginator]="filtered().length > 15" [rows]="15"
       [rowsPerPageOptions]="[15,30,50]" dataKey="id" [rowHover]="true" styleClass="text-sm"
       currentPageReportTemplate="{first}–{last} dari {totalRecords}" [showCurrentPageReport]="true">
