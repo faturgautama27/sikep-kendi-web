@@ -95,6 +95,18 @@
       </div>
     </div>
 
+    <!-- Tanggal Jatuh Tempo -->
+    <div class="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 mt-1">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Tanggal Habis Pajak</label>
+        <p-datepicker formControlName="tanggalHabisPajak" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full" [inputStyle]="{'width': '100%'}" placeholder="Pilih tanggal" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Tanggal Habis STNK</label>
+        <p-datepicker formControlName="tanggalHabisSTNK" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full" [inputStyle]="{'width': '100%'}" placeholder="Pilih tanggal" />
+      </div>
+    </div>
+
     <!-- Action buttons -->
     <div class="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
       <div class="flex gap-2">

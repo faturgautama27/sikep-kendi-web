@@ -18,6 +18,8 @@ export interface Vehicle {
   status: VehicleStatus;
   odometerCurrent: number; // KM
   baselinePhotos: Image[];
+  tanggalHabisPajak?: string;
+  tanggalHabisSTNK?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

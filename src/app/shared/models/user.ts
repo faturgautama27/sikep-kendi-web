@@ -51,9 +51,11 @@ export interface EarlyWarningConfig {
   id: string;
   triggerType: string;
   triggerLabel: string;
+  description?: string;
   ambangBulan?: number;
   ambangKm?: number;
   ambangHari?: number;
   isActive: boolean;
+  createdAt?: string;
   updatedAt?: string;
 }

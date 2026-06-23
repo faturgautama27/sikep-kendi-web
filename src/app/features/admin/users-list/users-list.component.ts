@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
@@ -13,8 +13,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { FixtureBootstrapService } from '@core/data-access/fixture-bootstrap.service';
-import { AuthState } from '@features/login/state';
+import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
 import type { User, RoleName } from '@shared/models';
 
 const ROLE_OPTS = [
@@ -30,39 +29,32 @@ const ROLE_OPTS = [
   imports: [ReactiveFormsModule, FormsModule, ButtonModule, ChipModule, ConfirmDialogModule, DialogModule, InputTextModule, MultiSelectModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './users-list.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
-export class UsersListComponent {
+export class UsersListComponent implements OnInit {
   private readonly store = inject(Store);
-  private readonly fixtures = inject(FixtureBootstrapService);
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   private readonly fb = inject(FormBuilder);
+  private readonly adminPort = inject(AdminDataPort);
 
-  private readonly knownUsers = this.store.selectSignal(
-    (state: { auth: { knownUsers: User[] } }) => state.auth.knownUsers,
-  );
   private readonly localUsers = signal<User[]>([]);
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  private loadUsers() {
+    this.adminPort.getUsers().subscribe({
+      next: (users) => this.localUsers.set(users),
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal memuat pengguna' })
+    });
+  }
 
   protected readonly searchQuery = signal('');
   protected readonly selectedRoles = signal<RoleName[]>([]);
   protected readonly selectedStatus = signal<boolean | null>(null);
 
   protected readonly users = computed<User[]>(() => {
-    let list: User[];
-    const local = this.localUsers();
-    if (local.length > 0) {
-      list = local;
-    } else {
-      const fromState = this.knownUsers();
-      if (fromState.length > 0) {
-        this.localUsers.set(fromState);
-        list = fromState;
-      } else {
-        const snap = this.fixtures.snapshot.users as User[];
-        this.localUsers.set(snap);
-        list = snap;
-      }
-    }
-
+    const list = this.localUsers();
     const q = this.searchQuery().trim().toLowerCase();
     const roles = this.selectedRoles();
     const status = this.selectedStatus();
@@ -120,22 +112,51 @@ export class UsersListComponent {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
+    
+    // Map roles to roleIds based on ROLE_OPTS index or known mapping
+    // But backend expects roleIds. We must map RoleName to RoleId.
+    // Let's assume RoleName to RoleId is 1-indexed based on ROLE_OPTS order if not available, OR we pass roles and backend handles it.
+    // Wait, backend expects roleIds: number[].
+    // Let's modify admin-data.port to resolve roleIds by fetching roles? 
+    // Or we just hardcode the mapping since we seeded it.
+    const roleMap: Record<string, number> = {
+      'pengemudi': 1, 'pengurus_barang': 2, 'vendor': 3, 'verifikator': 4, 'bendahara': 5, 'admin_sistem': 6
+    };
+    const roleIds = (raw.roles as string[]).map(r => roleMap[r]).filter(id => !!id);
+
     if (!this.editingId()) {
-      const newUser: User = { id: `u-${Date.now()}`, username: raw.username!, fullName: raw.fullName!, email: raw.email!, contact: null, unitKerja: '', roles: raw.roles as RoleName[], permissions: [], active: true, forceChangePassword: true, lastLoginAt: null, createdAt: new Date().toISOString() };
-      this.localUsers.update(l => [newUser, ...l]);
-      this.msg.add({ severity: 'success', summary: 'Pengguna berhasil dibuat.', detail: `Password sementara telah dikirim ke ${raw.email}` });
+      this.adminPort.createUser({ username: raw.username!, fullName: raw.fullName!, email: raw.email!, roleIds }).subscribe({
+        next: (newUser) => {
+          this.localUsers.update(l => [newUser, ...l]);
+          this.msg.add({ severity: 'success', summary: 'Pengguna berhasil dibuat.', detail: `Password sementara telah dikirim ke ${raw.email}` });
+          this.dialogVisible.set(false);
+        },
+        error: (err) => {
+          this.msg.add({ severity: 'error', summary: 'Gagal membuat pengguna', detail: err.error?.message || 'Email mungkin sudah digunakan' });
+        }
+      });
     } else {
-      this.localUsers.update(l => l.map(u => u.id === this.editingId() ? { ...u, fullName: raw.fullName!, email: raw.email!, roles: raw.roles as RoleName[] } : u));
-      this.msg.add({ severity: 'success', summary: 'Data pengguna diperbarui.' });
+      this.adminPort.updateUser(this.editingId()!, { roleIds }).subscribe({
+        next: (updated) => {
+          this.localUsers.update(l => l.map(u => u.id === this.editingId() ? { ...u, fullName: raw.fullName!, email: raw.email!, roles: raw.roles as RoleName[] } : u));
+          this.msg.add({ severity: 'success', summary: 'Data pengguna diperbarui.' });
+          this.dialogVisible.set(false);
+        },
+        error: () => this.msg.add({ severity: 'error', summary: 'Gagal memperbarui pengguna' })
+      });
     }
-    this.dialogVisible.set(false);
   }
 
   protected resetPassword(u: User): void {
     this.confirm.confirm({
       message: `Password ${u.username} akan direset dan dikirim ke email mereka. Lanjutkan?`, header: 'Reset Password', icon: 'pi pi-key',
       acceptLabel: 'Reset', rejectLabel: 'Batal',
-      accept: () => this.msg.add({ severity: 'info', summary: 'Password direset.', detail: `Email terkirim ke ${u.email}` }),
+      accept: () => {
+        this.adminPort.resetPassword(u.id).subscribe({
+          next: () => this.msg.add({ severity: 'info', summary: 'Password direset.', detail: `Email terkirim ke ${u.email}` }),
+          error: () => this.msg.add({ severity: 'error', summary: 'Gagal reset password' })
+        });
+      }
     });
   }
 
@@ -145,8 +166,13 @@ export class UsersListComponent {
       message: `Pengguna ${u.username} akan di${u.active ? 'nonaktifkan' : 'aktifkan'}. ${u.active ? 'Token aktif mereka akan dicabut.' : ''} Lanjutkan?`,
       header: 'Konfirmasi', icon: 'pi pi-user-minus', acceptLabel: u.active ? 'Nonaktifkan' : 'Aktifkan', rejectLabel: 'Batal',
       accept: () => {
-        this.localUsers.update(l => l.map(x => x.id === u.id ? { ...x, active: !x.active } : x));
-        this.msg.add({ severity: u.active ? 'warn' : 'success', summary: `Pengguna berhasil di${u.active ? 'nonaktifkan' : 'aktifkan'}.` });
+        this.adminPort.updateUser(u.id, { isActive: !u.active }).subscribe({
+          next: () => {
+            this.localUsers.update(l => l.map(x => x.id === u.id ? { ...x, active: !x.active } : x));
+            this.msg.add({ severity: u.active ? 'warn' : 'success', summary: `Pengguna berhasil di${u.active ? 'nonaktifkan' : 'aktifkan'}.` });
+          },
+          error: () => this.msg.add({ severity: 'error', summary: 'Gagal memperbarui status' })
+        });
       },
     });
   }

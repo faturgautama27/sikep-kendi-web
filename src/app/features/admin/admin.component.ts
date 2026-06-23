@@ -14,20 +14,10 @@ interface AdminTab {
 }
 
 const ADMIN_TABS: readonly AdminTab[] = [
-  { key: 'users', label: 'Users', icon: 'pi pi-users', route: '/admin/users' },
-  { key: 'roles', label: 'Roles', icon: 'pi pi-id-card', route: '/admin/roles' },
-  {
-    key: 'approval-policies',
-    label: 'Approval Policies',
-    icon: 'pi pi-sitemap',
-    route: '/admin/approval-policies',
-  },
-  {
-    key: 'notification-thresholds',
-    label: 'Notification Thresholds',
-    icon: 'pi pi-bell',
-    route: '/admin/notification-thresholds',
-  },
+  { key: 'users', label: 'Pengguna', icon: 'pi pi-users', route: '/admin/users' },
+  { key: 'roles', label: 'Peran & Akses', icon: 'pi pi-id-card', route: '/admin/roles' },
+  { key: 'vendors', label: 'Vendor', icon: 'pi pi-building', route: '/admin/vendors' },
+  { key: 'early-warning', label: 'Early Warning', icon: 'pi pi-bolt', route: '/admin/early-warning' },
 ];
 
 /**

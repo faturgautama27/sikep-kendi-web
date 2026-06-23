@@ -39,8 +39,6 @@ export class SideNavComponent {
         { label: 'Laporan Darurat', icon: 'pi pi-exclamation-triangle', route: '/darurat', permission: 'darurat.read' },
         { label: 'Audit Log', icon: 'pi pi-shield', route: '/audit', permission: 'audit_log.read' },
         { label: 'Pengaturan', icon: 'pi pi-cog', route: '/admin', permission: 'user.manage' },
-        { label: 'Vendor', icon: 'pi pi-building', route: '/admin/vendors', permission: 'user.manage' },
-        { label: 'Early Warning', icon: 'pi pi-bolt', route: '/admin/early-warning', permission: 'user.manage' },
       ],
     },
     {

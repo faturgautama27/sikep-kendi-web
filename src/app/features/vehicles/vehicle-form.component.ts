@@ -21,6 +21,7 @@ import { SelectModule } from 'primeng/select';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePickerModule } from 'primeng/datepicker';
 
 import { PageHeaderComponent } from '@core/layout';
 import { VehiclesState } from './state/vehicles.state';
@@ -55,6 +56,7 @@ const JENIS_OPTS: SelectOpt[] = [
     SelectModule,
     ToastModule,
     ConfirmDialogModule,
+    DatePickerModule,
     PageHeaderComponent,
   ],
   providers: [MessageService, ConfirmationService],
@@ -93,6 +95,8 @@ export class VehicleFormComponent implements OnInit {
     nomorInventaris: [''],
     nomorRangka: [''],
     nomorMesin: [''],
+    tanggalHabisPajak: [null as Date | null],
+    tanggalHabisSTNK: [null as Date | null],
   });
 
   ngOnInit(): void {
@@ -115,7 +119,7 @@ export class VehicleFormComponent implements OnInit {
     }
   }
 
-  private patchForm(v: Vehicle): void {
+  private patchForm(v: Vehicle & { tanggalHabisPajak?: string; tanggalHabisSTNK?: string }): void {
     this.form.patchValue({
       nomorPolisi: v.nomorPolisi,
       merk: v.merk,
@@ -128,6 +132,8 @@ export class VehicleFormComponent implements OnInit {
       nomorInventaris: v.nomorInventaris,
       nomorRangka: v.nomorRangka,
       nomorMesin: v.nomorMesin,
+      tanggalHabisPajak: v.tanggalHabisPajak ? new Date(v.tanggalHabisPajak) : null,
+      tanggalHabisSTNK: v.tanggalHabisSTNK ? new Date(v.tanggalHabisSTNK) : null,
     });
   }
 
@@ -148,7 +154,12 @@ export class VehicleFormComponent implements OnInit {
       return;
     }
     this.saving.set(true);
-    const raw = this.form.getRawValue() as Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'> & {
+    const rawFormValue = this.form.getRawValue();
+    const raw = {
+      ...rawFormValue,
+      tanggalHabisPajak: rawFormValue.tanggalHabisPajak ? (rawFormValue.tanggalHabisPajak as Date).toISOString() : undefined,
+      tanggalHabisSTNK: rawFormValue.tanggalHabisSTNK ? (rawFormValue.tanggalHabisSTNK as Date).toISOString() : undefined,
+    } as unknown as Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'> & {
       baselinePhotos?: never[];
     };
 

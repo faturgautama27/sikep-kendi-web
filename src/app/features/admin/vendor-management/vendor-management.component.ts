@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -10,25 +10,33 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
 import type { VendorAdmin } from '@shared/models';
-
-const INITIAL: VendorAdmin[] = [
-  { id: 'ven-001', namaVendor: 'PT Bengkel Mandiri Sejahtera', alamat: 'Jl. Soekarno-Hatta No. 145', kontak: '0228888888', email: 'vendor1@bengkelmandiri.co.id', isAktif: true },
-  { id: 'ven-002', namaVendor: 'CV Astra Motor Service', alamat: 'Jl. Asia Afrika No. 88', kontak: '0227777777', email: 'service@astramotor.id', isAktif: true },
-  { id: 'ven-003', namaVendor: 'Bengkel Sumber Rejeki Motor', alamat: 'Jl. Merdeka No. 10', kontak: '0226666666', email: 'rejeki@bengkel.id', isAktif: false },
-];
 
 @Component({ selector: 'app-vendor-management', standalone: true,
   imports: [ReactiveFormsModule, FormsModule, ButtonModule, ConfirmDialogModule, DialogModule, InputTextModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vendor-management.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
-export class VendorManagementComponent {
+export class VendorManagementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
-  protected readonly vendors = signal<VendorAdmin[]>(INITIAL);
+  private readonly adminPort = inject(AdminDataPort);
+  
+  protected readonly vendors = signal<VendorAdmin[]>([]);
   protected readonly searchQuery = signal('');
   protected readonly selectedStatus = signal<boolean | null>(null);
+
+  ngOnInit() {
+    this.loadVendors();
+  }
+
+  private loadVendors() {
+    this.adminPort.getVendors().subscribe({
+      next: (vendors) => this.vendors.set(vendors),
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal memuat vendor' })
+    });
+  }
 
   protected readonly filteredVendors = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
@@ -79,15 +87,37 @@ export class VendorManagementComponent {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
+    this.emailConflict.set(false);
+
     if (!this.editingId()) {
-      if (this.vendors().some(v => v.email === raw.email)) { this.emailConflict.set(true); return; }
-      this.vendors.update(l => [{ id: `ven-${Date.now()}`, namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!, isAktif: raw.isAktif ?? true }, ...l]);
-      this.msg.add({ severity: 'success', summary: 'Vendor berhasil ditambahkan.' });
+      this.adminPort.createVendor({
+        namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!
+      }).subscribe({
+        next: (newVendor) => {
+          this.vendors.update(l => [newVendor, ...l]);
+          this.msg.add({ severity: 'success', summary: 'Vendor berhasil ditambahkan.' });
+          this.dialogVisible.set(false);
+        },
+        error: (err) => {
+          if (err.status === 409) this.emailConflict.set(true);
+          else this.msg.add({ severity: 'error', summary: 'Gagal menambah vendor' });
+        }
+      });
     } else {
-      this.vendors.update(l => l.map(v => v.id === this.editingId() ? { ...v, namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!, isAktif: raw.isAktif ?? true } : v));
-      this.msg.add({ severity: 'success', summary: 'Data vendor diperbarui.' });
+      this.adminPort.updateVendor(this.editingId()!, {
+        namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!, isAktif: raw.isAktif ?? true
+      }).subscribe({
+        next: (updated) => {
+          this.vendors.update(l => l.map(v => v.id === this.editingId() ? updated : v));
+          this.msg.add({ severity: 'success', summary: 'Data vendor diperbarui.' });
+          this.dialogVisible.set(false);
+        },
+        error: (err) => {
+          if (err.status === 409) this.emailConflict.set(true);
+          else this.msg.add({ severity: 'error', summary: 'Gagal memperbarui vendor' });
+        }
+      });
     }
-    this.dialogVisible.set(false);
   }
   protected toggleAktif(v: VendorAdmin): void {
     const aksi = v.isAktif ? 'nonaktifkan' : 'aktifkan';
@@ -95,8 +125,13 @@ export class VendorManagementComponent {
       message: `Vendor "${v.namaVendor}" akan di-${aksi}. Lanjutkan?`, header: 'Konfirmasi', icon: 'pi pi-question-circle',
       acceptLabel: v.isAktif ? 'Nonaktifkan' : 'Aktifkan', rejectLabel: 'Batal',
       accept: () => {
-        this.vendors.update(l => l.map(x => x.id === v.id ? { ...x, isAktif: !x.isAktif } : x));
-        this.msg.add({ severity: v.isAktif ? 'warn' : 'success', summary: `Vendor berhasil di-${aksi}.` });
+        this.adminPort.updateVendor(v.id, { isAktif: !v.isAktif }).subscribe({
+          next: (updated) => {
+            this.vendors.update(l => l.map(x => x.id === v.id ? updated : x));
+            this.msg.add({ severity: v.isAktif ? 'warn' : 'success', summary: `Vendor berhasil di-${aksi}.` });
+          },
+          error: () => this.msg.add({ severity: 'error', summary: 'Gagal mengubah status vendor' })
+        });
       },
     });
   }

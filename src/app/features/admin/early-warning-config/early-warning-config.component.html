@@ -1,6 +1,9 @@
 <p-toast /><p-confirmDialog />
 <section class="flex flex-col gap-5">
-  <app-page-header title="Konfigurasi Early Warning" subtitle="Atur ambang batas trigger peringatan dini pemeliharaan kendaraan." />
+  <app-page-header
+    title="Konfigurasi Early Warning"
+    subtitle="Atur ambang batas trigger peringatan dini pemeliharaan kendaraan."
+  />
 
   <div class="sikep-table-wrap">
     <p-table [value]="configs()" dataKey="id" [rowHover]="true" styleClass="text-sm">
@@ -19,7 +22,11 @@
           <td>
             <div class="flex items-center gap-2">
               <span class="font-medium">{{ c.triggerLabel }}</span>
-              <i class="pi pi-info-circle text-slate-400 cursor-help" [pTooltip]="tooltipFor(c.triggerType)" tooltipPosition="right"></i>
+              <i
+                class="pi pi-info-circle text-slate-400 cursor-help"
+                [pTooltip]="tooltipFor(c)"
+                tooltipPosition="right"
+              ></i>
             </div>
           </td>
 
@@ -27,23 +34,51 @@
           @if (editingId() === c.id) {
             <td class="text-center">
               @if (c.ambangBulan !== undefined) {
-                <p-inputnumber [formControl]="$any(form.get('ambangBulan'))" [min]="1" [max]="12" suffix=" bln" [style]="{ width: '100px' }" />
-              } @else { <span class="text-slate-300">—</span> }
+                <p-inputnumber
+                  [formControl]="$any(form.get('ambangBulan'))"
+                  [min]="1"
+                  [max]="12"
+                  suffix=" bln"
+                  [style]="{ width: '100px' }"
+                />
+              } @else {
+                <span class="text-slate-300">—</span>
+              }
             </td>
             <td class="text-center">
               @if (c.ambangKm !== undefined) {
-                <p-inputnumber [formControl]="$any(form.get('ambangKm'))" [min]="100" [useGrouping]="true" suffix=" km" [style]="{ width: '120px' }" />
-              } @else { <span class="text-slate-300">—</span> }
+                <p-inputnumber
+                  [formControl]="$any(form.get('ambangKm'))"
+                  [min]="100"
+                  [useGrouping]="true"
+                  suffix=" km"
+                  [style]="{ width: '120px' }"
+                />
+              } @else {
+                <span class="text-slate-300">—</span>
+              }
             </td>
             <td class="text-center">
               @if (c.ambangHari !== undefined) {
-                <p-inputnumber [formControl]="$any(form.get('ambangHari'))" [min]="1" [max]="30" suffix=" hari" [style]="{ width: '110px' }" />
-              } @else { <span class="text-slate-300">—</span> }
+                <p-inputnumber
+                  [formControl]="$any(form.get('ambangHari'))"
+                  [min]="1"
+                  [max]="30"
+                  suffix=" hari"
+                  [style]="{ width: '110px' }"
+                />
+              } @else {
+                <span class="text-slate-300">—</span>
+              }
             </td>
           } @else {
-            <td class="text-center">{{ c.ambangBulan !== undefined ? c.ambangBulan + ' bln' : '—' }}</td>
-            <td class="text-center">{{ c.ambangKm !== undefined ? c.ambangKm.toLocaleString('id-ID') + ' km' : '—' }}</td>
-            <td class="text-center">{{ c.ambangHari !== undefined ? c.ambangHari + ' hari' : '—' }}</td>
+            <td class="text-center">
+              {{ c.ambangBulan !== null ? c.ambangBulan + ' bln' : '—' }}
+            </td>
+            <td class="text-center">{{ c.ambangKm !== null ? c.ambangKm + ' km' : '—' }}</td>
+            <td class="text-center">
+              {{ c.ambangHari !== null ? c.ambangHari + ' hari' : '—' }}
+            </td>
           }
 
           <td class="text-center">
@@ -52,11 +87,32 @@
           <td class="text-right">
             @if (editingId() === c.id) {
               <div class="flex justify-end gap-1">
-                <p-button icon="pi pi-check" [text]="true" severity="success" size="small" pTooltip="Simpan" (onClick)="saveEdit(c)" />
-                <p-button icon="pi pi-times" [text]="true" severity="secondary" size="small" pTooltip="Batal" (onClick)="cancelEdit()" />
+                <p-button
+                  icon="pi pi-check"
+                  [text]="true"
+                  severity="success"
+                  size="small"
+                  pTooltip="Simpan"
+                  (onClick)="saveEdit(c)"
+                />
+                <p-button
+                  icon="pi pi-times"
+                  [text]="true"
+                  severity="secondary"
+                  size="small"
+                  pTooltip="Batal"
+                  (onClick)="cancelEdit()"
+                />
               </div>
             } @else {
-              <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" pTooltip="Edit ambang" (onClick)="openEdit(c)" />
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                severity="secondary"
+                size="small"
+                pTooltip="Edit ambang"
+                (onClick)="openEdit(c)"
+              />
             }
           </td>
         </tr>

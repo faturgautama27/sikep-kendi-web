@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -10,31 +10,33 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { PageHeaderComponent } from '@core/layout';
+import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
 import type { EarlyWarningConfig } from '@shared/models';
-
-const INITIAL: EarlyWarningConfig[] = [
-  { id: 'ewc-1', triggerType: 'komponen_umur', triggerLabel: 'Komponen Mendekati Batas Umur', ambangBulan: 1, isActive: true, updatedAt: '2026-06-01T00:00:00+07:00' },
-  { id: 'ewc-2', triggerType: 'komponen_km', triggerLabel: 'Komponen Mendekati Batas KM', ambangKm: 1000, isActive: true, updatedAt: '2026-06-01T00:00:00+07:00' },
-  { id: 'ewc-3', triggerType: 'pengajuan_stuck', triggerLabel: 'Pengajuan Menunggu Terlalu Lama', ambangHari: 3, isActive: true, updatedAt: '2026-06-01T00:00:00+07:00' },
-];
-
-const TOOLTIPS: Record<string, string> = {
-  komponen_umur: 'Trigger ini mengirim peringatan N bulan sebelum estimasi umur komponen habis.',
-  komponen_km: 'Trigger ini mengirim peringatan ketika sisa KM komponen kurang dari ambang yang dikonfigurasi.',
-  pengajuan_stuck: 'Trigger ini mengirim peringatan jika pengajuan belum diproses lebih dari N hari kerja.',
-};
+import { CommonModule } from '@angular/common';
 
 @Component({ selector: 'app-early-warning-config', standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, ButtonModule, ConfirmDialogModule, InputNumberModule, TableModule, TagModule, ToggleSwitchModule, ToastModule, TooltipModule, PageHeaderComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ButtonModule, ConfirmDialogModule, InputNumberModule, TableModule, TagModule, ToggleSwitchModule, ToastModule, TooltipModule, PageHeaderComponent],
   providers: [MessageService, ConfirmationService],
   templateUrl: './early-warning-config.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
-export class EarlyWarningConfigComponent {
+export class EarlyWarningConfigComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
+  private readonly adminPort = inject(AdminDataPort);
 
-  protected readonly configs = signal<EarlyWarningConfig[]>(INITIAL);
+  protected readonly configs = signal<EarlyWarningConfig[]>([]);
   protected readonly editingId = signal<string | null>(null);
+
+  ngOnInit() {
+    this.loadConfigs();
+  }
+
+  private loadConfigs() {
+    this.adminPort.getEwConfigs().subscribe({
+      next: (configs) => this.configs.set(configs),
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal memuat konfigurasi' })
+    });
+  }
 
   protected readonly form = this.fb.group({
     ambangBulan: [null as number | null, [Validators.min(1), Validators.max(12)]],
@@ -42,7 +44,7 @@ export class EarlyWarningConfigComponent {
     ambangHari: [null as number | null, [Validators.min(1), Validators.max(30)]],
   });
 
-  protected tooltipFor(type: string): string { return TOOLTIPS[type] ?? ''; }
+  protected tooltipFor(c: EarlyWarningConfig): string { return c.description ?? ''; }
 
   protected openEdit(c: EarlyWarningConfig): void {
     this.editingId.set(c.id);
@@ -51,9 +53,19 @@ export class EarlyWarningConfigComponent {
 
   protected saveEdit(c: EarlyWarningConfig): void {
     const raw = this.form.getRawValue();
-    this.configs.update(l => l.map(x => x.id === c.id ? { ...x, ambangBulan: raw.ambangBulan ?? undefined, ambangKm: raw.ambangKm ?? undefined, ambangHari: raw.ambangHari ?? undefined, updatedAt: new Date().toISOString() } : x));
-    this.msg.add({ severity: 'success', summary: 'Konfigurasi disimpan.' });
-    this.editingId.set(null);
+    this.adminPort.updateEwConfig(c.id, {
+      ambangBulan: raw.ambangBulan ?? undefined,
+      ambangKm: raw.ambangKm ?? undefined,
+      ambangHari: raw.ambangHari ?? undefined,
+      isActive: c.isActive
+    }).subscribe({
+      next: (updated) => {
+        this.configs.update(l => l.map(x => x.id === c.id ? updated : x));
+        this.msg.add({ severity: 'success', summary: 'Konfigurasi disimpan.' });
+        this.editingId.set(null);
+      },
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal menyimpan konfigurasi' })
+    });
   }
 
   protected cancelEdit(): void { this.editingId.set(null); }
@@ -63,11 +75,24 @@ export class EarlyWarningConfigComponent {
       this.confirm.confirm({
         message: `Trigger "${c.triggerLabel}" akan dinonaktifkan. Peringatan tipe ini tidak akan dikirim sampai diaktifkan kembali. Lanjutkan?`,
         header: 'Nonaktifkan Trigger', icon: 'pi pi-exclamation-triangle', acceptLabel: 'Nonaktifkan', rejectLabel: 'Batal',
-        accept: () => { this.configs.update(l => l.map(x => x.id === c.id ? { ...x, isActive: false } : x)); this.msg.add({ severity: 'warn', summary: 'Trigger dinonaktifkan.' }); },
+        accept: () => {
+          this.adminPort.updateEwConfig(c.id, { isActive: false }).subscribe({
+            next: (updated) => {
+              this.configs.update(l => l.map(x => x.id === c.id ? updated : x));
+              this.msg.add({ severity: 'warn', summary: 'Trigger dinonaktifkan.' });
+            },
+            error: () => this.msg.add({ severity: 'error', summary: 'Gagal menonaktifkan trigger' })
+          });
+        },
       });
     } else {
-      this.configs.update(l => l.map(x => x.id === c.id ? { ...x, isActive: true } : x));
-      this.msg.add({ severity: 'success', summary: 'Trigger diaktifkan.' });
+      this.adminPort.updateEwConfig(c.id, { isActive: true }).subscribe({
+        next: (updated) => {
+          this.configs.update(l => l.map(x => x.id === c.id ? updated : x));
+          this.msg.add({ severity: 'success', summary: 'Trigger diaktifkan.' });
+        },
+        error: () => this.msg.add({ severity: 'error', summary: 'Gagal mengaktifkan trigger' })
+      });
     }
   }
 }
