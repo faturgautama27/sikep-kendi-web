@@ -43,14 +43,20 @@ export class AppShellComponent implements OnInit {
       permissions.includes('*') || permissions.includes(permission);
 
     const actions: object[] = [
-      new LoadDashboardSummary(),
-      new LoadTopDeviationVehicles(),
-      new LoadVendorPerformance(),
       new LoadNotifications(),
       new LoadNotificationPreferences(),
     ];
 
-    if (has('kendaraan.read')) actions.push(new LoadVehicles());
+    if (has('kendaraan.read')) {
+      actions.push(new LoadDashboardSummary());
+      actions.push(new LoadTopDeviationVehicles());
+      actions.push(new LoadVehicles());
+    }
+    
+    if (has('penawaran.read')) {
+      actions.push(new LoadVendorPerformance());
+    }
+
     if (has('pengajuan.read')) actions.push(new LoadPengajuan());
     if (has('work_order.read')) actions.push(new LoadWorkOrders());
     if (has('darurat.read')) actions.push(new LoadDarurat());
