@@ -6,11 +6,12 @@ import { filter, map } from 'rxjs/operators';
 
 import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-top-bar',
   standalone: true,
-  imports: [RouterLink, ButtonModule, PopoverModule],
+  imports: [CommonModule, RouterLink, ButtonModule, PopoverModule],
   templateUrl: './top-bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -20,8 +21,11 @@ export class TopBarComponent {
 
   protected readonly notificationCount = signal(5);
   protected readonly userInitials = signal('AD');
-  protected readonly userName = signal('Admin Dinas');
-  protected readonly userRole = signal('Admin Sistem');
+
+  protected readonly userData = JSON.parse(localStorage.getItem("auth")!);
+
+  protected readonly userName = signal(this.userData.user.fullName);
+  protected readonly userRole = signal(this.userData.user.roles[0].replace(/_/g, " "));
 
   protected readonly pageTitle = toSignal(
     this.router.events.pipe(

@@ -116,6 +116,30 @@
         </div>
       </div>
 
+      <!-- Upload Foto -->
+      @if (env.isMobile) {
+        <div class="flex flex-col gap-2 mt-2">
+          <label class="text-sm font-medium">Foto Kendaraan / Kerusakan (Maksimal 5)</label>
+          
+          @if (photos().length > 0) {
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+              @for (img of photos(); track idx; let idx = $index) {
+                <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+                  <img [src]="img.dataUrl" class="w-full h-full object-cover" />
+                  <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" (onClick)="removePhoto(idx)"></p-button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+          
+          @if (photos().length < 5) {
+            <p-button icon="pi pi-camera" label="Ambil Foto" (onClick)="takePhoto()" [outlined]="true"></p-button>
+          }
+        </div>
+      }
+
       <div class="flex justify-between pt-2">
         <p-button
           label="Kembali"

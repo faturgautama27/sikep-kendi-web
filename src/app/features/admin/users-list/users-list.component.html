@@ -12,7 +12,9 @@
   <!-- Filter bar -->
   <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
     <div class="flex flex-1 flex-col gap-1">
-      <label for="search" class="text-xs font-medium text-slate-600">Cari nama / username / email</label>
+      <label for="search" class="text-xs font-medium text-slate-600"
+        >Cari nama / username / email</label
+      >
       <span class="p-input-icon-left">
         <input
           pInputText
@@ -29,7 +31,7 @@
       <label for="role" class="text-xs font-medium text-slate-600">Role</label>
       <p-multiSelect
         inputId="role"
-        [options]="roleOpts"
+        [options]="roleOpts()"
         optionLabel="label"
         optionValue="value"
         placeholder="Semua role"
@@ -38,6 +40,7 @@
         [ngModel]="selectedRoles()"
         (ngModelChange)="selectedRoles.set($event)"
         styleClass="w-full"
+        appendTo="body"
       ></p-multiSelect>
     </div>
 
@@ -52,6 +55,7 @@
         [ngModel]="selectedStatus()"
         (ngModelChange)="selectedStatus.set($event)"
         styleClass="w-full"
+        appendTo="body"
       ></p-select>
     </div>
 
@@ -65,7 +69,16 @@
   </div>
 
   <div class="sikep-table-wrap">
-    <p-table [value]="users()" dataKey="id" [rowHover]="true" [stripedRows]="true" styleClass="text-sm" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]">
+    <p-table
+      [value]="users()"
+      dataKey="id"
+      [rowHover]="true"
+      [stripedRows]="true"
+      styleClass="text-sm"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 20, 50]"
+    >
       <ng-template #header>
         <tr>
           <th>Nama Lengkap</th>
@@ -89,15 +102,48 @@
             </div>
           </td>
           <td class="text-center">
-            <p-tag [value]="u.active ? 'Aktif' : 'Nonaktif'" [severity]="u.active ? 'success' : 'secondary'" [rounded]="true" />
+            <p-tag
+              [value]="u.isActive ? 'Aktif' : 'Nonaktif'"
+              [severity]="u.isActive ? 'success' : 'secondary'"
+              [rounded]="true"
+            />
           </td>
           <td class="text-right">
             <div class="flex justify-end gap-1">
-              <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" size="small" pTooltip="Edit" (onClick)="openEdit(u)"></p-button>
-              <p-button icon="pi pi-key" [text]="true" [rounded]="true" severity="warn" size="small" pTooltip="Reset Password" (onClick)="resetPassword(u)"></p-button>
-              <p-button [icon]="u.active ? 'pi pi-user-minus' : 'pi pi-user-plus'" [text]="true" [rounded]="true" [severity]="u.active ? 'danger' : 'success'"
-                size="small" [pTooltip]="u.id === currentUserId() ? 'Tidak dapat menonaktifkan akun sendiri' : (u.active ? 'Nonaktifkan' : 'Aktifkan')"
-                [disabled]="u.id === currentUserId()" (onClick)="toggleActive(u)"></p-button>
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                size="small"
+                pTooltip="Edit"
+                (onClick)="openEdit(u)"
+              ></p-button>
+              <p-button
+                icon="pi pi-key"
+                [text]="true"
+                [rounded]="true"
+                severity="warn"
+                size="small"
+                pTooltip="Reset Password"
+                (onClick)="resetPassword(u)"
+              ></p-button>
+              <p-button
+                [icon]="u.isActive ? 'pi pi-user-minus' : 'pi pi-user-plus'"
+                [text]="true"
+                [rounded]="true"
+                [severity]="u.isActive ? 'danger' : 'success'"
+                size="small"
+                [pTooltip]="
+                  u.id === currentUserId()
+                    ? 'Tidak dapat menonaktifkan akun sendiri'
+                    : u.isActive
+                      ? 'Nonaktifkan'
+                      : 'Aktifkan'
+                "
+                [disabled]="u.id === currentUserId()"
+                (onClick)="toggleActive(u)"
+              ></p-button>
             </div>
           </td>
         </tr>
@@ -113,30 +159,58 @@
   </div>
 </div>
 
-<p-dialog [header]="editingId() ? 'Edit Pengguna' : 'Tambah Pengguna'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+<p-dialog
+  [header]="editingId() ? 'Edit Pengguna' : 'Tambah Pengguna'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '520px' }"
+  [draggable]="false"
+>
   <form [formGroup]="form" class="flex flex-col gap-4 pt-2">
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Nama Lengkap <span class="text-red-500">*</span></label>
       <input pInputText formControlName="fullName" placeholder="Nama lengkap pengguna" />
-      @if (form.get('fullName')!.invalid && form.get('fullName')!.touched) { <small class="text-red-500">Nama wajib diisi.</small> }
+      @if (form.get('fullName')!.invalid && form.get('fullName')!.touched) {
+        <small class="text-red-500">Nama wajib diisi.</small>
+      }
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">Username <span class="text-red-500">*</span></label>
-        <input pInputText formControlName="username" placeholder="hanya huruf kecil, angka, underscore" />
-        @if (form.get('username')!.invalid && form.get('username')!.touched) { <small class="text-red-500">Username wajib (min 3 karakter, a-z 0-9 _).</small> }
+        <input
+          pInputText
+          formControlName="username"
+          placeholder="hanya huruf kecil, angka, underscore"
+        />
+        @if (form.get('username')!.invalid && form.get('username')!.touched) {
+          <small class="text-red-500">Username wajib (min 3 karakter, a-z 0-9 _).</small>
+        }
       </div>
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">Email <span class="text-red-500">*</span></label>
         <input pInputText formControlName="email" type="email" placeholder="email@domain.com" />
-        @if (form.get('email')!.invalid && form.get('email')!.touched) { <small class="text-red-500">Format email tidak valid.</small> }
+        @if (form.get('email')!.invalid && form.get('email')!.touched) {
+          <small class="text-red-500">Format email tidak valid.</small>
+        }
       </div>
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Role <span class="text-red-500">*</span> (minimal 1)</label>
-      <p-multiselect formControlName="roles" [options]="roleOpts" optionLabel="label" optionValue="value"
-        placeholder="Pilih role..." display="chip" class="w-full" />
-      @if (form.get('roles')!.invalid && form.get('roles')!.touched) { <small class="text-red-500">Minimal 1 role wajib dipilih.</small> }
+      <label class="text-sm font-medium"
+        >Role <span class="text-red-500">*</span> (minimal 1)</label
+      >
+      <p-multiselect
+        formControlName="roles"
+        [options]="roleOpts()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Pilih role..."
+        display="chip"
+        class="w-full"
+        appendTo="body"
+      />
+      @if (form.get('roles')!.invalid && form.get('roles')!.touched) {
+        <small class="text-red-500">Minimal 1 role wajib dipilih.</small>
+      }
     </div>
     @if (!editingId()) {
       <p class="text-xs text-slate-500 bg-slate-50 rounded p-2">
@@ -145,7 +219,16 @@
     }
   </form>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editingId() ? 'Simpan Perubahan' : 'Buat Pengguna'" icon="pi pi-check" (onClick)="save()" />
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="dialogVisible.set(false)"
+    />
+    <p-button
+      [label]="editingId() ? 'Simpan Perubahan' : 'Buat Pengguna'"
+      icon="pi pi-check"
+      (onClick)="save()"
+    />
   </ng-template>
 </p-dialog>

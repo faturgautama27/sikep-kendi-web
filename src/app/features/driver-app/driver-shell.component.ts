@@ -11,8 +11,11 @@ const DRIVER_TABS = [
 ] as const;
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string; color: string }> = {
-  '/driver': { title: 'Beranda', subtitle: 'Selamat datang, Pengemudi', color: 'from-primary-600 to-primary-700' },
+  '/driver': { title: 'Beranda', subtitle: 'Selamat datang, Pengemudi', color: 'from-blue-600 to-indigo-700' },
   '/driver/notifications': { title: 'Notifikasi', subtitle: 'Pesan & peringatan', color: 'from-slate-700 to-slate-800' },
+  '/driver/pengajuan/new': { title: 'Ajukan Servis', subtitle: 'Laporan pemeliharaan rutin', color: 'from-blue-600 to-blue-700' },
+  '/driver/darurat/new': { title: 'Lapor Darurat', subtitle: 'Penanganan instan di lapangan', color: 'from-red-600 to-red-700' },
+  '/driver/riwayat': { title: 'Riwayat Pengajuan', subtitle: 'Pantau status servis Anda', color: 'from-slate-700 to-slate-800' },
 };
 
 @Component({

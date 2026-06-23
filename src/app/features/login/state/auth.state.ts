@@ -220,7 +220,7 @@ export class AuthState {
       unitKerja: raw.unitKerja ?? '-',
       roles: raw.roles as RoleName[],
       permissions: raw.permissions,
-      active: raw.active ?? true,
+      isActive: raw.isActive ?? true,
       forceChangePassword: raw.forceChangePassword ?? false,
       lastLoginAt: raw.lastLoginAt ?? null,
       createdAt: raw.createdAt ?? nowIso,

@@ -14,7 +14,7 @@ export interface AuthSession {
     forceChangePassword?: boolean;
     contact?: string | null;
     unitKerja?: string;
-    active?: boolean;
+    isActive?: boolean;
     lastLoginAt?: string | null;
     createdAt?: string;
   };

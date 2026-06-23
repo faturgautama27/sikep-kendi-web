@@ -16,14 +16,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
 import type { User, RoleName } from '@shared/models';
 
-const ROLE_OPTS = [
-  { label: 'Pengemudi', value: 'pengemudi' },
-  { label: 'Pengurus Barang', value: 'pengurus_barang' },
-  { label: 'Vendor', value: 'vendor' },
-  { label: 'Verifikator', value: 'verifikator' },
-  { label: 'Bendahara', value: 'bendahara' },
-  { label: 'Admin Sistem', value: 'admin_sistem' },
-];
+// We will fetch role options from the server instead of hardcoding.
 
 @Component({ selector: 'app-admin-users-list', standalone: true,
   imports: [ReactiveFormsModule, FormsModule, ButtonModule, ChipModule, ConfirmDialogModule, DialogModule, InputTextModule, MultiSelectModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule],
@@ -40,6 +33,21 @@ export class UsersListComponent implements OnInit {
 
   ngOnInit() {
     this.loadUsers();
+    this.loadRoles();
+  }
+
+  private loadRoles() {
+    this.adminPort.getRoles().subscribe({
+      next: (roles) => {
+        // Exclude vendor from options so it cannot be selected manually.
+        this.roleOpts.set(
+          roles
+            .filter(r => r.name !== 'vendor')
+            .map(r => ({ label: r.description || this.formatRoleName(r.name), value: r.name }))
+        );
+      },
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal memuat daftar role' })
+    });
   }
 
   private loadUsers() {
@@ -65,7 +73,7 @@ export class UsersListComponent implements OnInit {
         if (!haystack.includes(q)) return false;
       }
       if (roles.length > 0 && !u.roles.some((r) => roles.includes(r))) return false;
-      if (status !== null && u.active !== status) return false;
+      if (status !== null && u.isActive !== status) return false;
       return true;
     });
   });
@@ -82,7 +90,7 @@ export class UsersListComponent implements OnInit {
     { label: 'Nonaktif', value: false },
   ];
 
-  protected readonly roleOpts = ROLE_OPTS;
+  protected readonly roleOpts = signal<{ label: string, value: string }[]>([]);
   protected readonly dialogVisible = signal(false);
   protected readonly editingId = signal<string | null>(null);
   protected readonly currentUserId = computed(() => {
@@ -112,20 +120,10 @@ export class UsersListComponent implements OnInit {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
-    
-    // Map roles to roleIds based on ROLE_OPTS index or known mapping
-    // But backend expects roleIds. We must map RoleName to RoleId.
-    // Let's assume RoleName to RoleId is 1-indexed based on ROLE_OPTS order if not available, OR we pass roles and backend handles it.
-    // Wait, backend expects roleIds: number[].
-    // Let's modify admin-data.port to resolve roleIds by fetching roles? 
-    // Or we just hardcode the mapping since we seeded it.
-    const roleMap: Record<string, number> = {
-      'pengemudi': 1, 'pengurus_barang': 2, 'vendor': 3, 'verifikator': 4, 'bendahara': 5, 'admin_sistem': 6
-    };
-    const roleIds = (raw.roles as string[]).map(r => roleMap[r]).filter(id => !!id);
+    const roles = raw.roles as string[];
 
     if (!this.editingId()) {
-      this.adminPort.createUser({ username: raw.username!, fullName: raw.fullName!, email: raw.email!, roleIds }).subscribe({
+      this.adminPort.createUser({ username: raw.username!, fullName: raw.fullName!, email: raw.email!, roles }).subscribe({
         next: (newUser) => {
           this.localUsers.update(l => [newUser, ...l]);
           this.msg.add({ severity: 'success', summary: 'Pengguna berhasil dibuat.', detail: `Password sementara telah dikirim ke ${raw.email}` });
@@ -136,8 +134,8 @@ export class UsersListComponent implements OnInit {
         }
       });
     } else {
-      this.adminPort.updateUser(this.editingId()!, { roleIds }).subscribe({
-        next: (updated) => {
+      this.adminPort.updateUser(this.editingId()!, { roles }).subscribe({
+        next: () => {
           this.localUsers.update(l => l.map(u => u.id === this.editingId() ? { ...u, fullName: raw.fullName!, email: raw.email!, roles: raw.roles as RoleName[] } : u));
           this.msg.add({ severity: 'success', summary: 'Data pengguna diperbarui.' });
           this.dialogVisible.set(false);
@@ -163,13 +161,13 @@ export class UsersListComponent implements OnInit {
   protected toggleActive(u: User): void {
     if (u.id === this.currentUserId()) return;
     this.confirm.confirm({
-      message: `Pengguna ${u.username} akan di${u.active ? 'nonaktifkan' : 'aktifkan'}. ${u.active ? 'Token aktif mereka akan dicabut.' : ''} Lanjutkan?`,
-      header: 'Konfirmasi', icon: 'pi pi-user-minus', acceptLabel: u.active ? 'Nonaktifkan' : 'Aktifkan', rejectLabel: 'Batal',
+      message: `Pengguna ${u.username} akan di${u.isActive ? 'nonaktifkan' : 'aktifkan'}. ${u.isActive ? 'Token aktif mereka akan dicabut.' : ''} Lanjutkan?`,
+      header: 'Konfirmasi', icon: 'pi pi-user-minus', acceptLabel: u.isActive ? 'Nonaktifkan' : 'Aktifkan', rejectLabel: 'Batal',
       accept: () => {
-        this.adminPort.updateUser(u.id, { isActive: !u.active }).subscribe({
+        this.adminPort.updateUser(u.id, { isActive: !u.isActive }).subscribe({
           next: () => {
-            this.localUsers.update(l => l.map(x => x.id === u.id ? { ...x, active: !x.active } : x));
-            this.msg.add({ severity: u.active ? 'warn' : 'success', summary: `Pengguna berhasil di${u.active ? 'nonaktifkan' : 'aktifkan'}.` });
+            this.localUsers.update(l => l.map(x => x.id === u.id ? { ...x, isActive: !x.isActive } : x));
+            this.msg.add({ severity: u.isActive ? 'warn' : 'success', summary: `Pengguna berhasil di${u.isActive ? 'nonaktifkan' : 'aktifkan'}.` });
           },
           error: () => this.msg.add({ severity: 'error', summary: 'Gagal memperbarui status' })
         });
@@ -182,7 +180,11 @@ export class UsersListComponent implements OnInit {
     return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
   }
 
+  private formatRoleName(r: string): string {
+    return r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ');
+  }
+
   protected roleLabel(r: RoleName): string {
-    return ROLE_OPTS.find(o => o.value === r)?.label ?? r;
+    return this.roleOpts().find(o => o.value === r)?.label ?? this.formatRoleName(r);
   }
 }

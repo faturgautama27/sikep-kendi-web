@@ -30,6 +30,24 @@ export const routes: Routes = [
         path: 'notifications',
         loadComponent: () => import('@features/driver-app/driver-notifications.component').then(m => m.DriverNotificationsComponent),
       },
+      {
+        path: 'pengajuan/new',
+        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then(m => m.PengajuanFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Buat Pengajuan', requiredPermissions: ['pengajuan.create'] },
+      },
+      {
+        path: 'darurat/new',
+        loadComponent: () => import('@features/darurat/darurat-form.component').then(m => m.DaruratFormComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Lapor Darurat', requiredPermissions: ['darurat.create'] },
+      },
+      {
+        path: 'riwayat',
+        loadComponent: () => import('@features/pengajuan/pengajuan-list.component').then(m => m.PengajuanListComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Riwayat Pengajuan', requiredPermissions: ['pengajuan.read'] },
+      },
     ],
   },
 

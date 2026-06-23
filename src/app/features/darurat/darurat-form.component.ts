@@ -20,6 +20,11 @@ import { LoadVehicles } from '@features/vehicles/state/vehicles.actions';
 import { DARURAT_DATA } from '@core/data-access/ports/darurat-data.port';
 import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
 import { catchError, forkJoin, of, tap } from 'rxjs';
+import { APP_ENV } from '@core/data-access/app-env.token';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Geolocation } from '@capacitor/geolocation';
+import { Network } from '@capacitor/network';
+import { OfflineQueueDbService } from '@core/data-access/offline-queue-db.service';
 
 @Component({
   selector: 'app-darurat-form',
@@ -47,6 +52,8 @@ export class DaruratFormComponent implements OnInit {
   private readonly msg = inject(MessageService);
   private readonly dataPort = inject(DARURAT_DATA);
   private readonly imageData = inject(IMAGE_DATA);
+  protected readonly env = inject(APP_ENV);
+  private readonly offlineQueue = inject(OfflineQueueDbService);
 
   protected readonly submitting = signal(false);
   protected readonly daruratId = signal<string | null>(null);
@@ -148,7 +155,50 @@ export class DaruratFormComponent implements OnInit {
     this.fotoInvoiceIds.set(arr);
   }
 
-  protected submit(): void {
+  protected async takePhotoKerusakan() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 60,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+      if (image.dataUrl) {
+        this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), { id: crypto.randomUUID(), url: image.dataUrl }]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  protected async takePhotoInvoice() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 60,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+      if (image.dataUrl) {
+        this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), { id: crypto.randomUUID(), url: image.dataUrl }]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  protected async getLocation() {
+    if (!this.env.isMobile) return;
+    try {
+      const pos = await Geolocation.getCurrentPosition();
+      const text = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+      this.form.patchValue({ lokasiKejadian: text });
+    } catch (e) {
+      this.msg.add({ severity: 'error', summary: 'Lokasi', detail: 'Gagal mendapatkan lokasi GPS' });
+    }
+  }
+
+  protected async submit(): Promise<void> {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
       this.msg.add({ severity: 'error', summary: 'Validasi', detail: 'Cek kembali isian form' });
@@ -169,17 +219,30 @@ export class DaruratFormComponent implements OnInit {
     const val = this.form.getRawValue();
 
     const input = {
+      clientUuid: crypto.randomUUID(),
       kendaraanId: val.kendaraanId!,
       lokasiKejadian: val.lokasiKejadian!,
       totalPengeluaran: val.totalPengeluaran!,
       deskripsiDarurat: val.deskripsiDarurat!,
       fotoKerusakanIds: this.fotoKerusakanIds().map(x => x.id),
       fotoInvoiceIds: this.fotoInvoiceIds().map(x => x.id),
+      offlinePhotos: this.fotoKerusakanIds().map(x => x.url).concat(this.fotoInvoiceIds().map(x => x.url))
     };
+
+    if (this.env.isMobile) {
+      const net = await Network.getStatus();
+      if (!net.connected) {
+        await this.offlineQueue.enqueue('CREATE_DARURAT', input);
+        this.submitting.set(false);
+        this.msg.add({ severity: 'success', summary: 'Offline Mode', detail: 'Laporan disimpan di antrean lokal.' });
+        setTimeout(() => this.router.navigate(['/driver']), 1500);
+        return;
+      }
+    }
 
     const action = this.isEditMode()
       ? new UpdateDarurat(this.daruratId()!, input)
-      : new CreateDarurat(input);
+      : new CreateDarurat(input as any);
 
     this.store.dispatch(action).subscribe({
       next: () => {
@@ -189,7 +252,7 @@ export class DaruratFormComponent implements OnInit {
           summary: this.isEditMode() ? 'Laporan diupdate' : 'Laporan dikirim',
           detail: 'Laporan darurat berhasil disimpan.',
         });
-        setTimeout(() => this.router.navigate(['/darurat']), 1500);
+        setTimeout(() => this.router.navigate([this.env.isMobile ? '/driver' : '/darurat']), 1500);
       },
       error: () => {
         this.submitting.set(false);

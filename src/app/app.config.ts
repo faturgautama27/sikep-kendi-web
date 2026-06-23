@@ -16,7 +16,7 @@ import Aura from '@primeng/themes/aura';
 import { provideStore } from '@ngxs/store';
 import { withNgxsLoggerPlugin } from '@ngxs/logger-plugin';
 import { withNgxsRouterPlugin } from '@ngxs/router-plugin';
-import { withNgxsStoragePlugin } from '@ngxs/storage-plugin';
+import { withNgxsStoragePlugin, STORAGE_ENGINE } from '@ngxs/storage-plugin';
 import { providePrimeNG } from 'primeng/config';
 
 // Register Indonesian locale data for Angular pipes (date, number, currency)
@@ -45,6 +45,7 @@ import { DraftChecklistState } from '@features/draft-checklist/state';
 import { PembayaranState } from '@features/pembayaran/state';
 import { PenawaranState } from '@features/penawaran/state';
 import { VerifikasiState } from '@features/verifikasi/state';
+import { CapacitorStorageEngine } from '@core/storage/capacitor-storage.engine';
 
 /**
  * SiKeP KenDI PrimeNG preset: extends Aura and overrides the semantic primary palette
@@ -122,6 +123,7 @@ export const appConfig: ApplicationConfig = {
     }),
     { provide: APP_ENV, useValue: environment },
     { provide: LOCALE_ID, useValue: 'id-ID' },
+    { provide: STORAGE_ENGINE, useClass: CapacitorStorageEngine },
     provideSikepKendiData(),
     provideAppInitializer(() => {
       inject(FixtureBootstrapService).hydrate();

@@ -19,8 +19,6 @@ export class DriverHomeComponent {
 
   protected readonly currentDriver = computed<Driver | null>(() => null);
   protected readonly activeAssignment = computed<DriverAssignment | null>(() => null);
-  protected readonly todayExecutions = computed<ChecklistExecution[]>(() => []);
-  protected readonly todayFuel = computed<FuelTransaction[]>(() => []);
 
   protected readonly greeting = computed(() => {
     const h = new Date().getHours();
@@ -28,8 +26,6 @@ export class DriverHomeComponent {
     if (h < 17) return 'Selamat Siang';
     return 'Selamat Sore';
   });
-
-  protected readonly checklistDone = computed(() => this.todayExecutions().length > 0);
 
   protected formatDate(): string {
     return new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

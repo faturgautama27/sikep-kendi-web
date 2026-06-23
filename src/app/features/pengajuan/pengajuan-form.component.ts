@@ -28,6 +28,11 @@ import { CreatePengajuan, UpdatePengajuan } from './state/pengajuan.actions';
 import { PENGAJUAN_DATA } from '@core/data-access/ports/pengajuan-data.port';
 import type { Vehicle } from '@shared/models';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Network } from '@capacitor/network';
+import { OfflineQueueDbService } from '@core/data-access/offline-queue-db.service';
+
 type Step = 0 | 1 | 2;
 
 @Component({
@@ -56,12 +61,16 @@ export class PengajuanFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly msg = inject(MessageService);
   private readonly dataPort = inject(PENGAJUAN_DATA);
+  protected readonly env = inject(APP_ENV);
+  private readonly offlineQueue = inject(OfflineQueueDbService);
 
   protected readonly step = signal<Step>(0);
   protected readonly submitting = signal(false);
   protected readonly clientUuid = crypto.randomUUID();
   protected readonly pengajuanId = signal<string | null>(null);
   protected readonly isEditMode = computed(() => !!this.pengajuanId());
+  
+  protected readonly photos = signal<{ dataUrl: string }[]>([]);
 
   private readonly allVehicles = this.store.selectSignal(VehiclesState.list);
   protected readonly vehicleOpts = computed(() =>
@@ -101,7 +110,6 @@ export class PengajuanFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Pastikan data kendaraan terload jika mengakses url secara direct
     if (this.allVehicles().length === 0) {
       this.store.dispatch(new LoadVehicles());
     }
@@ -135,6 +143,32 @@ export class PengajuanFormComponent implements OnInit {
   protected charCount(): number {
     return (this.step2.get('deskripsiKerusakan')!.value ?? '').length;
   }
+  
+  protected async takePhoto() {
+    if (this.photos().length >= 5) {
+      this.msg.add({ severity: 'warn', summary: 'Batas Foto', detail: 'Maksimal 5 foto' });
+      return;
+    }
+    
+    try {
+      const image = await Camera.getPhoto({
+        quality: 60,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+      
+      if (image.dataUrl) {
+        this.photos.update(p => [...p, { dataUrl: image.dataUrl! }]);
+      }
+    } catch (e) {
+      console.error('Camera error', e);
+    }
+  }
+  
+  protected removePhoto(index: number) {
+    this.photos.update(p => p.filter((_, i) => i !== index));
+  }
 
   protected goStep(target: Step): void {
     if (target === 1) {
@@ -149,7 +183,7 @@ export class PengajuanFormComponent implements OnInit {
     this.step.set(target);
   }
 
-  protected onSubmit(): void {
+  protected async onSubmit(): Promise<void> {
     if (this.step1.invalid || this.step2.invalid) return;
     this.submitting.set(true);
 
@@ -165,23 +199,37 @@ export class PengajuanFormComponent implements OnInit {
       judul: `Pengajuan ${s1.jenisPengajuan === 'servis_rutin' ? 'Servis Rutin' : 'Perbaikan'} — ${v.nomorPolisi}`,
       deskripsi: s2.deskripsiKerusakan!,
       kategoriKerusakan: null,
-      totalEstimasi: s1.odometerSaatPengajuan ?? 0, // Temporarily map to totalEstimasi to send to backend, handled by ApiData layer
+      totalEstimasi: s1.odometerSaatPengajuan ?? 0,
       createdBy: '',
       createdByName: '',
       sourceExecutionId: null,
       sourceItemId: null,
       spareparts: [],
       photos: [],
+      odometerSaatPengajuan: s1.odometerSaatPengajuan ?? 0,
+      clientUuid: this.clientUuid,
+      offlinePhotos: this.photos().map(p => p.dataUrl)
     };
+
+    if (this.env.isMobile) {
+      const net = await Network.getStatus();
+      if (!net.connected) {
+        await this.offlineQueue.enqueue('CREATE_PENGAJUAN', input);
+        this.submitting.set(false);
+        this.msg.add({ severity: 'success', summary: 'Offline Mode', detail: 'Pengajuan disimpan di antrean lokal.' });
+        setTimeout(() => this.router.navigate(['/driver']), 1500);
+        return;
+      }
+    }
 
     const action = this.isEditMode() 
       ? new UpdatePengajuan(this.pengajuanId()!, {
           vehicleId: input.vehicleId,
           jenis: input.jenis,
           deskripsi: input.deskripsi,
-          odometerSaatPengajuan: s1.odometerSaatPengajuan ?? 0,
+          odometerSaatPengajuan: input.odometerSaatPengajuan,
         }) 
-      : new CreatePengajuan(input);
+      : new CreatePengajuan(input as any);
 
     this.store.dispatch(action).subscribe({
       next: () => {
@@ -189,9 +237,9 @@ export class PengajuanFormComponent implements OnInit {
         this.msg.add({ 
           severity: 'success', 
           summary: this.isEditMode() ? 'Pengajuan diupdate' : 'Pengajuan berhasil dikirim', 
-          detail: 'Menunggu verifikasi Pengurus Barang.' 
+          detail: 'Menunggu verifikasi.' 
         });
-        setTimeout(() => this.router.navigate(['/pengajuan']), 1500);
+        setTimeout(() => this.router.navigate([this.env.isMobile ? '/driver' : '/pengajuan']), 1500);
       },
       error: () => {
         this.submitting.set(false);

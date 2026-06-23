@@ -8,6 +8,7 @@ export interface AppEnvironment {
   tagline: string;
   defaultLocale: string;
   timezone: string;
+  isMobile?: boolean;
 }
 
 export const APP_ENV = new InjectionToken<AppEnvironment>('APP_ENV');

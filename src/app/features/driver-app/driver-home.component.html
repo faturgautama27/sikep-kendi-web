@@ -15,12 +15,8 @@
       <!-- Quick status pills -->
       <div class="flex items-center gap-2 mt-4 flex-wrap">
         <span class="flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-white">
-          <i class="pi pi-list-check text-[10px]"></i>
-          {{ todayExecutions().length }} Checklist
-        </span>
-        <span class="flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-white">
-          <i class="pi pi-bolt text-[10px]"></i>
-          {{ todayFuel().length }} Isi BBM
+          <i class="pi pi-shield text-[10px]"></i>
+          Armada Siap
         </span>
         @if (currentDriver()?.simStatus === 'expiring_soon') {
           <span class="flex items-center gap-1.5 rounded-full bg-amber-400/30 backdrop-blur-sm border border-amber-400/40 px-3 py-1 text-[11px] font-semibold text-amber-200">
@@ -67,23 +63,14 @@
         </div>
 
         <!-- Stats strip -->
-        <div class="grid grid-cols-3 border-t border-slate-50">
+        <div class="grid grid-cols-2 border-t border-slate-50">
           <div class="py-3 text-center">
-            <p class="text-xl font-black text-slate-800">{{ todayExecutions().length }}</p>
-            <p class="text-[10px] font-medium text-slate-400 mt-0.5">Checklist</p>
+            <p class="text-xl font-black text-slate-800">1</p>
+            <p class="text-[10px] font-medium text-slate-400 mt-0.5">Pengajuan Aktif</p>
           </div>
-          <div class="py-3 text-center border-x border-slate-50">
-            <p class="text-xl font-black text-slate-800">{{ todayFuel().length }}</p>
-            <p class="text-[10px] font-medium text-slate-400 mt-0.5">Isi BBM</p>
-          </div>
-          <div class="py-3 text-center">
-            @if (checklistDone()) {
-              <p class="text-xl font-black text-emerald-500">✓</p>
-              <p class="text-[10px] font-medium text-emerald-500 mt-0.5">Selesai</p>
-            } @else {
-              <p class="text-xl font-black text-amber-500">!</p>
-              <p class="text-[10px] font-medium text-amber-500 mt-0.5">Pending</p>
-            }
+          <div class="py-3 text-center border-l border-slate-50">
+            <p class="text-xl font-black text-emerald-500">Baik</p>
+            <p class="text-[10px] font-medium text-emerald-500 mt-0.5">Status Kendaraan</p>
           </div>
         </div>
       </div>
@@ -98,100 +85,49 @@
     }
   </div>
 
-  <!-- ── Checklist CTA (if not done) ─────────────────────────────────── -->
-  @if (!checklistDone()) {
-    <div class="mx-4 mt-4">
-      <a routerLink="/driver/notifications"
-        class="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 p-4 shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-transform">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20">
-          <i class="pi pi-list-check text-xl text-white"></i>
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-bold text-white">Checklist Harian Belum Dilakukan</p>
-          <p class="text-xs text-blue-200 mt-0.5">Mulai sekarang sebelum beroperasi</p>
-        </div>
-        <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
-          <i class="pi pi-arrow-right text-sm text-white"></i>
-        </div>
-      </a>
-    </div>
-  }
+
 
   <!-- ── Quick Actions ────────────────────────────────────────────────── -->
   <div class="mx-4 mt-5">
     <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Menu Utama</p>
     <div class="grid grid-cols-2 gap-3">
 
-      <!-- Checklist Harian -->
-      <a routerLink="/driver/notifications"
-        class="relative flex flex-col gap-3 rounded-2xl p-4 overflow-hidden transition active:scale-95"
-        [class.bg-emerald-500]="checklistDone()"
-        [class.bg-white]="!checklistDone()"
-        [class.shadow-lg]="!checklistDone()"
-        [class.shadow-sm]="checklistDone()"
-        [class.border]="!checklistDone()"
-        [class.border-slate-100]="!checklistDone()">
-        <!-- Done state bg decoration -->
-        @if (checklistDone()) {
-          <div class="absolute -right-3 -top-3 h-16 w-16 rounded-full bg-white/10"></div>
-        }
-        <div class="flex items-center justify-between">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl"
-            [class.bg-white/25]="checklistDone()"
-            [class.bg-emerald-50]="!checklistDone()">
-            <i class="pi pi-list-check text-lg"
-              [class.text-white]="checklistDone()"
-              [class.text-emerald-600]="!checklistDone()"></i>
-          </div>
-          @if (checklistDone()) {
-            <span class="text-[10px] font-bold text-white bg-white/20 px-2 py-0.5 rounded-full">Done ✓</span>
-          }
+      <!-- Lapor Kerusakan Darurat -->
+      <a routerLink="/driver/darurat/new"
+        class="relative flex flex-col gap-3 rounded-2xl bg-red-500 border border-red-500 p-4 shadow-lg shadow-red-500/25 transition active:scale-95">
+        <div class="absolute -right-3 -top-3 h-16 w-16 rounded-full bg-white/10"></div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+          <i class="pi pi-exclamation-triangle text-lg text-white"></i>
         </div>
         <div>
-          <p class="text-sm font-bold" [class.text-white]="checklistDone()" [class.text-slate-800]="!checklistDone()">
-            Checklist Harian
-          </p>
-          <p class="text-xs mt-0.5"
-            [class.text-emerald-100]="checklistDone()"
-            [class.text-slate-400]="!checklistDone()">
-            {{ checklistDone() ? 'Sudah selesai hari ini' : 'Belum dilakukan' }}
-          </p>
+          <p class="text-sm font-bold text-white">Lapor Darurat</p>
+          <p class="text-xs text-red-100 mt-0.5">Butuh penanganan instan</p>
         </div>
       </a>
 
-      <!-- Catat BBM -->
-      <a routerLink="/driver/notifications"
+      <!-- Pengajuan Servis -->
+      <a routerLink="/driver/pengajuan/new"
         class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50">
-          <i class="pi pi-bolt text-lg text-amber-500"></i>
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+          <i class="pi pi-wrench text-lg text-blue-600"></i>
         </div>
         <div>
-          <p class="text-sm font-bold text-slate-800">Catat BBM</p>
-          <p class="text-xs text-slate-400 mt-0.5">Pengisian bahan bakar</p>
-        </div>
-      </a>
-
-      <!-- Lapor Kerusakan -->
-      <a routerLink="/driver/notifications"
-        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50">
-          <i class="pi pi-exclamation-triangle text-lg text-red-500"></i>
-        </div>
-        <div>
-          <p class="text-sm font-bold text-slate-800">Lapor Kerusakan</p>
-          <p class="text-xs text-slate-400 mt-0.5">Tandai item Tidak OK</p>
+          <p class="text-sm font-bold text-slate-800">Ajukan Servis</p>
+          <p class="text-xs text-slate-400 mt-0.5">Rutin & perbaikan biasa</p>
         </div>
       </a>
 
       <!-- Riwayat -->
-      <a routerLink="/driver/notifications"
-        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50">
-          <i class="pi pi-history text-lg text-violet-600"></i>
-        </div>
-        <div>
-          <p class="text-sm font-bold text-slate-800">Riwayat</p>
-          <p class="text-xs text-slate-400 mt-0.5">Aktivitas sebelumnya</p>
+      <a routerLink="/driver/riwayat"
+        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95 col-span-2">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50">
+            <i class="pi pi-history text-lg text-slate-600"></i>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-slate-800">Riwayat Pengajuan</p>
+            <p class="text-xs text-slate-400 mt-0.5">Pantau status laporan & servis Anda</p>
+          </div>
         </div>
       </a>
 
@@ -201,59 +137,13 @@
   <!-- ── Today's Activity ─────────────────────────────────────────────── -->
   <div class="mx-4 mt-5">
     <div class="flex items-center justify-between mb-3">
-      <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">Aktivitas Hari Ini</p>
-      @if (todayExecutions().length > 0 || todayFuel().length > 0) {
-        <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-600">
-          {{ todayExecutions().length + todayFuel().length }} item
-        </span>
-      }
+    <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 p-8 text-center">
+      <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 mx-auto mb-3">
+        <i class="pi pi-sun text-2xl text-slate-300"></i>
+      </div>
+      <p class="text-sm font-semibold text-slate-400">Belum ada aktivitas baru</p>
+      <p class="text-xs text-slate-300 mt-1">Status kendaraan terpantau aman</p>
     </div>
-
-    @if (todayExecutions().length === 0 && todayFuel().length === 0) {
-      <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 p-8 text-center">
-        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 mx-auto mb-3">
-          <i class="pi pi-sun text-2xl text-slate-300"></i>
-        </div>
-        <p class="text-sm font-semibold text-slate-400">Belum ada aktivitas</p>
-        <p class="text-xs text-slate-300 mt-1">Mulai dengan checklist harian</p>
-      </div>
-    } @else {
-      <div class="flex flex-col gap-2">
-        @for (exec of todayExecutions(); track exec.id) {
-          <div class="flex items-center gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3.5 shadow-sm">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
-              <i class="pi pi-check-circle text-emerald-600"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-bold text-slate-700 truncate">Checklist {{ exec.vehiclePlate }}</p>
-              <p class="text-xs text-slate-400 mt-0.5">
-                <span class="text-emerald-600 font-semibold">{{ exec.okCount }} OK</span>
-                @if (exec.notOkCount > 0) {
-                  <span> · <span class="text-red-500 font-semibold">{{ exec.notOkCount }} Tidak OK</span></span>
-                }
-              </p>
-            </div>
-            <span class="text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg flex-shrink-0">
-              {{ formatTime(exec.startedAt) }}
-            </span>
-          </div>
-        }
-        @for (fuel of todayFuel(); track fuel.id) {
-          <div class="flex items-center gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3.5 shadow-sm">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50">
-              <i class="pi pi-bolt text-amber-500"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-bold text-slate-700">BBM {{ fuel.jenisBbm }}</p>
-              <p class="text-xs text-slate-400 mt-0.5">{{ fuel.volumeLiter }} L · {{ formatRupiah(fuel.totalNominal) }}</p>
-            </div>
-            <span class="text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg flex-shrink-0">
-              {{ formatTime(fuel.tanggal) }}
-            </span>
-          </div>
-        }
-      </div>
-    }
   </div>
 
 </div>

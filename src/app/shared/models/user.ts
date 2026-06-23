@@ -18,7 +18,7 @@ export interface User {
   unitKerja: string;
   roles: RoleName[];
   permissions: string[]; // format 'resource.action'
-  active: boolean;
+  isActive: boolean;
   forceChangePassword: boolean;
   lastLoginAt: Timestamp | null;
   createdAt: Timestamp;

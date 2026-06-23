@@ -18,13 +18,13 @@ export class AdminDataPort {
     );
   }
 
-  createUser(payload: { username: string; fullName: string; email: string; roleIds: number[] }): Observable<User> {
+  createUser(payload: { username: string; fullName: string; email: string; roles: string[] }): Observable<User> {
     return this.http.post<any>(`${this.baseUrl}/users`, payload).pipe(
       map(u => this.mapUser(u))
     );
   }
 
-  updateUser(id: string | number, payload: { isActive?: boolean; roleIds?: number[] }): Observable<User> {
+  updateUser(id: string | number, payload: { isActive?: boolean; roles?: string[] }): Observable<User> {
     return this.http.patch<any>(`${this.baseUrl}/users/${id}`, payload).pipe(
       map(u => this.mapUser(u))
     );
@@ -40,6 +40,10 @@ export class AdminDataPort {
 
   resetPassword(id: string | number): Observable<{ reset: boolean }> {
     return this.http.patch<{ reset: boolean }>(`${this.baseUrl}/users/${id}/reset-password`, {});
+  }
+
+  getRoles(): Observable<{ name: string; description: string }[]> {
+    return this.http.get<{ name: string; description: string }[]>(`${this.baseUrl}/roles`);
   }
 
   // --- Vendors ---
