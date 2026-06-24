@@ -224,10 +224,20 @@ export class DaruratFormComponent implements OnInit {
     }
   }
 
-  protected async getLocation() {
-    if (!this.env.isMobile) return;
+  protected async getLocation(): Promise<void> {
     try {
-      const pos = await Geolocation.getCurrentPosition();
+      // Periksa izin akses lokasi dulu (khusus aplikasi Capacitor native)
+      const permissions = await Geolocation.checkPermissions();
+      if (permissions.location !== 'granted') {
+        const req = await Geolocation.requestPermissions();
+        if (req.location !== 'granted') {
+          this.msg.add({ severity: 'error', summary: 'Izin Ditolak', detail: 'Akses GPS dibutuhkan' });
+          return;
+        }
+      }
+
+      // Ambil lokasi
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
       const text = `${pos.coords.latitude}, ${pos.coords.longitude}`;
       this.form.patchValue({ lokasiKejadian: text });
     } catch {
