@@ -12,7 +12,7 @@ export interface DaruratFilter {
 export type DaruratCreateInput = Pick<
   LaporanDarurat,
   'kendaraanId' | 'deskripsiDarurat' | 'lokasiKejadian' | 'totalPengeluaran'
-> & { fotoKerusakanIds?: number[]; fotoInvoiceIds?: number[] };
+> & { fotoKerusakanIds?: number[]; fotoInvoiceIds?: number[]; latitude?: number; longitude?: number };
 
 export interface DaruratDataPort {
   list(query?: DaruratFilter): Observable<LaporanDarurat[]>;

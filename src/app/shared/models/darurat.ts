@@ -25,6 +25,8 @@ export interface LaporanDarurat {
   pengemudiId: string;
   deskripsiDarurat: string;
   lokasiKejadian: string | null;
+  latitude: number | null;
+  longitude: number | null;
   totalPengeluaran: number;
   status: DaruratStatus;
   verifikasiOlehId: string | null;

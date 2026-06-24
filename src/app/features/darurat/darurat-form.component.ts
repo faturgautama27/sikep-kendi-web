@@ -71,6 +71,8 @@ export class DaruratFormComponent implements OnInit {
   protected readonly form = this.fb.group({
     kendaraanId: ['', Validators.required],
     lokasiKejadian: ['', Validators.required],
+    latitude: [null as number | null],
+    longitude: [null as number | null],
     totalPengeluaran: [0, [Validators.required, Validators.min(0)]],
     deskripsiDarurat: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
   });
@@ -238,8 +240,29 @@ export class DaruratFormComponent implements OnInit {
 
       // Ambil lokasi
       const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
-      const text = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-      this.form.patchValue({ lokasiKejadian: text });
+      const { latitude, longitude } = pos.coords;
+
+      // Simpan koordinat ke hidden fields
+      this.form.patchValue({ latitude, longitude });
+
+      // Reverse geocode ke nama jalan via Nominatim (gratis, tanpa API key)
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+        const res = await fetch(url, { headers: { 'User-Agent': 'SiKepKenDI/1.0' } });
+        const data = await res.json();
+        const addr = data.address;
+        const parts = [
+          addr?.road,
+          addr?.village ?? addr?.suburb,
+          addr?.city ?? addr?.county,
+        ].filter(Boolean);
+        const alamat = parts.length > 0 ? parts.join(', ') : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        this.form.patchValue({ lokasiKejadian: alamat });
+      } catch {
+        // Fallback ke koordinat jika geocoder gagal
+        this.form.patchValue({ lokasiKejadian: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` });
+      }
+
     } catch {
       this.msg.add({ severity: 'error', summary: 'Lokasi', detail: 'Gagal mendapatkan lokasi GPS' });
     }
@@ -269,6 +292,8 @@ export class DaruratFormComponent implements OnInit {
       clientUuid: crypto.randomUUID(),
       kendaraanId: val.kendaraanId!,
       lokasiKejadian: val.lokasiKejadian!,
+      latitude: val.latitude ?? undefined,
+      longitude: val.longitude ?? undefined,
       totalPengeluaran: val.totalPengeluaran!,
       deskripsiDarurat: val.deskripsiDarurat!,
       fotoKerusakanIds: this.fotoKerusakanIds().map(x => Number(x.id)),
@@ -288,7 +313,6 @@ export class DaruratFormComponent implements OnInit {
 
     const action = this.isEditMode()
       ? new UpdateDarurat(this.daruratId()!, input)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       : new CreateDarurat(input as any);
 
     this.store.dispatch(action).subscribe({

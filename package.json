@@ -34,6 +34,7 @@
     "@capacitor/network": "^8.0.1",
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/push-notifications": "^8.1.1",
+    "@capgo/capacitor-nativegeocoder": "^8.0.41",
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
     "@ngxs/logger-plugin": "^21.0.0",
