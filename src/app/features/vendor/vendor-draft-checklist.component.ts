@@ -1,8 +1,10 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -16,28 +18,39 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { CreateDraftChecklist, SubmitDraft, DraftChecklistState } from '@features/draft-checklist/state';
+import { CreateDraftChecklist, LoadDraftChecklist, SubmitDraft, DraftChecklistState } from '@features/draft-checklist/state';
 import type { DraftChecklistItem, DraftChecklistRecord } from '@features/draft-checklist/state';
+import { IMAGE_DATA, type ImageDataPort } from '@core/data-access/ports/image-data.port';
+import { InputTextModule } from 'primeng/inputtext';
 
 type DraftStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK';
 
+interface ItemFotoState {
+  id?: number;
+  file?: File;
+  previewUrl: string;
+}
+
 @Component({ selector: 'app-vendor-draft-checklist', standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, DialogModule, InputNumberModule, TextareaModule, TableModule, TabsModule, TagModule, ToastModule],
+  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, DialogModule, InputNumberModule, InputTextModule, TextareaModule, TableModule, TabsModule, TagModule, ToastModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vendor-draft-checklist.component.html', changeDetection: ChangeDetectionStrategy.OnPush })
-export class VendorDraftChecklistComponent {
+export class VendorDraftChecklistComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   private readonly fb = inject(FormBuilder);
+  private readonly imageData = inject<ImageDataPort>(IMAGE_DATA);
+
+  protected readonly uploading = signal(false);
 
   protected readonly workOrderId = this.route.snapshot.paramMap.get('id') ?? '';
   protected readonly today = new Date();
 
   private readonly list = this.store.selectSignal(DraftChecklistState.list);
   protected readonly drafts = computed<DraftChecklistRecord[]>(() =>
-    this.list().filter(d => d.workOrderId === this.workOrderId).sort((a, b) => b.versi - a.versi)
+    this.list().filter(d => String(d.workOrderId) === String(this.workOrderId)).sort((a, b) => b.versi - a.versi)
   );
   protected readonly activeDraft = computed<DraftChecklistRecord | null>(() => this.drafts()[0] ?? null);
   protected readonly canEdit = computed(() => {
@@ -56,50 +69,112 @@ export class VendorDraftChecklistComponent {
   protected readonly editingIndex = signal<number | null>(null);
 
   protected readonly itemForm = this.fb.group({
-    namaKerusakan: ['', [Validators.required, Validators.maxLength(200)]],
+    namaKerusakan: [''],
     namaSparepart: [''],
-    tindakanPerbaikan: ['', [Validators.required, Validators.maxLength(500)]],
-    hargaItem: [0, [Validators.required, Validators.min(1)]],
+    tindakanPerbaikan: [''],
+    hargaItem: [null as number | null],
   });
 
+  // Per-item foto upload state
+  protected readonly itemFotos = signal<ItemFotoState[]>([]);
+
   constructor() {
-    // seed edit items from latest DRAFT or DITOLAK
-    const d = this.activeDraft();
-    if (d && (d.status === 'DRAFT' || d.status === 'DITOLAK')) {
-      this.editItems.set(d.items.map(i => ({ ...i, _key: this.itemKey++ })));
-    }
+    // Seed editItems setiap kali activeDraft berubah (misal setelah LoadDraftChecklist selesai)
+    effect(() => {
+      const d = this.activeDraft();
+      if (d && (d.status === 'DRAFT' || d.status === 'DITOLAK')) {
+        this.editItems.set(d.items.map(i => ({ ...i, _key: this.itemKey++ })));
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    // Fetch draft dari API setiap kali halaman dimuat
+    this.store.dispatch(new LoadDraftChecklist(this.workOrderId));
   }
 
   protected openAddItem(): void {
     this.editingIndex.set(null);
-    this.itemForm.reset({ hargaItem: 0 });
+    this.itemForm.reset();
+    this.itemFotos.set([]);
     this.dialogVisible.set(true);
   }
 
   protected openEditItem(index: number): void {
     const item = this.editItems()[index];
     this.editingIndex.set(index);
-    this.itemForm.patchValue({ namaKerusakan: item.namaKerusakan, namaSparepart: item.namaSparepart ?? '', tindakanPerbaikan: item.tindakanPerbaikan, hargaItem: item.hargaItem });
+    this.itemForm.patchValue({ namaKerusakan: item.namaKerusakan ?? '', namaSparepart: item.namaSparepart ?? '', tindakanPerbaikan: item.tindakanPerbaikan ?? '', hargaItem: item.hargaItem || null });
+    
+    // Gunakan URL yang sudah dikirim oleh API
+    if (item.fotos && item.fotos.length > 0) {
+      const existing = item.fotos.map(f => ({ id: f.imageId, previewUrl: f.url ?? '' }));
+      this.itemFotos.set(existing);
+    } else {
+      this.itemFotos.set([]);
+    }
+
     this.dialogVisible.set(true);
   }
 
   protected saveItem(): void {
-    this.itemForm.markAllAsTouched();
-    if (this.itemForm.invalid) return;
     const raw = this.itemForm.getRawValue();
-    const newItem: DraftChecklistItem & { _key: number } = {
-      namaKerusakan: raw.namaKerusakan!,
-      namaSparepart: raw.namaSparepart ?? undefined,
-      tindakanPerbaikan: raw.tindakanPerbaikan!,
-      hargaItem: Number(raw.hargaItem ?? 0),
-      _key: this.editingIndex() !== null ? this.editItems()[this.editingIndex()!]._key : this.itemKey++,
-    };
-    if (this.editingIndex() !== null) {
-      this.editItems.update(l => l.map((x, i) => i === this.editingIndex() ? newItem : x));
-    } else {
-      this.editItems.update(l => [...l, newItem]);
-    }
-    this.dialogVisible.set(false);
+    const fotos = this.itemFotos();
+
+    const newFiles = fotos.filter(f => f.file).map(f => f.file!);
+    const existingIds = fotos.filter(f => f.id).map(f => f.id!);
+
+    // Upload foto terlebih dahulu jika ada, lalu simpan item
+    const upload$ = newFiles.length > 0
+      ? forkJoin(newFiles.map(f => this.imageData.upload(f)))
+      : of([]);
+
+    this.uploading.set(true);
+    upload$.pipe(
+      switchMap((uploadedImages) => {
+        const uploadedIds = uploadedImages.map(img => Number(img.id));
+        const allFotoIds = [...existingIds, ...uploadedIds];
+
+        const newItem: DraftChecklistItem & { _key: number } = {
+          namaKerusakan: raw.namaKerusakan?.trim() || undefined,
+          namaSparepart: raw.namaSparepart?.trim() || undefined,
+          tindakanPerbaikan: raw.tindakanPerbaikan?.trim() || undefined,
+          hargaItem: Number(raw.hargaItem ?? 0),
+          fotoIds: allFotoIds.length > 0 ? allFotoIds : undefined,
+          _key: this.editingIndex() !== null ? this.editItems()[this.editingIndex()!]._key : this.itemKey++,
+        };
+        if (this.editingIndex() !== null) {
+          this.editItems.update(l => l.map((x, i) => i === this.editingIndex() ? newItem : x));
+        } else {
+          this.editItems.update(l => [...l, newItem]);
+        }
+        return of(null);
+      }),
+    ).subscribe({
+      next: () => {
+        this.uploading.set(false);
+        this.dialogVisible.set(false);
+      },
+      error: () => {
+        this.uploading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto. Coba lagi.' });
+      },
+    });
+  }
+
+  protected onFotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+    const files = Array.from(input.files);
+    const newFotos: ItemFotoState[] = files.map(f => ({
+      file: f,
+      previewUrl: URL.createObjectURL(f)
+    }));
+    this.itemFotos.update(fotos => [...fotos, ...newFotos].slice(0, 5));
+    input.value = ''; // reset input
+  }
+
+  protected removeFoto(i: number): void {
+    this.itemFotos.update(fotos => fotos.filter((_, idx) => idx !== i));
   }
 
   protected removeItem(index: number): void {
@@ -121,16 +196,26 @@ export class VendorDraftChecklistComponent {
       this.msg.add({ severity: 'warn', summary: 'Draft tidak boleh kosong.' });
       return;
     }
-    const d = this.activeDraft();
-    if (!d || d.status !== 'DRAFT') {
-      this.simpanDraft();
-    }
+    // Tampilkan konfirmasi DULU, baru hit API setelah user klik "Kirim"
     this.confirm.confirm({
       message: 'Draft checklist akan dikirim ke Pengurus Barang untuk direview. Setelah dikirim Anda tidak bisa mengubah item. Lanjutkan?',
       header: 'Konfirmasi Pengiriman', icon: 'pi pi-send', acceptLabel: 'Kirim', rejectLabel: 'Batal',
       accept: () => {
-        const latest = this.activeDraft();
-        if (latest) { this.store.dispatch(new SubmitDraft(latest.id)); this.msg.add({ severity: 'success', summary: 'Draft terkirim ke Pengurus Barang.' }); }
+        const d = this.activeDraft();
+        // Jika belum ada draft atau statusnya bukan DRAFT, simpan dulu lalu submit
+        if (!d || d.status !== 'DRAFT') {
+          const items: DraftChecklistItem[] = this.editItems().map(({ _key: _k, ...i }) => i);
+          this.store.dispatch(new CreateDraftChecklist(this.workOrderId, { items })).subscribe(() => {
+            const latest = this.activeDraft();
+            if (latest) {
+              this.store.dispatch(new SubmitDraft(latest.id));
+              this.msg.add({ severity: 'success', summary: 'Draft terkirim ke Pengurus Barang.' });
+            }
+          });
+        } else {
+          this.store.dispatch(new SubmitDraft(d.id));
+          this.msg.add({ severity: 'success', summary: 'Draft terkirim ke Pengurus Barang.' });
+        }
       },
     });
   }

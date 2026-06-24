@@ -12,6 +12,7 @@ import {
   RequestRevisiPenawaran,
   SubmitPenawaran,
   SubmitRevisiPenawaran,
+  UploadInvoice,
 } from './penawaran.actions';
 
 type PenawaranStatus = 'DRAFT' | 'DIKIRIM' | 'DIVERIFIKASI' | 'REVISI';
@@ -47,7 +48,7 @@ export class PenawaranState {
   @Selector()
   static byWorkOrder(state: PenawaranStateModel) {
     return (workOrderId: string): PenawaranRecord[] =>
-      state.list.filter((item) => item.workOrderId === workOrderId).sort((a, b) => b.versi - a.versi);
+      state.list.filter((item) => String(item.workOrderId) === String(workOrderId)).sort((a, b) => b.versi - a.versi);
   }
 
   @Action(HydrateFromFixtures)
@@ -62,7 +63,7 @@ export class PenawaranState {
     return this.data.listByWorkOrder(action.workOrderId).pipe(
       map((rows) => rows as PenawaranRecord[]),
       tap((rows) => {
-        const others = ctx.getState().list.filter((item) => item.workOrderId !== action.workOrderId);
+        const others = ctx.getState().list.filter((item) => String(item.workOrderId) !== String(action.workOrderId));
         ctx.patchState({ list: [...rows, ...others] });
       }),
     );
@@ -78,7 +79,7 @@ export class PenawaranState {
       );
     }
 
-    const forWo = ctx.getState().list.filter((it) => it.workOrderId === action.workOrderId);
+    const forWo = ctx.getState().list.filter((it) => String(it.workOrderId) === String(action.workOrderId));
     const nextVersion = forWo.length === 0 ? 1 : Math.max(...forWo.map((it) => it.versi)) + 1;
     const next: PenawaranRecord = {
       id: `pnw-${action.workOrderId}-${nextVersion}`,
@@ -96,7 +97,7 @@ export class PenawaranState {
   @Action(SubmitPenawaran)
   submit(ctx: StateContext<PenawaranStateModel>, action: SubmitPenawaran) {
     if (!this.env.previewMode) {
-      const target = ctx.getState().list.find((item) => item.id === action.id);
+      const target = ctx.getState().list.find((item) => String(item.id) === String(action.id));
       if (!target) return;
       return this.data.submit(target.workOrderId, action.id).pipe(
         tap(() => {
@@ -107,7 +108,7 @@ export class PenawaranState {
 
     ctx.patchState({
       list: ctx.getState().list.map((item) =>
-        item.id === action.id && item.status === 'DRAFT'
+        String(item.id) === String(action.id) && item.status === 'DRAFT'
           ? { ...item, status: 'DIKIRIM' as const }
           : item,
       ),
@@ -115,10 +116,22 @@ export class PenawaranState {
     return;
   }
 
+  @Action(UploadInvoice)
+  uploadInvoice(ctx: StateContext<PenawaranStateModel>, action: UploadInvoice) {
+    if (!this.env.previewMode) {
+      return this.data.uploadInvoice(action.workOrderId, action.id, action.payload).pipe(
+        tap(() => {
+          ctx.dispatch(new LoadPenawaran(action.workOrderId));
+        }),
+      );
+    }
+    return;
+  }
+
   @Action(RequestRevisiPenawaran)
   requestRevisi(ctx: StateContext<PenawaranStateModel>, action: RequestRevisiPenawaran) {
     if (!this.env.previewMode) {
-      const target = ctx.getState().list.find((item) => item.id === action.id);
+      const target = ctx.getState().list.find((item) => String(item.id) === String(action.id));
       if (!target) return;
       return this.data
         .requestRevisi(target.workOrderId, action.id, { catatanPerubahan: action.catatanPerubahan })
@@ -131,7 +144,7 @@ export class PenawaranState {
 
     ctx.patchState({
       list: ctx.getState().list.map((item) =>
-        item.id === action.id
+        String(item.id) === String(action.id)
           ? { ...item, status: 'REVISI' as const, catatanPerubahan: action.catatanPerubahan }
           : item,
       ),
@@ -142,7 +155,7 @@ export class PenawaranState {
   @Action(SubmitRevisiPenawaran)
   submitRevisi(ctx: StateContext<PenawaranStateModel>, action: SubmitRevisiPenawaran) {
     if (!this.env.previewMode) {
-      const target = ctx.getState().list.find((item) => item.id === action.id);
+      const target = ctx.getState().list.find((item) => String(item.id) === String(action.id));
       if (!target) return;
       return this.data.revisi(target.workOrderId, action.id, action.payload).pipe(
         tap(() => {
@@ -153,7 +166,7 @@ export class PenawaranState {
 
     ctx.patchState({
       list: ctx.getState().list.map((item) =>
-        item.id === action.id
+        String(item.id) === String(action.id)
           ? {
               ...item,
               status: 'DIKIRIM' as const,

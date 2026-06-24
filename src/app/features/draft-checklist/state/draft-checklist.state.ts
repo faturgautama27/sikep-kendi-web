@@ -17,10 +17,12 @@ import {
 type DraftChecklistStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK';
 
 export interface DraftChecklistItem {
-  namaKerusakan: string;
+  namaKerusakan?: string;
   namaSparepart?: string;
-  tindakanPerbaikan: string;
+  tindakanPerbaikan?: string;
   hargaItem: number;
+  fotoIds?: number[];
+  fotos?: { imageId: number; url?: string }[];
 }
 
 export interface DraftChecklistRecord {
@@ -58,7 +60,7 @@ export class DraftChecklistState {
   static byWorkOrder(state: DraftChecklistStateModel) {
     return (workOrderId: string): DraftChecklistRecord[] =>
       state.list
-        .filter((item) => item.workOrderId === workOrderId)
+        .filter((item) => String(item.workOrderId) === String(workOrderId))
         .sort((a, b) => b.versi - a.versi);
   }
 
@@ -74,7 +76,7 @@ export class DraftChecklistState {
     return this.data.listByWorkOrder(action.workOrderId).pipe(
       map((rows) => rows as DraftChecklistRecord[]),
       tap((rows) => {
-        const others = ctx.getState().list.filter((item) => item.workOrderId !== action.workOrderId);
+        const others = ctx.getState().list.filter((item) => String(item.workOrderId) !== String(action.workOrderId));
         ctx.patchState({ list: [...rows, ...others] });
       }),
     );
@@ -90,7 +92,7 @@ export class DraftChecklistState {
       );
     }
 
-    const current = ctx.getState().list.filter((it) => it.workOrderId === action.workOrderId);
+    const current = ctx.getState().list.filter((it) => String(it.workOrderId) === String(action.workOrderId));
     const nextVersion = current.length === 0 ? 1 : Math.max(...current.map((it) => it.versi)) + 1;
     const items = ((action.payload['items'] as DraftChecklistItem[]) ?? []).map((item) => ({ ...item }));
     const totalHarga = items.reduce((sum, item) => sum + Number(item.hargaItem ?? 0), 0);

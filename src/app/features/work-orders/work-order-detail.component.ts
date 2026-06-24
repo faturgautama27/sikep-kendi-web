@@ -1,0 +1,196 @@
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Store } from '@ngxs/store';
+
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ImageModule } from 'primeng/image';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TimelineModule } from 'primeng/timeline';
+import { PageHeaderComponent } from '@core/layout';
+
+import { WorkOrdersState, GetWorkOrderDetail } from './state';
+import { LoadDraftChecklist, DraftChecklistState, ApproveDraft, RejectDraft } from '@features/draft-checklist/state';
+import { PenawaranState, LoadPenawaran } from '@features/penawaran/state';
+import { AuthState } from '@features/login/state/auth.state';
+import type { WorkOrderProgressStatus, WorkOrderStatus, WorkOrderEvidence } from '@shared/models';
+
+const STATUS_LABEL: Record<WorkOrderStatus, string> = {
+  DIBUAT: 'Dibuat',
+  VENDOR_DITUGASKAN: 'Vendor Ditugaskan',
+  DRAFT_CHECKLIST: 'Draft Checklist',
+  PENAWARAN: 'Penawaran',
+  DIVERIFIKASI: 'Diverifikasi',
+  DIBAYAR: 'Dibayar',
+};
+
+const PROGRESS_LABEL: Record<WorkOrderProgressStatus, string> = {
+  received: 'Kendaraan Diterima',
+  in_progress: 'Sedang Dikerjakan',
+  completed: 'Pekerjaan Selesai',
+};
+
+const EVIDENCE_LABEL: Record<string, string> = {
+  kondisi_awal: 'Kondisi Awal',
+  sparepart_sebelum: 'Sparepart Sebelum',
+  sparepart_sesudah: 'Sparepart Sesudah',
+  pasca_perbaikan: 'Pasca Perbaikan',
+};
+
+function evidencePlaceholder(kategori: string): string {
+  switch (kategori) {
+    case 'kondisi_awal':
+      return 'https://picsum.photos/seed/k1/400/300';
+    case 'sparepart_sebelum':
+      return 'https://picsum.photos/seed/s1/400/300';
+    case 'sparepart_sesudah':
+      return 'https://picsum.photos/seed/s2/400/300';
+    case 'pasca_perbaikan':
+      return 'https://picsum.photos/seed/p1/400/300';
+    default:
+      return 'https://picsum.photos/seed/d1/400/300';
+  }
+}
+
+@Component({
+  selector: 'app-work-order-detail',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ButtonModule,
+    CardModule,
+    ImageModule,
+    InputTextModule,
+    TableModule,
+    TagModule,
+    TimelineModule,
+    PageHeaderComponent,
+  ],
+  templateUrl: './work-order-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class WorkOrderDetailComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly store = inject(Store);
+
+  private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
+
+  protected readonly detail = this.store.selectSignal(WorkOrdersState.detail);
+  private readonly draftList = this.store.selectSignal(DraftChecklistState.list);
+  protected readonly permissions = this.store.selectSignal(AuthState.permissions);
+
+  protected catatan = '';
+
+  private readonly allPenawaran = this.store.selectSignal(PenawaranState.list);
+
+  protected readonly drafts = computed(() =>
+    this.draftList().filter((d) => String(d.workOrderId) === String(this.id))
+  );
+  
+  protected readonly latestDraft = computed(() => {
+    const list = this.drafts();
+    if (!list.length) return null;
+    return list.sort((a, b) => b.versi - a.versi)[0];
+  });
+
+  protected readonly penawaranList = computed(() =>
+    this.allPenawaran().filter((p) => String(p.workOrderId) === String(this.id)).sort((a, b) => b.versi - a.versi)
+  );
+  
+  protected readonly latestPenawaran = computed(() => this.penawaranList()[0] ?? null);
+
+  ngOnInit() {
+    this.store.dispatch(new GetWorkOrderDetail(this.id));
+    this.store.dispatch(new LoadDraftChecklist(this.id));
+    this.store.dispatch(new LoadPenawaran(this.id));
+  }
+
+  protected goBack() {
+    this.router.navigate(['/work-orders']);
+  }
+
+  protected statusLabel(status: WorkOrderStatus): string {
+    return STATUS_LABEL[status] ?? status;
+  }
+
+  protected statusSeverity(status: WorkOrderStatus): 'info' | 'success' | 'warn' | 'danger' | 'secondary' {
+    switch (status) {
+      case 'DIBUAT':
+      case 'VENDOR_DITUGASKAN':
+        return 'info';
+      case 'DRAFT_CHECKLIST':
+      case 'PENAWARAN':
+      case 'DIVERIFIKASI':
+        return 'warn';
+      case 'DIBAYAR':
+        return 'success';
+      default:
+        return 'secondary';
+    }
+  }
+
+  protected progressLabel(status: WorkOrderProgressStatus): string {
+    return PROGRESS_LABEL[status] ?? status;
+  }
+
+  protected progressIcon(status: WorkOrderProgressStatus): string {
+    switch (status) {
+      case 'received': return 'pi pi-inbox';
+      case 'in_progress': return 'pi pi-wrench';
+      case 'completed': return 'pi pi-check';
+      default: return 'pi pi-clock';
+    }
+  }
+
+  protected evidenceUrl(ev: WorkOrderEvidence): string {
+    if (ev.image?.url) {
+      return ev.image.url;
+    }
+    return evidencePlaceholder(ev.kategori);
+  }
+
+  protected evidenceLabel(ev: WorkOrderEvidence): string {
+    const base = EVIDENCE_LABEL[ev.kategori] ?? ev.kategori;
+    return ev.image?.caption ? `${base} - ${ev.image.caption}` : base;
+  }
+
+  protected formatDateTime(val: string): string {
+    if (!val) return '-';
+    return new Date(val).toLocaleString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  protected formatRupiah(n: number | string): string {
+    const val = typeof n === 'string' ? parseFloat(n) : n;
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+    }).format(val || 0);
+  }
+
+  protected approve() {
+    const draft = this.latestDraft();
+    if (!draft) return;
+    this.store.dispatch(new ApproveDraft(draft.id)).subscribe(() => {
+      this.store.dispatch(new GetWorkOrderDetail(this.id));
+    });
+    this.catatan = '';
+  }
+
+  protected reject() {
+    const draft = this.latestDraft();
+    if (!draft) return;
+    this.store.dispatch(new RejectDraft(draft.id, this.catatan || 'Perlu koreksi item dan harga.')).subscribe(() => {
+      this.store.dispatch(new GetWorkOrderDetail(this.id));
+    });
+    this.catatan = '';
+  }
+}

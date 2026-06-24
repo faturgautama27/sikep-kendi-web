@@ -2,7 +2,7 @@
 
 @if (pengajuan(); as p) {
   <section
-    class="flex flex-col mx-auto"
+    class="flex flex-col"
     [class.px-4]="env.isMobile"
     [class.py-6]="env.isMobile"
     [class.pb-6]="env.isMobile"
@@ -25,7 +25,11 @@
             (onClick)="goBack()"
           />
           @if (p.status === 'draft' || p.status === 'menunggu_verifikasi') {
-            <a [routerLink]="env.isMobile ? ['/driver/pengajuan', p.id, 'edit'] : ['/pengajuan', p.id, 'edit']">
+            <a
+              [routerLink]="
+                env.isMobile ? ['/driver/pengajuan', p.id, 'edit'] : ['/pengajuan', p.id, 'edit']
+              "
+            >
               <p-button label="Edit" icon="pi pi-pencil" [outlined]="true" />
             </a>
           }
@@ -153,7 +157,9 @@
 
     <!-- Mobile Actions -->
     @if (env.isMobile && (p.status === 'draft' || p.status === 'menunggu_verifikasi')) {
-      <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
+      <div
+        class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40"
+      >
         <a [routerLink]="['/driver/pengajuan', p.id, 'edit']" class="block">
           <p-button label="Edit Pengajuan" icon="pi pi-pencil" styleClass="w-full" class="w-full" />
         </a>
@@ -182,11 +188,12 @@
       <label class="text-sm font-medium">Pilih Vendor <span class="text-red-500">*</span></label>
       <p-select
         formControlName="vendorId"
-        [options]="vendorOpts"
+        [options]="vendorOpts()"
         optionLabel="label"
         optionValue="value"
         placeholder="-- Pilih Vendor --"
         class="w-full"
+        appendTo="body"
       />
       @if (approveForm.get('vendorId')!.invalid && approveForm.get('vendorId')!.touched) {
         <small class="text-red-500">Vendor wajib dipilih.</small>

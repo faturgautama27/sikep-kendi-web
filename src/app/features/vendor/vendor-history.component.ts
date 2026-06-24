@@ -13,7 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { WorkOrdersState } from '@features/work-orders/state';
 import type { WorkOrder, WorkOrderStatus } from '@shared/models';
 
-const DONE_STATUSES: WorkOrderStatus[] = ['completed', 'validated_accepted', 'validated_rejected'];
+const DONE_STATUSES: WorkOrderStatus[] = ['DIVERIFIKASI', 'DIBAYAR'];
 const STATUS_OPTS = [
   { label: 'Selesai', value: 'completed' },
   { label: 'Tervalidasi', value: 'validated_accepted' },
@@ -46,11 +46,20 @@ export class VendorHistoryComponent {
   }
 
   protected statusSeverity(s: WorkOrderStatus): 'success' | 'danger' | 'secondary' {
-    return s === 'validated_accepted' ? 'success' : s === 'validated_rejected' ? 'danger' : 'secondary';
+    if (s === 'DIVERIFIKASI' || s === 'DIBAYAR') return 'success';
+    return 'secondary';
   }
 
   protected statusLabel(s: WorkOrderStatus): string {
-    return s === 'validated_accepted' ? 'Tervalidasi' : s === 'validated_rejected' ? 'Ditolak' : 'Selesai';
+    const map: Record<string, string> = {
+      DIBUAT: 'Dibuat',
+      VENDOR_DITUGASKAN: 'Ditugaskan',
+      DRAFT_CHECKLIST: 'Draft Checklist',
+      PENAWARAN: 'Penawaran',
+      DIVERIFIKASI: 'Diverifikasi',
+      DIBAYAR: 'Selesai (Dibayar)',
+    };
+    return map[s] ?? s;
   }
 
   protected formatDate(ts: string | null): string {

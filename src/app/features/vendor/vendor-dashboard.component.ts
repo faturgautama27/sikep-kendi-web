@@ -25,19 +25,19 @@ export class VendorDashboardComponent {
   protected readonly unread = this.store.selectSignal(NotificationsState.unreadCount);
 
   protected readonly woAktif = computed(
-    () => this.woList().filter(w => ['assigned', 'received', 'in_progress'].includes(w.status)).length,
+    () => this.woList().filter(w => ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN'].includes(w.status)).length,
   );
 
   protected readonly woPendingDraft = computed(
-    () => this.woList().filter(w => ['assigned', 'received'].includes(w.status)).length,
+    () => this.woList().filter(w => ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST'].includes(w.status)).length,
   );
 
   protected readonly woPendingPenawaran = computed(
-    () => this.woList().filter(w => ['in_progress', 'completed'].includes(w.status)).length,
+    () => this.woList().filter(w => ['PENAWARAN'].includes(w.status)).length,
   );
 
   protected readonly woSelesai = computed(
-    () => this.woList().filter(w => w.status === 'validated_accepted').length,
+    () => this.woList().filter(w => ['DIVERIFIKASI', 'DIBAYAR'].includes(w.status)).length,
   );
 
   private readonly draftList = this.store.selectSignal(DraftChecklistState.list);

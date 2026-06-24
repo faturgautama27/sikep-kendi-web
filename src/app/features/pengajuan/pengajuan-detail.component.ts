@@ -12,6 +12,7 @@ import { Store } from '@ngxs/store';
 import { Location } from '@angular/common';
 
 import { PENGAJUAN_DATA, type PengajuanDataPort } from '@core/data-access/ports/pengajuan-data.port';
+import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
 import { APP_ENV } from '@core/data-access/app-env.token';
 
 import { ButtonModule } from 'primeng/button';
@@ -36,12 +37,7 @@ const STATUS_LABEL: Record<PengajuanStatus, string> = {
   work_order_terbuat: 'Work Order Terbuat',
 };
 
-// Dummy vendor options for Preview Mode
-const DUMMY_VENDORS = [
-  { label: 'PT Bengkel Mandiri Sejahtera', value: 'ven-001' },
-  { label: 'CV Astra Motor Service', value: 'ven-002' },
-  { label: 'Bengkel Sumber Rejeki Motor', value: 'ven-003' },
-];
+// Removed dummy vendors
 
 @Component({
   selector: 'app-pengajuan-detail',
@@ -69,12 +65,13 @@ export class PengajuanDetailComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly msg = inject(MessageService);
   private readonly dataPort = inject<PengajuanDataPort>(PENGAJUAN_DATA);
+  private readonly adminDataPort = inject(AdminDataPort);
   protected readonly env = inject(APP_ENV);
   private readonly location = inject(Location);
 
   protected readonly pengajuanId = signal<string>('');
   protected readonly pengajuan = signal<Pengajuan | null>(null);
-  protected readonly vendorOpts = DUMMY_VENDORS;
+  protected readonly vendorOpts = signal<{ label: string; value: string | number }[]>([]);
 
   protected readonly approveDialogVisible = signal(false);
   protected readonly rejectDialogVisible = signal(false);
@@ -100,7 +97,22 @@ export class PengajuanDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.pengajuanId.set(id);
     this.dataPort.getById(id).subscribe({
-      next: (res) => this.pengajuan.set(res),
+      next: (res) => {
+        this.pengajuan.set(res);
+        // Fetch vendors only if status is menunggu_verifikasi
+        if (res.status === 'menunggu_verifikasi') {
+          this.adminDataPort.getVendors().subscribe({
+            next: (vendors) => {
+              this.vendorOpts.set(
+                vendors
+                  .filter((v) => v.isAktif !== false)
+                  .map((v) => ({ label: v.namaVendor, value: v.id }))
+              );
+            },
+            error: (err) => console.error('Gagal mengambil daftar vendor', err),
+          });
+        }
+      },
       error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Pengajuan tidak ditemukan.' })
     });
   }

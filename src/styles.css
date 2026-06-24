@@ -194,3 +194,7 @@ body {
     transform: translateX(-50%) !important;
   }
 }
+
+.p-timeline-event-opposite {
+  display: none !important;
+}

@@ -16,6 +16,7 @@ import { APP_ENV } from '../app-env.token';
 
 interface BackendImageRef {
   id: number;
+  signedUrl?: string;
 }
 
 interface BackendDraftChecklistFoto {
@@ -27,6 +28,9 @@ interface BackendDraftChecklistFoto {
 
 interface BackendDraftChecklistItem {
   id: number;
+  urutan?: number;
+  namaKerusakan?: string;
+  namaSparepart?: string;
   fotos?: BackendDraftChecklistFoto[];
 }
 
@@ -127,13 +131,13 @@ function asNumber(value: number | string | null | undefined): number {
   return 0;
 }
 
-function emptyImage(imageId: number): Image {
+function emptyImage(imageId: number, signedUrl?: string, caption?: string): Image {
   const now = new Date().toISOString();
   const id = String(imageId);
   return {
     id,
-    url: '',
-    thumbnailUrl: '',
+    url: signedUrl ?? '',
+    thumbnailUrl: signedUrl ?? '',
     entityKind: 'work_order',
     entityId: '0',
     kategori: 'general',
@@ -148,7 +152,7 @@ function emptyImage(imageId: number): Image {
     gpsLng: null,
     sizeBytes: 0,
     hashSha256: '',
-    caption: '',
+    caption: caption ?? '',
   };
 }
 
@@ -157,21 +161,23 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
   const fromDraft =
     latestDraft?.items?.flatMap((item) =>
       (item.fotos ?? []).map((foto, index) => {
+        const urutan = foto.urutan ?? index + 1;
         const kategori =
-          index === 0
+          urutan === 1
             ? 'kondisi_awal'
-            : index === 1
+            : urutan === 2
               ? 'sparepart_sebelum'
-              : index === 2
+              : urutan === 3
                 ? 'sparepart_sesudah'
                 : 'pasca_perbaikan';
         const imageId = foto.imageId ?? foto.image?.id ?? 0;
+        const caption = item.namaSparepart || item.namaKerusakan || `Item ${item.urutan}`;
         return {
           id: String(foto.id),
           workOrderId: String(raw.id),
           kategori,
           imageId: String(imageId),
-          image: emptyImage(imageId),
+          image: emptyImage(imageId, foto.image?.signedUrl, caption),
           uploadedAt: latestDraft.updatedAt,
           uploadedBy: String(raw.vendorId ?? 0),
         } satisfies WorkOrderEvidence;
@@ -185,7 +191,7 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
           workOrderId: String(raw.id),
           kategori: 'pasca_perbaikan',
           imageId: String(raw.pembayaran.buktiTransfer.imageId),
-          image: emptyImage(raw.pembayaran.buktiTransfer.imageId),
+          image: emptyImage(raw.pembayaran.buktiTransfer.imageId, raw.pembayaran.buktiTransfer.image?.signedUrl),
           uploadedAt: raw.pembayaran.paidAt ?? raw.pembayaran.updatedAt,
           uploadedBy: String(raw.pembayaran.bendaharaId),
         } satisfies WorkOrderEvidence,
@@ -196,21 +202,7 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
 }
 
 function mapStatus(raw: BackendWorkOrder): WorkOrderStatus {
-  if (raw.verifikasiHarga?.status === 'REVISI_DIMINTA') return 'validated_rejected';
-  switch (raw.status) {
-    case 'DIBAYAR':
-      return 'validated_accepted';
-    case 'DIVERIFIKASI':
-      return 'completed';
-    case 'PENAWARAN':
-      return 'in_progress';
-    case 'DRAFT_CHECKLIST':
-      return 'received';
-    case 'VENDOR_DITUGASKAN':
-    case 'DIBUAT':
-    default:
-      return 'assigned';
-  }
+  return raw.status as WorkOrderStatus;
 }
 
 function mapProgress(raw: BackendWorkOrder): WorkOrderProgress[] {
@@ -277,11 +269,11 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
     receivedAt: raw.draftChecklists?.[0]?.createdAt ?? null,
     startedAt: raw.draftChecklists?.[0]?.updatedAt ?? null,
     completedAt: raw.verifikasiHarga?.verifikasiAt ?? null,
-    validatedAt: raw.pembayaran?.paidAt ?? (mappedStatus === 'validated_rejected' ? raw.verifikasiHarga?.updatedAt ?? null : null),
+    validatedAt: raw.pembayaran?.paidAt ?? (raw.verifikasiHarga?.status === 'REVISI_DIMINTA' ? raw.verifikasiHarga?.updatedAt ?? null : null),
     validatedBy:
-      mappedStatus === 'validated_accepted'
+      mappedStatus === 'DIBAYAR'
         ? String(raw.pembayaran?.bendaharaId ?? 0)
-        : mappedStatus === 'validated_rejected'
+        : raw.verifikasiHarga?.status === 'REVISI_DIMINTA'
           ? String(raw.verifikasiHarga?.verifikator?.id ?? 0)
           : null,
     rejectedReason: raw.verifikasiHarga?.status === 'REVISI_DIMINTA' ? (raw.verifikasiHarga.catatanRevisi ?? null) : null,

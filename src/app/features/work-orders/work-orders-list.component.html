@@ -12,7 +12,9 @@
   <!-- Filter bar -->
   <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
     <div class="flex flex-1 flex-col gap-1">
-      <label for="search" class="text-xs font-medium text-slate-600">Cari nomor / kendaraan / vendor</label>
+      <label for="search" class="text-xs font-medium text-slate-600"
+        >Cari nomor / kendaraan / vendor</label
+      >
       <span class="p-input-icon-left">
         <input
           pInputText
@@ -83,12 +85,11 @@
     >
       <ng-template #header>
         <tr>
-          <th class="w-10"></th>
           <th class="w-40">Nomor WO</th>
           <th class="w-40">Pengajuan</th>
           <th class="w-28">Kendaraan</th>
           <th>Vendor</th>
-          <th class="w-36">Status</th>
+          <th class="w-48">Status</th>
           <th class="w-32">Assigned</th>
           <th class="w-32">Selesai</th>
           <th class="w-40 text-right">Total Nominal</th>
@@ -96,26 +97,15 @@
         </tr>
       </ng-template>
 
-      <ng-template #body let-wo let-expanded="expanded">
+      <ng-template #body let-wo>
         <tr>
           <td>
-            <p-button
-              [icon]="isExpanded(wo) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-              severity="secondary"
-              [text]="true"
-              [rounded]="true"
-              size="small"
-              (onClick)="onToggleExpand(wo)"
-            ></p-button>
-          </td>
-          <td>
-            <button
-              type="button"
+            <a
               class="font-semibold text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              (click)="onToggleExpand(wo)"
+              [routerLink]="['/work-orders', wo.id]"
             >
               {{ wo.nomor }}
-            </button>
+            </a>
           </td>
           <td class="text-slate-700">{{ wo.pengajuanNomor }}</td>
           <td class="font-mono text-xs text-slate-700">{{ wo.vehiclePlate }}</td>
@@ -140,98 +130,10 @@
               [rounded]="true"
               size="small"
               pTooltip="Lihat detail"
-              (onClick)="onToggleExpand(wo)"
+              [routerLink]="['/work-orders', wo.id]"
             ></p-button>
           </td>
         </tr>
-      </ng-template>
-
-      <ng-template #expandedrow let-wo>
-        @if (isExpanded(wo)) {
-          <tr>
-            <td colspan="10" class="bg-primary-50/40 p-4">
-            <div class="grid gap-5 lg:grid-cols-2">
-              <!-- Timeline progress -->
-              <p-card header="Timeline Progres" styleClass="border border-primary-100">
-                @if (wo.progressUpdates.length === 0) {
-                  <p class="text-sm text-slate-500">
-                    Belum ada update progres dari vendor.
-                  </p>
-                } @else {
-                  <p-timeline
-                    [value]="progressEvents(wo)"
-                    align="left"
-                    styleClass="w-full"
-                  >
-                    <ng-template #marker let-event>
-                      <span
-                        class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-on-primary shadow"
-                      >
-                        <i [class]="progressIcon(event.status)" class="text-sm"></i>
-                      </span>
-                    </ng-template>
-                    <ng-template #content let-event>
-                      <div class="flex flex-col gap-0.5 pb-3">
-                        <span class="text-sm font-semibold text-primary-900">
-                          {{ progressLabel(event.status) }}
-                        </span>
-                        <span class="text-xs text-slate-500">
-                          {{ formatDateTime(event.occurredAt) }} · {{ event.actorName }}
-                        </span>
-                        @if (event.notes) {
-                          <p class="mt-1 text-sm text-slate-700">{{ event.notes }}</p>
-                        }
-                      </div>
-                    </ng-template>
-                  </p-timeline>
-                }
-              </p-card>
-
-              <!-- Evidence grid -->
-              <p-card header="Dokumentasi Evidence" styleClass="border border-primary-100">
-                @if (wo.evidence.length === 0) {
-                  <p class="text-sm text-slate-500">
-                    Belum ada foto evidence yang diunggah.
-                  </p>
-                } @else {
-                  <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-                    @for (ev of wo.evidence; track ev.id) {
-                      <figure
-                        class="flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 bg-surface"
-                      >
-                        <p-image
-                          [src]="evidenceUrl(ev)"
-                          [preview]="true"
-                          alt="Evidence {{ evidenceLabel(ev.kategori) }}"
-                          imageClass="aspect-[3/2] w-full object-cover"
-                        ></p-image>
-                        <figcaption class="px-2 pb-2 pt-1 text-xs text-slate-600">
-                          <span class="block font-semibold text-primary-700">
-                            {{ evidenceLabel(ev.kategori) }}
-                          </span>
-                          <span class="text-[10px] text-slate-500">
-                            {{ formatDateTime(ev.uploadedAt) }}
-                          </span>
-                        </figcaption>
-                      </figure>
-                    }
-                  </div>
-                }
-              </p-card>
-            </div>
-
-            @if (wo.status === 'validated_rejected' && wo.rejectedReason) {
-              <div
-                class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-              >
-                <i class="pi pi-exclamation-triangle mr-2"></i>
-                <span class="font-semibold">Alasan validasi ditolak:</span>
-                {{ wo.rejectedReason }}
-              </div>
-            }
-          </td>
-        </tr>
-        }
       </ng-template>
 
       <ng-template #emptymessage>
@@ -245,7 +147,12 @@
   </div>
 
   <!-- Statistik per status -->
-  <p-panel header="Statistik Work Order" [toggleable]="true" [collapsed]="true" styleClass="text-sm">
+  <p-panel
+    header="Statistik Work Order"
+    [toggleable]="true"
+    [collapsed]="true"
+    styleClass="text-sm"
+  >
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
       @for (s of statsByStatus(); track s.status) {
         <div

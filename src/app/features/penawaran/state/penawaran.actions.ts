@@ -27,3 +27,9 @@ export class SubmitRevisiPenawaran {
   readonly type = SubmitRevisiPenawaran.type;
   constructor(public readonly id: string, public readonly payload: Record<string, unknown>) {}
 }
+
+export class UploadInvoice {
+  static readonly type = '[Penawaran] Upload Invoice';
+  readonly type = UploadInvoice.type;
+  constructor(public readonly workOrderId: string, public readonly id: string, public readonly payload: Record<string, unknown>) {}
+}

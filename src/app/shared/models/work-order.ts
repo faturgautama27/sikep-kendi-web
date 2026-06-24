@@ -2,12 +2,12 @@ import type { Uuid, Timestamp, Money } from './common';
 import type { Image } from './image';
 
 export type WorkOrderStatus =
-  | 'assigned'
-  | 'received'
-  | 'in_progress'
-  | 'completed'
-  | 'validated_accepted'
-  | 'validated_rejected';
+  | 'DIBUAT'
+  | 'VENDOR_DITUGASKAN'
+  | 'DRAFT_CHECKLIST'
+  | 'PENAWARAN'
+  | 'DIVERIFIKASI'
+  | 'DIBAYAR';
 export type WorkOrderProgressStatus = 'received' | 'in_progress' | 'completed';
 export type EvidenceCategory =
   | 'kondisi_awal'

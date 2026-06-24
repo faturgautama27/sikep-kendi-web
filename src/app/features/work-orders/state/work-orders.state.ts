@@ -110,7 +110,7 @@ export class WorkOrdersState {
         ? {
             ...currentDetail,
             vendorId: action.vendorId,
-            status: 'assigned',
+            status: 'VENDOR_DITUGASKAN',
             assignedAt: new Date().toISOString(),
           }
         : currentDetail;
@@ -121,7 +121,7 @@ export class WorkOrdersState {
           ? {
               ...wo,
               vendorId: action.vendorId,
-              status: 'assigned' as const,
+              status: 'VENDOR_DITUGASKAN' as const,
               assignedAt: new Date().toISOString(),
             }
           : wo,

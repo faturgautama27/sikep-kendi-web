@@ -136,36 +136,86 @@
 </section>
 
 <!-- Add/Edit Item Dialog -->
-<p-dialog header="Item Checklist" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '540px' }" [draggable]="false">
+<p-dialog header="Item Checklist" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '560px' }" [draggable]="false">
   <form [formGroup]="itemForm" class="flex flex-col gap-4 pt-2">
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Nama Kerusakan / Komponen <span class="text-red-500">*</span></label>
-      <textarea pTextarea formControlName="namaKerusakan" rows="2" [maxLength]="200" placeholder="Deskripsikan kerusakan yang ditemukan..."></textarea>
-      @if (itemForm.get('namaKerusakan')!.invalid && itemForm.get('namaKerusakan')!.touched) {
-        <small class="text-red-500">Wajib diisi, maksimal 200 karakter.</small>
+
+    <!-- Upload Foto Checklist (utama) -->
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">
+        Foto Checklist
+        <span class="text-slate-400 font-normal">(maks. 5 foto)</span>
+      </label>
+      <label
+        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 py-5 cursor-pointer hover:bg-blue-50 transition"
+      >
+        <i class="pi pi-camera text-2xl text-blue-400"></i>
+        <span class="text-sm text-blue-600 font-medium">Klik untuk pilih foto</span>
+        <span class="text-xs text-slate-400">JPG, PNG – maks. 5 file</span>
+        <input type="file" accept="image/*" multiple class="hidden" (change)="onFotoSelected($event)" />
+      </label>
+      
+      @if (itemFotos().length > 0) {
+        <div class="grid grid-cols-4 gap-2 mt-1">
+          @for (foto of itemFotos(); track $index; let i = $index) {
+            <div class="relative rounded-lg overflow-hidden border border-slate-200 aspect-square bg-slate-100">
+              <img [src]="foto.previewUrl" class="w-full h-full object-cover" />
+              <button
+                type="button"
+                (click)="removeFoto(i)"
+                class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] shadow"
+              >✕</button>
+            </div>
+          }
+        </div>
       }
     </div>
+
+    <div class="h-px bg-slate-100"></div>
+
+    <!-- Nama Kerusakan (opsional) -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Nama Sparepart (opsional)</label>
+      <label class="text-sm font-medium text-slate-700">
+        Nama Kerusakan / Komponen
+        <span class="text-slate-400 font-normal">(opsional)</span>
+      </label>
+      <textarea pTextarea formControlName="namaKerusakan" rows="2" [maxLength]="200" placeholder="Contoh: Kebocoran oli mesin pada gasket..."></textarea>
+    </div>
+
+    <!-- Nama Sparepart (opsional) -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-slate-700">
+        Nama Sparepart
+        <span class="text-slate-400 font-normal">(opsional)</span>
+      </label>
       <input pInputText formControlName="namaSparepart" placeholder="Nama suku cadang yang digunakan" />
     </div>
+
+    <!-- Tindakan Perbaikan (opsional) -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Tindakan Perbaikan <span class="text-red-500">*</span></label>
-      <textarea pTextarea formControlName="tindakanPerbaikan" rows="3" [maxLength]="500" placeholder="Jelaskan tindakan yang dilakukan..."></textarea>
-      @if (itemForm.get('tindakanPerbaikan')!.invalid && itemForm.get('tindakanPerbaikan')!.touched) {
-        <small class="text-red-500">Wajib diisi, maksimal 500 karakter.</small>
-      }
+      <label class="text-sm font-medium text-slate-700">
+        Tindakan Perbaikan
+        <span class="text-slate-400 font-normal">(opsional)</span>
+      </label>
+      <textarea pTextarea formControlName="tindakanPerbaikan" rows="2" [maxLength]="500" placeholder="Contoh: Ganti gasket mesin dan tambah oli 4 liter..."></textarea>
     </div>
+
+    <!-- Estimasi Harga (opsional) -->
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Estimasi Harga (Rp) <span class="text-red-500">*</span></label>
-      <p-inputnumber formControlName="hargaItem" mode="currency" currency="IDR" locale="id-ID" [min]="1" class="w-full" />
-      @if (itemForm.get('hargaItem')!.invalid && itemForm.get('hargaItem')!.touched) {
-        <small class="text-red-500">Harga wajib diisi dan lebih dari 0.</small>
-      }
+      <label class="text-sm font-medium text-slate-700">
+        Estimasi Harga (Rp)
+        <span class="text-slate-400 font-normal">(opsional)</span>
+      </label>
+      <p-inputnumber formControlName="hargaItem" mode="currency" currency="IDR" locale="id-ID" [min]="0" class="w-full" placeholder="0" />
     </div>
+
   </form>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editingIndex() !== null ? 'Simpan Perubahan' : 'Tambah Item'" icon="pi pi-check" (onClick)="saveItem()" />
+    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" [disabled]="uploading()" />
+    <p-button
+      [label]="uploading() ? 'Mengupload...' : (editingIndex() !== null ? 'Simpan Perubahan' : 'Tambah Item')"
+      icon="pi pi-check"
+      [loading]="uploading()"
+      (onClick)="saveItem()"
+    />
   </ng-template>
 </p-dialog>

@@ -139,10 +139,10 @@ export const routes: Routes = [
         data: { title: 'Work Order', requiredPermissions: ['work_order.read'] },
       },
       {
-        path: 'work-orders/:id/draft-review',
-        loadComponent: () => import('@features/work-orders/draft-review.component').then((m) => m.DraftReviewComponent),
+        path: 'work-orders/:id',
+        loadComponent: () => import('@features/work-orders/work-order-detail.component').then((m) => m.WorkOrderDetailComponent),
         canActivate: [permissionGuard],
-        data: { title: 'Review Draft Checklist', requiredPermissions: ['draft_checklist.review'] },
+        data: { title: 'Detail Work Order', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'work-orders/:id/verifikasi',

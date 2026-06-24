@@ -107,10 +107,24 @@
           <p-datepicker formControlName="tanggalInvoice" [maxDate]="today" dateFormat="dd/mm/yy" [showIcon]="true" class="w-full" />
           @if (form.get('tanggalInvoice')!.invalid && form.get('tanggalInvoice')!.touched) { <small class="text-red-500">Wajib diisi.</small> }
         </div>
+        <div class="col-span-2 flex flex-col gap-2 mt-2">
+          <label class="text-sm font-medium">File Scan/Foto Invoice <span class="text-red-500">*</span></label>
+          @if (invoiceFileUrl()) {
+            <div class="relative w-48 h-48 rounded-xl overflow-hidden border border-slate-200">
+              <img [src]="invoiceFileUrl()" class="w-full h-full object-cover" alt="Invoice Preview" />
+              <button type="button" (click)="removeInvoiceFile(null)" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition shadow">
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            </div>
+          } @else {
+            <p-fileupload #fuInvoice mode="basic" accept="image/*" [maxFileSize]="5000000" chooseLabel="Pilih File Invoice" [customUpload]="true" [auto]="true" (uploadHandler)="onSelectInvoice($event, fuInvoice)" styleClass="w-full"></p-fileupload>
+          }
+          <small class="text-slate-500">Maks. ukuran file 5 MB. Format JPG/PNG.</small>
+        </div>
       </div>
 
       <div class="flex justify-end pt-2">
-        <p-button label="Kirim Penawaran ke Verifikator" icon="pi pi-send" (onClick)="kirimPenawaran()" />
+        <p-button label="Kirim Penawaran ke Verifikator" icon="pi pi-send" [loading]="submitting()" (onClick)="kirimPenawaran()" />
       </div>
     </form>
   }

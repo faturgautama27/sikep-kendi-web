@@ -16,21 +16,21 @@ import type { WorkOrder, WorkOrderStatus } from '@shared/models';
 type VendorView = 'notifikasi' | 'draft' | 'penawaran' | 'riwayat';
 
 const STATUS_LABELS: Record<WorkOrderStatus, string> = {
-  assigned: 'Ditugaskan',
-  received: 'Diterima',
-  in_progress: 'Dikerjakan',
-  completed: 'Selesai',
-  validated_accepted: 'Tervalidasi',
-  validated_rejected: 'Ditolak',
+  DIBUAT: 'Dibuat',
+  VENDOR_DITUGASKAN: 'Ditugaskan',
+  DRAFT_CHECKLIST: 'Draft Checklist',
+  PENAWARAN: 'Penawaran',
+  DIVERIFIKASI: 'Diverifikasi',
+  DIBAYAR: 'Selesai',
 };
 
 const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'danger' | 'secondary'> = {
-  assigned: 'info',
-  received: 'info',
-  in_progress: 'warn',
-  completed: 'secondary',
-  validated_accepted: 'success',
-  validated_rejected: 'danger',
+  DIBUAT: 'info',
+  VENDOR_DITUGASKAN: 'info',
+  DRAFT_CHECKLIST: 'warn',
+  PENAWARAN: 'warn',
+  DIVERIFIKASI: 'success',
+  DIBAYAR: 'success',
 };
 
 @Component({
@@ -101,10 +101,10 @@ export class VendorWorkOrdersComponent {
 
   private matchByView(row: WorkOrder, view: VendorView): boolean {
     switch (view) {
-      case 'draft': return ['assigned', 'received'].includes(row.status);
-      case 'penawaran': return ['in_progress', 'completed'].includes(row.status);
-      case 'riwayat': return ['validated_accepted', 'validated_rejected'].includes(row.status);
-      default: return ['assigned', 'received', 'in_progress'].includes(row.status);
+      case 'draft': return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST'].includes(row.status);
+      case 'penawaran': return ['PENAWARAN'].includes(row.status);
+      case 'riwayat': return ['DIVERIFIKASI', 'DIBAYAR'].includes(row.status);
+      default: return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN'].includes(row.status);
     }
   }
 
