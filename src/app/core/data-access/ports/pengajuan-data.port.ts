@@ -11,6 +11,7 @@ export interface PengajuanFilter {
   status?: PengajuanStatus;
   jenis?: PengajuanJenis;
   vehicleId?: string;
+  pengemudiId?: string;
 }
 
 export type PengajuanCreateInput = Omit<
@@ -24,7 +25,7 @@ export type PengajuanCreateInput = Omit<
   | 'submittedAt'
   | 'approvedAt'
   | 'rejectedAt'
->;
+> & { fotoIds?: number[] };
 
 export interface PengajuanDataPort {
   list(filter?: PengajuanFilter): Observable<Pengajuan[]>;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
@@ -10,12 +10,17 @@ import { MessageService } from 'primeng/api';
 import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { PopoverModule } from 'primeng/popover';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { PengajuanState } from './state';
 import type { Pengajuan, PengajuanJenis, PengajuanStatus } from '@shared/models';
+import { AuthState } from '@features/login/state';
+import { APP_ENV } from '@core/data-access/app-env.token';
+import { LoadPengajuan } from './state/pengajuan.actions';
+import { NgClass } from "../../../../node_modules/@angular/common/types/_common_module-chunk";
 
 interface StatusOption {
   label: string;
@@ -69,25 +74,42 @@ const STATUS_LABEL: Record<PengajuanStatus, string> = {
     InputTextModule,
     MultiSelectModule,
     PanelModule,
+    PopoverModule,
     SelectModule,
     TableModule,
     TagModule,
     ToastModule,
-  ],
+],
   providers: [MessageService],
   templateUrl: './pengajuan-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PengajuanListComponent {
+export class PengajuanListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
+  protected readonly env = inject(APP_ENV);
 
   protected readonly statusOptions = STATUS_OPTIONS;
   protected readonly jenisOptions = JENIS_OPTIONS;
 
   /** Snapshot list dari NGXS state. */
   private readonly list = this.store.selectSignal(PengajuanState.list);
+  private readonly currentUser = this.store.selectSignal(AuthState.user);
+
+  private readonly isDriverOnly = computed(() => {
+    const roles = this.currentUser()?.roles || [];
+    return roles.includes('pengemudi') && !roles.includes('admin_sistem');
+  });
+
+  ngOnInit(): void {
+    if (this.isDriverOnly()) {
+      const userId = this.currentUser()?.id;
+      if (userId) {
+        this.store.dispatch(new LoadPengajuan({ pengemudiId: userId }));
+      }
+    }
+  }
 
   /** Filter signals. */
   protected readonly searchQuery = signal('');
@@ -96,13 +118,14 @@ export class PengajuanListComponent {
 
   /** Hasil filter list yang dirender ke tabel. */
   protected readonly filteredList = computed<Pengajuan[]>(() => {
-    const all = this.list();
-    const rows = Array.isArray(all) ? all : [];
+    let all = this.list();
+    if (!Array.isArray(all)) all = [];
+
     const q = this.searchQuery().trim().toLowerCase();
     const statuses = this.selectedStatuses();
     const jenis = this.selectedJenis();
 
-    return rows.filter((p) => {
+    return all.filter((p) => {
       if (q) {
         const haystack = `${p.nomor} ${p.judul}`.toLowerCase();
         if (!haystack.includes(q)) return false;
@@ -122,7 +145,7 @@ export class PengajuanListComponent {
       ditolak: 0,
       work_order_terbuat: 0,
     };
-    for (const p of this.list()) {
+    for (const p of this.filteredList()) {
       counts[p.status] = (counts[p.status] ?? 0) + 1;
     }
     return STATUS_OPTIONS.map((s) => ({
@@ -134,11 +157,19 @@ export class PengajuanListComponent {
   });
 
   protected onCreateManual(): void {
-    this.router.navigate(['/pengajuan/new']);
+    if (this.env.isMobile) {
+      this.router.navigate(['/driver/pengajuan/new']);
+    } else {
+      this.router.navigate(['/pengajuan/new']);
+    }
   }
 
   protected onOpenDetail(p: Pengajuan): void {
-    this.router.navigate(['/pengajuan', p.id]);
+    if (this.isDriverOnly()) {
+      this.router.navigate(['/driver/riwayat', p.id]);
+    } else {
+      this.router.navigate(['/pengajuan', p.id]);
+    }
   }
 
   protected onApprove(p: Pengajuan, event: MouseEvent): void {

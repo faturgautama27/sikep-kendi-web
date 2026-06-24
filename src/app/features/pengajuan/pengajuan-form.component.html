@@ -1,22 +1,56 @@
 <p-toast />
-<section class="flex flex-col gap-5 max-w-2xl">
-  <app-page-header
-    [title]="isEditMode() ? 'Edit Pengajuan Pemeliharaan' : 'Buat Pengajuan Pemeliharaan'"
-    [subtitle]="isEditMode() ? 'Ubah data pengajuan pemeliharaan kendaraan Anda.' : 'Isi form di bawah untuk mengajukan pemeliharaan kendaraan.'"
-  />
 
-  <p-steps [model]="steps" [activeIndex]="step()" [readonly]="true" />
+<!-- ── Desktop Header ─────────────────────────────────────────────────── -->
+@if (!env.isMobile) {
+  <div class="mb-5 max-w-3xl">
+    <app-page-header
+      [title]="isEditMode() ? 'Edit Pengajuan Pemeliharaan' : 'Buat Pengajuan Pemeliharaan'"
+      [subtitle]="
+        isEditMode()
+          ? 'Ubah data pengajuan pemeliharaan kendaraan Anda.'
+          : 'Isi form di bawah untuk mengajukan pemeliharaan kendaraan.'
+      "
+    />
+  </div>
+}
+
+<!-- ── Main Layout Container ──────────────────────────────────────────── -->
+<div
+  class="flex flex-col"
+  [class.px-4]="env.isMobile"
+  [class.py-6]="env.isMobile"
+  [class.pb-6]="env.isMobile"
+  [class.bg-slate-50]="env.isMobile"
+  [class.gap-5]="!env.isMobile"
+  [class.max-w-3xl]="!env.isMobile"
+>
+  <p-steps
+    [model]="steps"
+    [activeIndex]="step()"
+    [readonly]="true"
+    [styleClass]="env.isMobile ? 'mb-4 scale-90 origin-left' : ''"
+  />
 
   <!-- Step 0: Data Kendaraan -->
   @if (step() === 0) {
     <form
       [formGroup]="step1"
-      class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      class="flex flex-col"
+      [class.gap-5]="env.isMobile"
+      [class.gap-4]="!env.isMobile"
+      [class.rounded-xl]="!env.isMobile"
+      [class.border]="!env.isMobile"
+      [class.border-slate-200]="!env.isMobile"
+      [class.bg-white]="!env.isMobile"
+      [class.p-6]="!env.isMobile"
+      [class.shadow-sm]="!env.isMobile"
     >
-      <h3 class="font-semibold text-slate-700">Step 1 — Data Kendaraan</h3>
+      @if (!env.isMobile) {
+        <h3 class="font-semibold text-slate-700">Step 1 — Data Kendaraan</h3>
+      }
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium"
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
           >Pilih Kendaraan <span class="text-red-500">*</span></label
         >
         <p-select
@@ -25,43 +59,50 @@
           optionLabel="label"
           optionValue="value"
           placeholder="-- Pilih Plat Nomor --"
-          class="w-full"
+          styleClass="w-full rounded-xl border-slate-200"
           (onChange)="onVehicleChange()"
+          appendTo="body"
         />
         @if (step1.get('vehicleId')!.invalid && step1.get('vehicleId')!.touched) {
-          <small class="text-red-500">Kendaraan wajib dipilih.</small>
+          <small class="text-red-500 font-medium ml-1">Kendaraan wajib dipilih.</small>
         }
       </div>
 
       @if (selectedVehicle(); as v) {
-        <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
-          <strong>{{ v.merk }} {{ v.tipe }}</strong> &mdash; Tahun {{ v.tahun }} &bull; Odometer:
-          {{ v.odometerCurrent.toLocaleString('id-ID') }} km
+        <div
+          class="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800 shadow-sm flex flex-col gap-1"
+        >
+          <div class="font-bold text-base">{{ v.merk }} {{ v.tipe }}</div>
+          <div class="text-blue-600/80 text-xs font-medium uppercase tracking-wider">
+            Tahun {{ v.tahun }} &bull; Odometer: {{ v.odometerCurrent.toLocaleString('id-ID') }} km
+          </div>
         </div>
       }
 
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium"
+      <div class="flex flex-col gap-2 mt-2">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
           >Jenis Pemeliharaan <span class="text-red-500">*</span></label
         >
-        <div class="flex gap-6">
-          <div class="flex items-center gap-2">
+        <div
+          class="flex flex-col md:flex-row gap-4 md:gap-6 bg-white p-4 rounded-xl border border-slate-200"
+        >
+          <div class="flex items-center gap-3">
             <p-radiobutton formControlName="jenisPengajuan" value="servis_rutin" inputId="sr" />
-            <label for="sr">Servis Rutin</label>
+            <label for="sr" class="font-medium text-slate-700">Servis Rutin</label>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-3">
             <p-radiobutton
               formControlName="jenisPengajuan"
               value="perbaikan_kerusakan"
               inputId="pk"
             />
-            <label for="pk">Perbaikan Kerusakan</label>
+            <label for="pk" class="font-medium text-slate-700">Perbaikan Kerusakan</label>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium"
+      <div class="flex flex-col gap-1.5 mt-2">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
           >Odometer Saat Pengajuan (km) <span class="text-red-500">*</span></label
         >
         <p-inputnumber
@@ -69,18 +110,21 @@
           [min]="0"
           [useGrouping]="true"
           suffix=" km"
-          class="w-full"
+          styleClass="w-full"
+          inputStyleClass="w-full rounded-xl border-slate-200 py-3 text-sm"
         />
       </div>
 
-      <div class="flex justify-end pt-2">
-        <p-button
-          label="Lanjutkan"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          (onClick)="goStep(1)"
-        />
-      </div>
+      @if (!env.isMobile) {
+        <div class="flex justify-end pt-2">
+          <p-button
+            label="Lanjutkan"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            (onClick)="goStep(1)"
+          />
+        </div>
+      }
     </form>
   }
 
@@ -88,23 +132,32 @@
   @if (step() === 1) {
     <form
       [formGroup]="step2"
-      class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      class="flex flex-col"
+      [class.gap-5]="env.isMobile"
+      [class.gap-4]="!env.isMobile"
+      [class.rounded-xl]="!env.isMobile"
+      [class.border]="!env.isMobile"
+      [class.border-slate-200]="!env.isMobile"
+      [class.bg-white]="!env.isMobile"
+      [class.p-6]="!env.isMobile"
+      [class.shadow-sm]="!env.isMobile"
     >
-      <h3 class="font-semibold text-slate-700">Step 2 — Detail Kerusakan</h3>
+      @if (!env.isMobile) {
+        <h3 class="font-semibold text-slate-700">Step 2 — Detail Kerusakan</h3>
+      }
 
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium"
-          >Deskripsi Kerusakan / Kebutuhan Pemeliharaan <span class="text-red-500">*</span></label
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+          >Deskripsi / Kebutuhan Pemeliharaan <span class="text-red-500">*</span></label
         >
         <textarea
           pTextarea
           formControlName="deskripsiKerusakan"
           rows="6"
           placeholder="Jelaskan kondisi kendaraan, kerusakan yang dialami, atau kebutuhan servis secara detail (min 10 karakter)..."
-          class="w-full resize-none"
-        >
-        </textarea>
-        <div class="flex justify-between text-xs text-slate-400">
+          class="w-full rounded-xl border-slate-200 resize-none p-3 text-sm"
+        ></textarea>
+        <div class="flex justify-between text-[11px] text-slate-400 font-medium ml-1">
           <span>
             @if (
               step2.get('deskripsiKerusakan')!.invalid && step2.get('deskripsiKerusakan')!.touched
@@ -117,61 +170,120 @@
       </div>
 
       <!-- Upload Foto -->
-      @if (env.isMobile) {
-        <div class="flex flex-col gap-2 mt-2">
-          <label class="text-sm font-medium">Foto Kendaraan / Kerusakan (Maksimal 5)</label>
-          
-          @if (photos().length > 0) {
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-              @for (img of photos(); track idx; let idx = $index) {
-                <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
-                  <img [src]="img.dataUrl" class="w-full h-full object-cover" />
-                  <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" (onClick)="removePhoto(idx)"></p-button>
-                  </div>
-                </div>
-              }
-            </div>
+      <div class="flex flex-col gap-2 mt-3">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+          >Foto Kendaraan / Kerusakan (Maksimal 5)</label
+        >
+
+        @if (photos().length > 0) {
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+            @for (img of photos(); track idx; let idx = $index) {
+              <div
+                class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm"
+              >
+                <img [src]="img.dataUrl" class="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  (click)="removePhoto(idx)"
+                  class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center backdrop-blur-md active:scale-95 transition shadow-md"
+                >
+                  <i class="pi pi-trash text-sm"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (photos().length < 5) {
+          @if (env.isMobile) {
+            <button
+              type="button"
+              (click)="takePhoto()"
+              class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 aspect-square text-blue-600 active:bg-blue-100 transition w-1/2"
+            >
+              <i class="pi pi-camera text-2xl"></i>
+              <span class="text-xs font-semibold">Ambil Foto</span>
+            </button>
+          } @else {
+            <p-fileupload
+              #fuPhoto
+              mode="advanced"
+              [multiple]="true"
+              accept="image/*"
+              [maxFileSize]="10000000"
+              chooseLabel="Pilih Tambahan Foto"
+              uploadLabel="Upload"
+              cancelLabel="Batal"
+              [customUpload]="true"
+              (uploadHandler)="onUploadPhoto($event, fuPhoto)"
+            >
+            </p-fileupload>
           }
-          
-          @if (photos().length < 5) {
-            <p-button icon="pi pi-camera" label="Ambil Foto" (onClick)="takePhoto()" [outlined]="true"></p-button>
-          }
+        }
+      </div>
+
+      @if (!env.isMobile) {
+        <div class="flex justify-between pt-4">
+          <p-button
+            label="Kembali"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="goStep(0)"
+          />
+          <p-button
+            label="Lanjutkan"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            (onClick)="goStep(2)"
+          />
         </div>
       }
-
-      <div class="flex justify-between pt-2">
-        <p-button
-          label="Kembali"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="goStep(0)"
-        />
-        <p-button
-          label="Lanjutkan"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          (onClick)="goStep(2)"
-        />
-      </div>
     </form>
   }
 
   <!-- Step 2: Konfirmasi -->
   @if (step() === 2) {
-    <div class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 class="font-semibold text-slate-700">Step 3 — Konfirmasi</h3>
+    <div
+      class="flex flex-col gap-4"
+      [class.rounded-xl]="!env.isMobile"
+      [class.border]="!env.isMobile"
+      [class.border-slate-200]="!env.isMobile"
+      [class.bg-white]="!env.isMobile"
+      [class.p-6]="!env.isMobile"
+      [class.shadow-sm]="!env.isMobile"
+    >
+      @if (!env.isMobile) {
+        <h3 class="font-semibold text-slate-700">Step 3 — Konfirmasi</h3>
+      } @else {
+        <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 flex gap-3">
+          <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
+          <p class="text-xs leading-relaxed text-amber-800">
+            Harap periksa kembali detail pengajuan Anda sebelum dikirim.
+          </p>
+        </div>
+      }
 
       @if (selectedVehicle(); as v) {
-        <div class="flex flex-col gap-2 text-sm">
-          <div class="flex justify-between border-b border-slate-100 py-2">
-            <span class="text-slate-500">Kendaraan</span>
-            <span class="font-medium">{{ v.nomorPolisi }} — {{ v.merk }} {{ v.tipe }}</span>
+        <div
+          class="flex flex-col gap-2 text-sm bg-white rounded-2xl border border-slate-100 p-5 shadow-sm"
+        >
+          <div class="flex flex-col gap-1 border-b border-slate-100 pb-3">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+              >Kendaraan</span
+            >
+            <span class="font-bold text-slate-800 text-base"
+              >{{ v.nomorPolisi }}
+              <span class="font-medium text-slate-500 text-sm ml-1"
+                >— {{ v.merk }} {{ v.tipe }}</span
+              ></span
+            >
           </div>
-          <div class="flex justify-between border-b border-slate-100 py-2">
-            <span class="text-slate-500">Jenis Pemeliharaan</span>
-            <span class="font-medium">
+          <div class="flex flex-col gap-1 border-b border-slate-100 py-3">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+              >Jenis Pemeliharaan</span
+            >
+            <span class="font-bold text-slate-800 text-sm">
               {{
                 step1.get('jenisPengajuan')!.value === 'servis_rutin'
                   ? 'Servis Rutin'
@@ -179,36 +291,83 @@
               }}
             </span>
           </div>
-          <div class="flex justify-between border-b border-slate-100 py-2">
-            <span class="text-slate-500">Odometer Pengajuan</span>
-            <span class="font-medium"
+          <div class="flex flex-col gap-1 border-b border-slate-100 py-3">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+              >Odometer Pengajuan</span
+            >
+            <span class="font-bold text-slate-800 text-sm"
               >{{ step1.get('odometerSaatPengajuan')!.value?.toLocaleString('id-ID') }} km</span
             >
           </div>
-          <div class="flex flex-col gap-1 py-2">
-            <span class="text-slate-500">Deskripsi Kerusakan</span>
-            <p class="mt-1 rounded-md bg-slate-50 p-3 text-slate-700">
+          <div class="flex flex-col gap-1.5 pt-3">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+              >Deskripsi Kerusakan</span
+            >
+            <p
+              class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-slate-600 text-sm leading-relaxed"
+            >
               {{ step2.get('deskripsiKerusakan')!.value }}
             </p>
           </div>
         </div>
       }
 
-      <div class="flex justify-between pt-2">
-        <p-button
-          label="Kembali"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="goStep(1)"
-        />
-        <p-button
-          [label]="isEditMode() ? 'Simpan Perubahan' : 'Kirim Pengajuan'"
-          icon="pi pi-send"
-          [loading]="submitting()"
-          (onClick)="onSubmit()"
-        />
-      </div>
+      @if (!env.isMobile) {
+        <div class="flex justify-between pt-4">
+          <p-button
+            label="Kembali"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="goStep(1)"
+          />
+          <p-button
+            [label]="isEditMode() ? 'Simpan Perubahan' : 'Kirim Pengajuan'"
+            icon="pi pi-send"
+            [loading]="submitting()"
+            (onClick)="onSubmit()"
+          />
+        </div>
+      }
     </div>
   }
-</section>
+</div>
+
+<!-- ── Mobile Sticky Bottom Bar ──────────────────────────────────────── -->
+@if (env.isMobile) {
+  <div class="pb-8 pt-2 px-5 flex gap-3">
+    @if (step() > 0) {
+      <button
+        class="flex items-center justify-center rounded-xl bg-slate-100 px-5 py-3.5 text-slate-600 transition active:scale-[0.98] active:bg-slate-200 font-bold"
+        (click)="prevStep()"
+        [disabled]="submitting()"
+      >
+        <i class="pi pi-arrow-left text-lg"></i>
+      </button>
+    }
+
+    @if (step() < 2) {
+      <button
+        class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-[0.98] active:bg-blue-700"
+        (click)="nextStep()"
+      >
+        <span>Lanjutkan</span>
+        <i class="pi pi-arrow-right text-lg"></i>
+      </button>
+    } @else {
+      <button
+        class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/30 transition active:scale-[0.98] active:bg-emerald-700 disabled:opacity-70 disabled:active:scale-100"
+        [disabled]="submitting()"
+        (click)="onSubmit()"
+      >
+        @if (submitting()) {
+          <i class="pi pi-spin pi-spinner text-lg"></i>
+          <span>Menyimpan...</span>
+        } @else {
+          <i class="pi pi-send text-lg"></i>
+          <span>{{ isEditMode() ? 'Simpan' : 'Kirim Pengajuan' }}</span>
+        }
+      </button>
+    }
+  </div>
+}

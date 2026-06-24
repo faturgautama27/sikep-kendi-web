@@ -1,27 +1,17 @@
-import type { Pengajuan, ApprovalPolicy, PengajuanStatus, PengajuanJenis } from '@shared/models';
+import type { Pengajuan, ApprovalPolicy } from '@shared/models';
+import { PengajuanFilter, PengajuanCreateInput } from '@core/data-access/ports/pengajuan-data.port';
 
 export class LoadPengajuan {
   static readonly type = '[Pengajuan] Load List';
   readonly type = LoadPengajuan.type;
-  constructor(public readonly filter?: { status?: PengajuanStatus; jenis?: PengajuanJenis; vehicleId?: string }) {}
+  constructor(public readonly filter?: PengajuanFilter) {}
 }
 
 export class CreatePengajuan {
   static readonly type = '[Pengajuan] Create';
   readonly type = CreatePengajuan.type;
   constructor(
-    public readonly input: Omit<
-      Pengajuan,
-      | 'id'
-      | 'nomor'
-      | 'status'
-      | 'createdAt'
-      | 'approvalSteps'
-      | 'workOrderId'
-      | 'submittedAt'
-      | 'approvedAt'
-      | 'rejectedAt'
-    >,
+    public readonly input: PengajuanCreateInput,
   ) {}
 }
 
@@ -30,18 +20,7 @@ export class UpdatePengajuan {
   readonly type = UpdatePengajuan.type;
   constructor(
     public readonly id: string,
-    public readonly input: Partial<Omit<
-      Pengajuan,
-      | 'id'
-      | 'nomor'
-      | 'status'
-      | 'createdAt'
-      | 'approvalSteps'
-      | 'workOrderId'
-      | 'submittedAt'
-      | 'approvedAt'
-      | 'rejectedAt'
-    >>,
+    public readonly input: Partial<PengajuanCreateInput>,
   ) {}
 }
 

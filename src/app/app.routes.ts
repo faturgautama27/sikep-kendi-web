@@ -33,20 +33,42 @@ export const routes: Routes = [
       {
         path: 'pengajuan/new',
         loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then(m => m.PengajuanFormComponent),
-        canActivate: [permissionGuard],
-        data: { title: 'Buat Pengajuan', requiredPermissions: ['pengajuan.create'] },
+        data: { title: 'Buat Pengajuan'},
+      },
+      {
+        path: 'pengajuan/:id/edit',
+        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then(m => m.PengajuanFormComponent),
+        data: { title: 'Edit Pengajuan'},
+      },
+      {
+        path: 'darurat',
+        loadComponent: () => import('@features/darurat/darurat-list.component').then(m => m.DaruratListComponent),
+        data: { title: 'Riwayat Laporan Darurat' },
       },
       {
         path: 'darurat/new',
         loadComponent: () => import('@features/darurat/darurat-form.component').then(m => m.DaruratFormComponent),
-        canActivate: [permissionGuard],
-        data: { title: 'Lapor Darurat', requiredPermissions: ['darurat.create'] },
+        data: { title: 'Lapor Darurat'},
+      },
+      {
+        path: 'darurat/:id/edit',
+        loadComponent: () => import('@features/darurat/darurat-form.component').then(m => m.DaruratFormComponent),
+        data: { title: 'Edit Laporan Darurat'},
+      },
+      {
+        path: 'darurat/:id',
+        loadComponent: () => import('@features/darurat/darurat-detail.component').then(m => m.DaruratDetailComponent),
+        data: { title: 'Detail Laporan Darurat'},
       },
       {
         path: 'riwayat',
         loadComponent: () => import('@features/pengajuan/pengajuan-list.component').then(m => m.PengajuanListComponent),
-        canActivate: [permissionGuard],
-        data: { title: 'Riwayat Pengajuan', requiredPermissions: ['pengajuan.read'] },
+        data: { title: 'Riwayat Pengajuan'},
+      },
+      {
+        path: 'riwayat/:id',
+        loadComponent: () => import('@features/pengajuan/pengajuan-detail.component').then((m) => m.PengajuanDetailComponent),
+        data: { title: 'Detail Pengajuan' },
       },
     ],
   },

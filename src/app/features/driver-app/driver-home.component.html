@@ -1,100 +1,82 @@
-<div class="min-h-screen bg-slate-100 pb-24">
-
+<div class="bg-slate-50 pb-5">
   <!-- ── Hero Header ─────────────────────────────────────────────────── -->
-  <div class="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 pt-10 pb-20">
+  <div
+    class="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 pt-10 pb-20"
+  >
     <!-- Background decoration -->
     <div class="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/5"></div>
     <div class="absolute -right-4 top-16 h-28 w-28 rounded-full bg-white/5"></div>
-    <div class="absolute left-0 bottom-0 h-16 w-full bg-gradient-to-t from-black/10 to-transparent"></div>
+    <div
+      class="absolute left-0 bottom-0 h-16 w-full bg-gradient-to-t from-black/10 to-transparent"
+    ></div>
 
     <div class="relative">
       <p class="text-blue-200 text-xs font-medium tracking-wide mb-1">{{ greeting() }}</p>
-      <h1 class="text-2xl font-extrabold text-white leading-tight">{{ user()?.fullName ?? 'Pengemudi' }}</h1>
+      <h1 class="text-2xl font-extrabold text-white leading-tight">
+        {{ user()?.fullName ?? 'Pengemudi' }}
+      </h1>
       <p class="text-blue-300 text-xs mt-1">{{ formatDate() }}</p>
 
       <!-- Quick status pills -->
       <div class="flex items-center gap-2 mt-4 flex-wrap">
-        <span class="flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-white">
+        <span
+          class="flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-white"
+        >
           <i class="pi pi-shield text-[10px]"></i>
-          Armada Siap
+          Siap Bertugas
         </span>
-        @if (currentDriver()?.simStatus === 'expiring_soon') {
-          <span class="flex items-center gap-1.5 rounded-full bg-amber-400/30 backdrop-blur-sm border border-amber-400/40 px-3 py-1 text-[11px] font-semibold text-amber-200">
-            <i class="pi pi-exclamation-triangle text-[10px]"></i>
-            SIM Mau Habis
-          </span>
-        } @else if (currentDriver()?.simStatus === 'expired') {
-          <span class="flex items-center gap-1.5 rounded-full bg-red-400/30 backdrop-blur-sm border border-red-400/40 px-3 py-1 text-[11px] font-semibold text-red-200">
-            <i class="pi pi-times-circle text-[10px]"></i>
-            SIM Expired
-          </span>
-        } @else {
-          <span class="flex items-center gap-1.5 rounded-full bg-emerald-400/20 backdrop-blur-sm border border-emerald-400/30 px-3 py-1 text-[11px] font-semibold text-emerald-200">
-            <i class="pi pi-shield text-[10px]"></i>
-            SIM Valid
-          </span>
-        }
       </div>
     </div>
   </div>
 
-  <!-- ── Vehicle Card (overlaps hero) ────────────────────────────────── -->
+  <!-- ── Ringkasan Laporan Aktif (overlaps hero) ────────────────────────────────── -->
   <div class="mx-4 -mt-10 relative z-10">
-    @if (activeAssignment(); as asg) {
-      <div class="rounded-2xl bg-white shadow-xl shadow-blue-900/15 border border-slate-100 overflow-hidden">
-        <!-- Card header -->
-        <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-50">
-          <div class="flex items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600">
-              <i class="pi pi-truck text-sm text-white"></i>
-            </div>
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Kendaraan Aktif</span>
+    <div
+      class="rounded-2xl bg-white shadow-xl shadow-blue-900/15 border border-slate-100 overflow-hidden"
+    >
+      <!-- Card header -->
+      <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-50">
+        <div class="flex items-center gap-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
+            <i class="pi pi-chart-pie text-sm text-white"></i>
           </div>
-          <span class="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-bold text-emerald-600">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Aktif
-          </span>
-        </div>
-
-        <!-- Plate number + model -->
-        <div class="px-5 py-4">
-          <p class="text-3xl font-black text-slate-800 tracking-[0.15em]">{{ asg.vehiclePlate }}</p>
-          <p class="text-xs text-slate-400 mt-0.5">{{ asg.mode === 'utama' ? 'Penugasan Utama' : 'Penugasan Sementara' }}</p>
-        </div>
-
-        <!-- Stats strip -->
-        <div class="grid grid-cols-2 border-t border-slate-50">
-          <div class="py-3 text-center">
-            <p class="text-xl font-black text-slate-800">1</p>
-            <p class="text-[10px] font-medium text-slate-400 mt-0.5">Pengajuan Aktif</p>
-          </div>
-          <div class="py-3 text-center border-l border-slate-50">
-            <p class="text-xl font-black text-emerald-500">Baik</p>
-            <p class="text-[10px] font-medium text-emerald-500 mt-0.5">Status Kendaraan</p>
-          </div>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-widest"
+            >Ringkasan Laporan</span
+          >
         </div>
       </div>
-    } @else {
-      <div class="rounded-2xl bg-white shadow-xl shadow-blue-900/15 border border-dashed border-slate-200 p-8 text-center">
-        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 mx-auto mb-3">
-          <i class="pi pi-car text-2xl text-slate-300"></i>
+
+      <!-- Stats strip -->
+      <div class="grid grid-cols-2">
+        <div class="py-4 text-center">
+          <p class="text-2xl font-black text-blue-600">{{ activeReports().pengajuan }}</p>
+          <p class="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wider">
+            Pengajuan Servis
+          </p>
         </div>
-        <p class="text-sm font-semibold text-slate-500">Belum Ada Kendaraan</p>
-        <p class="text-xs text-slate-400 mt-1">Hubungi admin untuk penugasan</p>
+        <div class="py-4 text-center border-l border-slate-50">
+          <p class="text-2xl font-black text-red-500">{{ activeReports().darurat }}</p>
+          <p class="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wider">
+            Keadaan Darurat
+          </p>
+        </div>
       </div>
-    }
+
+      <div class="bg-slate-50 border-t border-slate-100 px-5 py-3 text-center">
+        <p class="text-xs text-slate-500">Total laporan yang masih dalam proses.</p>
+      </div>
+    </div>
   </div>
-
-
 
   <!-- ── Quick Actions ────────────────────────────────────────────────── -->
   <div class="mx-4 mt-5">
     <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Menu Utama</p>
     <div class="grid grid-cols-2 gap-3">
-
       <!-- Lapor Kerusakan Darurat -->
-      <a routerLink="/driver/darurat/new"
-        class="relative flex flex-col gap-3 rounded-2xl bg-red-500 border border-red-500 p-4 shadow-lg shadow-red-500/25 transition active:scale-95">
+      <a
+        routerLink="/driver/darurat/new"
+        class="relative flex flex-col gap-3 rounded-2xl bg-red-500 border border-red-500 p-4 shadow-lg shadow-red-500/25 transition active:scale-95"
+      >
         <div class="absolute -right-3 -top-3 h-16 w-16 rounded-full bg-white/10"></div>
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
           <i class="pi pi-exclamation-triangle text-lg text-white"></i>
@@ -106,8 +88,10 @@
       </a>
 
       <!-- Pengajuan Servis -->
-      <a routerLink="/driver/pengajuan/new"
-        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95">
+      <a
+        routerLink="/driver/pengajuan/new"
+        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95"
+      >
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
           <i class="pi pi-wrench text-lg text-blue-600"></i>
         </div>
@@ -116,34 +100,65 @@
           <p class="text-xs text-slate-400 mt-0.5">Rutin & perbaikan biasa</p>
         </div>
       </a>
-
-      <!-- Riwayat -->
-      <a routerLink="/driver/riwayat"
-        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95 col-span-2">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50">
-            <i class="pi pi-history text-lg text-slate-600"></i>
-          </div>
-          <div>
-            <p class="text-sm font-bold text-slate-800">Riwayat Pengajuan</p>
-            <p class="text-xs text-slate-400 mt-0.5">Pantau status laporan & servis Anda</p>
-          </div>
-        </div>
-      </a>
-
     </div>
   </div>
 
   <!-- ── Today's Activity ─────────────────────────────────────────────── -->
   <div class="mx-4 mt-5">
-    <div class="flex items-center justify-between mb-3">
-    <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 p-8 text-center">
-      <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 mx-auto mb-3">
-        <i class="pi pi-sun text-2xl text-slate-300"></i>
-      </div>
-      <p class="text-sm font-semibold text-slate-400">Belum ada aktivitas baru</p>
-      <p class="text-xs text-slate-300 mt-1">Status kendaraan terpantau aman</p>
-    </div>
-  </div>
+    <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+      Aktivitas Terkini
+    </p>
 
+    @if (recentActivities().length === 0) {
+      <div class="grid w-full mb-3">
+        <div
+          class="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 p-8 text-center"
+        >
+          <div
+            class="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 mx-auto mb-3"
+          >
+            <i class="pi pi-sun text-2xl text-slate-300"></i>
+          </div>
+          <p class="text-sm font-semibold text-slate-400">Belum ada aktivitas baru</p>
+          <p class="text-xs text-slate-300 mt-1">Status kendaraan terpantau aman</p>
+        </div>
+      </div>
+    } @else {
+      <div class="flex flex-col gap-3 mb-3">
+        @for (act of recentActivities(); track act.id) {
+          <a
+            [routerLink]="act.route"
+            class="flex items-center gap-4 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95"
+          >
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+              [class.bg-blue-50]="act.type === 'pengajuan'"
+              [class.bg-red-50]="act.type === 'darurat'"
+            >
+              <i
+                class="pi text-lg"
+                [class.pi-wrench]="act.type === 'pengajuan'"
+                [class.text-blue-600]="act.type === 'pengajuan'"
+                [class.pi-exclamation-triangle]="act.type === 'darurat'"
+                [class.text-red-600]="act.type === 'darurat'"
+              ></i>
+            </div>
+
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-bold text-slate-800">{{ act.title }}</p>
+              <div class="flex items-center gap-2 mt-0.5">
+                <p class="text-xs text-slate-400">{{ act.date | date: 'dd MMM, HH:mm' }}</p>
+                <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                <p class="text-[10px] font-semibold tracking-wider uppercase text-slate-500">
+                  {{ act.status }}
+                </p>
+              </div>
+            </div>
+
+            <i class="pi pi-chevron-right text-sm text-slate-300"></i>
+          </a>
+        }
+      </div>
+    }
+  </div>
 </div>

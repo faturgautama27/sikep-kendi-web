@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { Location } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ButtonModule } from 'primeng/button';
@@ -14,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 
 import { PageHeaderComponent } from '@core/layout';
 import { DARURAT_DATA } from '@core/data-access/ports/darurat-data.port';
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { LaporanDarurat } from '@shared/models';
 import { VerifikasiDarurat, ApproveReimburseDarurat } from './state/darurat.actions';
 
@@ -38,6 +40,8 @@ import { VerifikasiDarurat, ApproveReimburseDarurat } from './state/darurat.acti
 export class DaruratDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly dataPort = inject(DARURAT_DATA);
+  protected readonly env = inject(APP_ENV);
+  private readonly location = inject(Location);
   private readonly store = inject(Store);
 
   // Instead of signals, we will use an observable converted to signal, but for simplicity let's use dataPort to fetch the single item.
@@ -77,6 +81,16 @@ export class DaruratDetailComponent implements OnInit {
 
   protected openApprove() {
     this.approveDialogVisible = true;
+  }
+
+  protected truncate(text: string | undefined, length: number): string {
+    if (!text) return '';
+    if (text.length <= length) return text;
+    return text.substring(0, length) + '...';
+  }
+
+  protected goBack(): void {
+    this.location.back();
   }
 
   protected submitApprove() {

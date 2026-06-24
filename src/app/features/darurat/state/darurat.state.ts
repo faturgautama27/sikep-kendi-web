@@ -39,9 +39,9 @@ export class DaruratState {
   }
 
   @Action(LoadDarurat)
-  load(ctx: StateContext<DaruratStateModel>) {
+  load(ctx: StateContext<DaruratStateModel>, action: LoadDarurat) {
     if (this.env.previewMode) return;
-    return this.data.list().pipe(
+    return this.data.list(action.query).pipe(
       tap((raw) => {
         ctx.patchState({ list: raw });
       }),

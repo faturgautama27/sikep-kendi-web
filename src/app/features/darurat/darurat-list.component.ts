@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { CommonModule } from '@angular/common';
@@ -11,10 +11,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { PanelModule } from 'primeng/panel';
+import { PopoverModule } from 'primeng/popover';
 import { ToastModule } from 'primeng/toast';
 
 import { DaruratState } from './state/darurat.state';
 import { LaporanDarurat } from '@shared/models';
+import { AuthState } from '@features/login/state';
+import { APP_ENV } from '@core/data-access/app-env.token';
+import { LoadDarurat } from './state/darurat.actions';
 
 const STATUS_OPTIONS = [
   { label: 'Menunggu Verifikasi', value: 'MENUNGGU_VERIFIKASI' },
@@ -36,18 +40,35 @@ const STATUS_OPTIONS = [
     InputTextModule,
     MultiSelectModule,
     PanelModule,
+    PopoverModule,
     ToastModule,
   ],
   templateUrl: './darurat-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DaruratListComponent {
+export class DaruratListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
+  protected readonly env = inject(APP_ENV);
 
   protected readonly statusOptions = STATUS_OPTIONS;
 
   private readonly list = this.store.selectSignal(DaruratState.list);
+  private readonly currentUser = this.store.selectSignal(AuthState.user);
+
+  private readonly isDriverOnly = computed(() => {
+    const roles = this.currentUser()?.roles || [];
+    return roles.includes('pengemudi') && !roles.includes('admin_sistem');
+  });
+
+  ngOnInit(): void {
+    if (this.isDriverOnly()) {
+      const userId = this.currentUser()?.id;
+      if (userId) {
+        this.store.dispatch(new LoadDarurat({ pengemudiId: userId }));
+      }
+    }
+  }
 
   protected readonly searchQuery = signal('');
   protected readonly selectedStatuses = signal<string[]>([]);
@@ -76,7 +97,7 @@ export class DaruratListComponent {
       DITOLAK: 0,
       REIMBURSE_APPROVED: 0,
     };
-    for (const p of this.list() || []) {
+    for (const p of this.filteredList()) {
       if (counts[p.status] !== undefined) {
         counts[p.status]++;
       }
@@ -90,11 +111,19 @@ export class DaruratListComponent {
   });
 
   protected onCreateManual(): void {
-    this.router.navigate(['/darurat/new']);
+    if (this.env.isMobile) {
+      this.router.navigate(['/driver/darurat/new']);
+    } else {
+      this.router.navigate(['/darurat/new']);
+    }
   }
 
   protected onOpenDetail(p: LaporanDarurat): void {
-    this.router.navigate(['/darurat', p.id]);
+    if (this.isDriverOnly()) {
+      this.router.navigate(['/driver/darurat', p.id]);
+    } else {
+      this.router.navigate(['/darurat', p.id]);
+    }
   }
 
   protected onResetFilter(): void {

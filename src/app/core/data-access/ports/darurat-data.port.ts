@@ -4,6 +4,7 @@ import { LaporanDarurat, DaruratStatus } from '@shared/models';
 
 export interface DaruratFilter {
   status?: DaruratStatus;
+  pengemudiId?: string;
   limit?: number;
   cursor?: number;
 }
@@ -11,7 +12,7 @@ export interface DaruratFilter {
 export type DaruratCreateInput = Pick<
   LaporanDarurat,
   'kendaraanId' | 'deskripsiDarurat' | 'lokasiKejadian' | 'totalPengeluaran'
-> & { fotoKerusakanIds?: string[]; fotoInvoiceIds?: string[] };
+> & { fotoKerusakanIds?: number[]; fotoInvoiceIds?: number[] };
 
 export interface DaruratDataPort {
   list(query?: DaruratFilter): Observable<LaporanDarurat[]>;

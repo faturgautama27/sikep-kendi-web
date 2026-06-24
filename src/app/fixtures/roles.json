@@ -34,7 +34,7 @@
       "id": "r-006",
       "name": "pengemudi",
       "displayName": "Pengemudi",
-      "permissionIds": ["p-001", "p-017", "p-018", "p-019"]
+      "permissionIds": ["p-001", "p-004", "p-017", "p-018", "p-019", "p-022"]
     }
   ],
   "permissions": [

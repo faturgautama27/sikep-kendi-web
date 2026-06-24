@@ -55,7 +55,10 @@ export class ApiPengajuanData implements PengajuanDataPort {
     const id = String(raw['id'] ?? '');
     const createdAt = String(raw['createdAt'] ?? new Date().toISOString());
     const fotos = Array.isArray(raw['fotos'])
-      ? (raw['fotos'] as Array<{ image?: unknown }>).map((row) => row.image).filter(Boolean)
+      ? (raw['fotos'] as Array<{ image?: any }>).map((row) => ({
+          ...row.image,
+          url: row.image.url
+        })).filter(Boolean)
       : [];
 
     const jenisRaw = (raw['jenis'] as string | undefined) ?? (raw['jenisPengajuan'] as string | undefined);
@@ -122,6 +125,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
     if (filter?.status) params = params.set('status', filter.status.toUpperCase());
     if (filter?.jenis) params = params.set('jenisPengajuan', filter.jenis.toUpperCase());
     if (filter?.vehicleId) params = params.set('kendaraanId', filter.vehicleId);
+    if (filter?.pengemudiId) params = params.set('pengemudiId', filter.pengemudiId);
     return this.http
       .get<Pengajuan[] | { data?: ApiPengajuanRow[] } | ApiEnvelope<ApiPengajuanRow[]>>(this.url('/pengajuan'), {
         params,
@@ -147,7 +151,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
         jenisPengajuan: input.jenis.toUpperCase(),
         deskripsiKerusakan: input.deskripsi || input.judul,
         odometerSaatPengajuan: input.odometerSaatPengajuan ? Number(input.odometerSaatPengajuan) : 0,
-        fotoIds: [],
+        fotoIds: input.fotoIds || [],
       })
       .pipe(
         map((resp) => this.mapPengajuan(this.unwrapOne(resp))),
@@ -160,6 +164,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
     if (input.jenis !== undefined) payload.jenisPengajuan = input.jenis.toUpperCase();
     if (input.deskripsi !== undefined) payload.deskripsiKerusakan = input.deskripsi;
     if (input.odometerSaatPengajuan !== undefined) payload.odometerSaatPengajuan = Number(input.odometerSaatPengajuan);
+    if (input.fotoIds !== undefined) payload.fotoIds = input.fotoIds;
     
     return this.http
       .patch<ApiPengajuanRow | ApiEnvelope<ApiPengajuanRow>>(this.url(`/pengajuan/${id}`), payload)

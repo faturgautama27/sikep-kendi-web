@@ -1,157 +1,287 @@
 <p-toast />
-<section class="flex w-full max-w-3xl flex-col gap-5">
-  <app-page-header
-    [title]="isEditMode() ? 'Edit Laporan Darurat' : 'Buat Laporan Darurat'"
-    [subtitle]="
-      isEditMode()
-        ? 'Perbarui data laporan kejadian darurat.'
-        : 'Input kejadian darurat pengemudi: kendaraan, deskripsi, lokasi, dan pengeluaran.'
-    "
-  />
+
+<!-- ── Desktop Header ─────────────────────────────────────────────────── -->
+@if (!env.isMobile) {
+  <div class="mb-5 max-w-3xl">
+    <app-page-header
+      [title]="isEditMode() ? 'Edit Laporan Darurat' : 'Buat Laporan Darurat'"
+      [subtitle]="
+        isEditMode()
+          ? 'Perbarui data laporan kejadian darurat.'
+          : 'Input kejadian darurat pengemudi: kendaraan, deskripsi, lokasi, dan pengeluaran.'
+      "
+    />
+  </div>
+}
+
+<!-- ── Main Form Content ──────────────────────────────────────────────── -->
+<div
+  class="space-y-6"
+  [class.px-5]="env.isMobile"
+  [class.py-6]="env.isMobile"
+  [class.pb-6]="env.isMobile"
+  [class.min-h-screen]="env.isMobile"
+  [class.bg-slate-50]="env.isMobile"
+  [class.max-w-3xl]="!env.isMobile"
+  [class.p-6]="!env.isMobile"
+  [class.bg-white]="!env.isMobile"
+  [class.rounded-xl]="!env.isMobile"
+  [class.border]="!env.isMobile"
+  [class.border-slate-200]="!env.isMobile"
+  [class.shadow-sm]="!env.isMobile"
+  [formGroup]="form"
+>
+  <!-- Info Alert -->
+  <div class="rounded-xl bg-blue-50 border border-blue-100 p-4 flex gap-3">
+    <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+    <p class="text-xs leading-relaxed text-blue-800">
+      Gunakan form ini <b>hanya</b> untuk kejadian darurat di jalan (misal: mogok, kecelakaan, atau
+      perbaikan mendesak).
+    </p>
+  </div>
 
   <div
-    class="grid grid-cols-2 gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-    [formGroup]="form"
+    [class.grid]="!env.isMobile"
+    [class.grid-cols-2]="!env.isMobile"
+    [class.gap-4]="!env.isMobile"
+    [class.flex]="env.isMobile"
+    [class.flex-col]="env.isMobile"
+    [class.gap-6]="env.isMobile"
   >
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Kendaraan</label>
+    <!-- Kendaraan -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Kendaraan <span class="text-red-500">*</span></label
+      >
       <p-select
         formControlName="kendaraanId"
         [options]="vehicleOpts()"
         placeholder="Pilih Kendaraan"
-        styleClass="w-full"
+        styleClass="w-full rounded-xl border-slate-200"
         appendTo="body"
       ></p-select>
       @if (form.controls.kendaraanId.invalid && form.controls.kendaraanId.touched) {
-        <small class="text-red-500">Kendaraan harus dipilih.</small>
+        <small class="text-red-500 font-medium ml-1">Kendaraan wajib dipilih.</small>
       }
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Lokasi Kejadian</label>
-      <input
-        pInputText
-        formControlName="lokasiKejadian"
-        placeholder="Contoh: Jl. Sudirman km 2"
-        class="w-full"
-      />
+    <!-- Lokasi Kejadian -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Lokasi Kejadian <span class="text-red-500">*</span></label
+      >
+      <div class="relative">
+        <input
+          pInputText
+          formControlName="lokasiKejadian"
+          placeholder="Contoh: Jl. Sudirman km 2"
+          class="w-full rounded-xl border-slate-200 pr-12 py-3 text-sm"
+        />
+        @if (env.isMobile) {
+          <button
+            type="button"
+            (click)="getLocation()"
+            class="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-blue-600 active:bg-blue-100 transition"
+            pTooltip="Gunakan GPS"
+          >
+            <i class="pi pi-map-marker"></i>
+          </button>
+        }
+      </div>
       @if (form.controls.lokasiKejadian.invalid && form.controls.lokasiKejadian.touched) {
-        <small class="text-red-500">Lokasi kejadian wajib diisi.</small>
+        <small class="text-red-500 font-medium ml-1">Lokasi kejadian wajib diisi.</small>
       }
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Total Pengeluaran (Opsional)</label>
+    <!-- Total Pengeluaran -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Total Pengeluaran (Opsional)</label
+      >
       <p-inputnumber
         formControlName="totalPengeluaran"
         mode="currency"
         currency="IDR"
         locale="id-ID"
         styleClass="w-full"
+        inputStyleClass="w-full rounded-xl border-slate-200 py-3 text-sm"
       ></p-inputnumber>
+      <small class="text-slate-400 ml-1">Kosongkan jika tidak ada pengeluaran tunai.</small>
     </div>
 
-    <div class="flex flex-col gap-1 md:col-span-2">
-      <label class="text-sm font-medium">Deskripsi Kejadian</label>
+    <!-- Deskripsi Kejadian -->
+    <div class="flex flex-col gap-1.5 md:col-span-2">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Deskripsi Kejadian <span class="text-red-500">*</span></label
+      >
       <textarea
         pTextarea
         formControlName="deskripsiDarurat"
         rows="4"
-        placeholder="Jelaskan secara detail kejadian darurat"
-        class="w-full"
+        placeholder="Jelaskan secara detail kejadian darurat yang dialami..."
+        class="w-full rounded-xl border-slate-200 resize-none p-3 text-sm"
       ></textarea>
       @if (form.controls.deskripsiDarurat.invalid && form.controls.deskripsiDarurat.touched) {
-        <small class="text-red-500">Deskripsi kejadian wajib diisi (minimal 10 karakter).</small>
+        <small class="text-red-500 font-medium ml-1"
+          >Deskripsi wajib diisi (minimal 10 karakter).</small
+        >
       }
     </div>
 
-    <!-- Upload Foto Kerusakan -->
-    <div class="flex flex-col gap-2 md:col-span-2 mt-2">
-      <label class="text-sm font-medium">Foto Bukti Kerusakan <span class="text-red-500">*</span></label>
-      
+    @if (env.isMobile) {
+      <!-- Divider for Mobile -->
+      <div class="h-px w-full bg-slate-200 my-2"></div>
+    }
+
+    <!-- Foto Kerusakan -->
+    <div class="flex flex-col gap-2 md:col-span-2">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Foto Kondisi / Kerusakan <span class="text-red-500">*</span></label
+      >
+
       @if (fotoKerusakanIds().length > 0) {
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
           @for (img of fotoKerusakanIds(); track img.id; let idx = $index) {
-            <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+            <div
+              class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm"
+            >
               @if (img.url) {
-                <img [src]="img.url" alt="Kerusakan" class="w-full h-full object-cover" />
+                <img [src]="img.url" class="w-full h-full object-cover" />
               } @else {
-                <div class="w-full h-full flex items-center justify-center text-slate-400">
-                  <i class="pi pi-image text-2xl"></i>
+                <div class="w-full h-full flex items-center justify-center text-slate-300">
+                  <i class="pi pi-image text-3xl"></i>
                 </div>
               }
-              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" (onClick)="removeKerusakan(idx)" pTooltip="Hapus Foto"></p-button>
-              </div>
+              <button
+                type="button"
+                (click)="removeKerusakan(idx)"
+                class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center backdrop-blur-md active:scale-95 transition shadow-md"
+              >
+                <i class="pi pi-trash text-sm"></i>
+              </button>
             </div>
           }
         </div>
       }
 
-      <p-fileupload 
-        #fuKerusakan
-        mode="advanced" 
-        [multiple]="true" 
-        accept="image/*" 
-        [maxFileSize]="10000000"
-        chooseLabel="Pilih Tambahan Foto"
-        uploadLabel="Upload"
-        cancelLabel="Batal"
-        [customUpload]="true"
-        (uploadHandler)="onUploadKerusakan($event, fuKerusakan)">
-      </p-fileupload>
+      @if (env.isMobile) {
+        <button
+          type="button"
+          (click)="takePhotoKerusakan()"
+          class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 aspect-square text-blue-600 active:bg-blue-100 transition w-1/2"
+        >
+          <i class="pi pi-camera text-2xl"></i>
+          <span class="text-xs font-semibold">Ambil Foto</span>
+        </button>
+      } @else {
+        <p-fileupload
+          #fuKerusakan
+          mode="advanced"
+          [multiple]="true"
+          accept="image/*"
+          [maxFileSize]="10000000"
+          chooseLabel="Pilih Tambahan Foto"
+          uploadLabel="Upload"
+          cancelLabel="Batal"
+          [customUpload]="true"
+          (uploadHandler)="onUploadKerusakan($event, fuKerusakan)"
+        >
+        </p-fileupload>
+      }
     </div>
 
-    <!-- Upload Foto Invoice -->
-    <div class="flex flex-col gap-2 md:col-span-2 mt-2">
-      <label class="text-sm font-medium">Foto Bukti Invoice/Struk <span class="text-red-500">*</span></label>
-      
+    <!-- Foto Invoice -->
+    <div class="flex flex-col gap-2 md:col-span-2 mt-4 md:mt-2">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Foto Bukti / Struk / Nota <span class="text-red-500">*</span></label
+      >
+
       @if (fotoInvoiceIds().length > 0) {
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
           @for (img of fotoInvoiceIds(); track img.id; let idx = $index) {
-            <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+            <div
+              class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm"
+            >
               @if (img.url) {
-                <img [src]="img.url" alt="Invoice" class="w-full h-full object-cover" />
+                <img [src]="img.url" class="w-full h-full object-cover" />
               } @else {
-                <div class="w-full h-full flex items-center justify-center text-slate-400">
-                  <i class="pi pi-file text-2xl"></i>
+                <div class="w-full h-full flex items-center justify-center text-slate-300">
+                  <i class="pi pi-file text-3xl"></i>
                 </div>
               }
-              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" (onClick)="removeInvoice(idx)" pTooltip="Hapus Foto"></p-button>
-              </div>
+              <button
+                type="button"
+                (click)="removeInvoice(idx)"
+                class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center backdrop-blur-md active:scale-95 transition shadow-md"
+              >
+                <i class="pi pi-trash text-sm"></i>
+              </button>
             </div>
           }
         </div>
       }
 
-      <p-fileupload 
-        #fuInvoice
-        mode="advanced" 
-        [multiple]="true" 
-        accept="image/*" 
-        [maxFileSize]="10000000"
-        chooseLabel="Pilih Tambahan Foto"
-        uploadLabel="Upload"
-        cancelLabel="Batal"
-        [customUpload]="true"
-        (uploadHandler)="onUploadInvoice($event, fuInvoice)">
-      </p-fileupload>
+      @if (env.isMobile) {
+        <button
+          type="button"
+          (click)="takePhotoInvoice()"
+          class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-emerald-200 bg-emerald-50/50 aspect-square text-emerald-600 active:bg-emerald-100 transition w-1/2"
+        >
+          <i class="pi pi-camera text-2xl"></i>
+          <span class="text-xs font-semibold">Foto Struk</span>
+        </button>
+      } @else {
+        <p-fileupload
+          #fuInvoice
+          mode="advanced"
+          [multiple]="true"
+          accept="image/*"
+          [maxFileSize]="10000000"
+          chooseLabel="Pilih Tambahan Foto"
+          uploadLabel="Upload"
+          cancelLabel="Batal"
+          [customUpload]="true"
+          (uploadHandler)="onUploadInvoice($event, fuInvoice)"
+        >
+        </p-fileupload>
+      }
     </div>
   </div>
 
-  <div class="flex justify-end gap-2">
-    <p-button
-      severity="secondary"
-      label="Batal"
-      [outlined]="true"
-      (onClick)="router.navigateByUrl('/darurat')"
-    />
-    <p-button
-      [label]="isEditMode() ? 'Simpan Perubahan' : 'Kirim Laporan'"
-      icon="pi pi-save"
-      [loading]="submitting()"
-      (onClick)="submit()"
-    />
+  <!-- Desktop Buttons -->
+  @if (!env.isMobile) {
+    <div class="flex justify-end gap-2 mt-6">
+      <p-button
+        severity="secondary"
+        label="Batal"
+        [outlined]="true"
+        (onClick)="router.navigateByUrl('/darurat')"
+      />
+      <p-button
+        [label]="isEditMode() ? 'Simpan Perubahan' : 'Kirim Laporan'"
+        icon="pi pi-save"
+        [loading]="submitting()"
+        (onClick)="submit()"
+      />
+    </div>
+  }
+</div>
+
+<!-- ── Mobile Sticky Bottom Bar ──────────────────────────────────────── -->
+@if (env.isMobile) {
+  <div class="pb-8 pt-2 px-5">
+    <button
+      class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-[0.98] active:bg-blue-700 disabled:opacity-70 disabled:active:scale-100"
+      [disabled]="submitting()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <i class="pi pi-spin pi-spinner text-lg"></i>
+        <span>Menyimpan...</span>
+      } @else {
+        <i class="pi pi-send text-lg"></i>
+        <span>{{ isEditMode() ? 'Simpan Perubahan' : 'Kirim Laporan' }}</span>
+      }
+    </button>
   </div>
-</section>
+}

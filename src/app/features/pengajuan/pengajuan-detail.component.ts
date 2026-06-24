@@ -9,8 +9,10 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { Location } from '@angular/common';
 
 import { PENGAJUAN_DATA, type PengajuanDataPort } from '@core/data-access/ports/pengajuan-data.port';
+import { APP_ENV } from '@core/data-access/app-env.token';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -67,6 +69,8 @@ export class PengajuanDetailComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly msg = inject(MessageService);
   private readonly dataPort = inject<PengajuanDataPort>(PENGAJUAN_DATA);
+  protected readonly env = inject(APP_ENV);
+  private readonly location = inject(Location);
 
   protected readonly pengajuanId = signal<string>('');
   protected readonly pengajuan = signal<Pengajuan | null>(null);
@@ -166,5 +170,9 @@ export class PengajuanDetailComponent implements OnInit {
   protected formatDate(iso: string | null): string {
     if (!iso) return '—';
     return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+  }
+
+  protected goBack(): void {
+    this.location.back();
   }
 }

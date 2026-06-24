@@ -8,4 +8,5 @@ export const environment: AppEnvironment = {
   tagline: 'Sistem Kendali Pemeliharaan Kendaraan Dinas',
   defaultLocale: 'id-ID',
   timezone: 'Asia/Jakarta',
+  isMobile: true,
 };

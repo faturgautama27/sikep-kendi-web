@@ -1,8 +1,9 @@
-import { DaruratCreateInput } from '@core/data-access/ports/darurat-data.port';
+import { DaruratFilter, DaruratCreateInput } from '@core/data-access/ports/darurat-data.port';
 
 export class LoadDarurat {
   static readonly type = '[Darurat] Load';
   readonly type = LoadDarurat.type;
+  constructor(public readonly query?: DaruratFilter) {}
 }
 
 export class CreateDarurat {

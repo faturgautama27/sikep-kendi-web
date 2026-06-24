@@ -1,153 +1,281 @@
-<div class="flex flex-col gap-5">
+<div class="flex flex-col gap-5" [class.p-4]="env.isMobile">
   <!-- Header -->
-  <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-    <div>
-      <h1 class="text-2xl font-bold text-primary-900">Laporan Darurat</h1>
-      <p class="text-sm text-slate-500">
-        Kelola laporan kejadian darurat kendaraan, verifikasi, dan reimbursement.
-      </p>
+  <header class="flex items-center justify-between">
+    @if (!env.isMobile) {
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold text-primary-900">Laporan Darurat</h1>
+        <p class="text-xs md:text-sm text-slate-500">Kelola laporan kejadian darurat kendaraan.</p>
+      </div>
+    }
+
+    <div
+      class="flex items-center gap-2"
+      [class.w-full]="env.isMobile"
+      [class.justify-between]="env.isMobile"
+    >
+      @if (env.isMobile) {
+        <p-button
+          label="Filter"
+          icon="pi pi-filter"
+          severity="secondary"
+          [rounded]="true"
+          [text]="true"
+          (onClick)="op.toggle($event)"
+        ></p-button>
+
+        <p-popover #op>
+          <div class="flex flex-col gap-4 w-64 p-2">
+            <h3 class="font-bold text-slate-800">Filter Pencarian</h3>
+            <div class="flex flex-col gap-1">
+              <label for="search_mobile" class="text-xs font-medium text-slate-600"
+                >Cari nopol / merk / deskripsi</label
+              >
+              <span class="p-input-icon-left">
+                <input
+                  pInputText
+                  id="search_mobile"
+                  class="w-full"
+                  placeholder="Kata kunci..."
+                  [ngModel]="searchQuery()"
+                  (ngModelChange)="searchQuery.set($event)"
+                />
+              </span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label for="status_mobile" class="text-xs font-medium text-slate-600">Status</label>
+              <p-multiSelect
+                inputId="status_mobile"
+                [options]="statusOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Semua status"
+                [maxSelectedLabels]="1"
+                selectedItemsLabel="{0} item"
+                [ngModel]="selectedStatuses()"
+                (ngModelChange)="selectedStatuses.set($event)"
+                styleClass="w-full"
+              ></p-multiSelect>
+            </div>
+            <p-button
+              label="Reset Filter"
+              severity="secondary"
+              size="small"
+              class="mt-2"
+              (onClick)="onResetFilter(); op.hide()"
+            ></p-button>
+          </div>
+        </p-popover>
+      }
+
+      <p-button
+        icon="pi pi-plus"
+        [label]="env.isMobile ? 'Lapor Darurat' : 'Buat Laporan'"
+        severity="primary"
+        (onClick)="onCreateManual()"
+      ></p-button>
     </div>
-    <p-button
-      icon="pi pi-plus"
-      label="Buat Laporan"
-      severity="primary"
-      (onClick)="onCreateManual()"
-    ></p-button>
   </header>
 
-  <!-- Filter bar -->
-  <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
-    <div class="flex flex-1 flex-col gap-1">
-      <label for="search" class="text-xs font-medium text-slate-600">Cari nopol / merk / deskripsi</label>
-      <span class="p-input-icon-left">
-        <input
-          pInputText
-          id="search"
-          class="w-full"
-          placeholder="cth. B 1234 CD atau ban bocor"
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
-        />
-      </span>
-    </div>
-
-    <div class="flex flex-col gap-1 md:w-72">
-      <label for="status" class="text-xs font-medium text-slate-600">Status</label>
-      <p-multiSelect
-        inputId="status"
-        [options]="statusOptions"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Semua status"
-        [maxSelectedLabels]="2"
-        selectedItemsLabel="{0} status dipilih"
-        [ngModel]="selectedStatuses()"
-        (ngModelChange)="selectedStatuses.set($event)"
-        styleClass="w-full"
-      ></p-multiSelect>
-    </div>
-
-    <p-button
-      icon="pi pi-filter-slash"
-      label="Reset"
-      severity="secondary"
-      [text]="true"
-      (onClick)="onResetFilter()"
-    ></p-button>
-  </div>
-
-  <!-- Tabel Darurat -->
-  <div class="sikep-table-wrap">
-    <p-table 
-      [value]="filteredList()" 
-      [paginator]="true" 
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 20, 50]"
-      dataKey="id"
-      [rowHover]="true"
-      [stripedRows]="true"
-      currentPageReportTemplate="{first}–{last} dari {totalRecords} laporan"
-      [showCurrentPageReport]="true"
-      responsiveLayout="scroll"
-      styleClass="text-sm"
+  @if (!env.isMobile) {
+    <!-- Filter bar -->
+    <div
+      class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4"
     >
-      <ng-template #header>
-        <tr>
-          <th class="w-32">Kendaraan</th>
-          <th class="w-32">Pengemudi</th>
-          <th>Deskripsi Kejadian</th>
-          <th class="w-40 text-right">Pengeluaran</th>
-          <th class="w-48">Status</th>
-          <th class="w-32">Tanggal</th>
-          <th class="w-24 text-right">Aksi</th>
-        </tr>
-      </ng-template>
-
-      <ng-template #body let-row>
-        <tr>
-          <td>
-            <button
-              type="button"
-              class="font-semibold text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              (click)="onOpenDetail(row)"
-            >
-              {{ row.kendaraan?.nomorPolisi || row.kendaraanLabel || '-' }}
-            </button>
-          </td>
-          <td>{{ row.pengemudi?.fullName || row.pengemudi?.name || row.pengemudiNama || '-' }}</td>
-          <td class="text-slate-700" [title]="row.deskripsiDarurat">{{ truncate(row.deskripsiDarurat, 60) }}</td>
-          <td class="text-right font-medium text-slate-800">
-            {{ formatRupiah(row.totalPengeluaran) }}
-          </td>
-          <td>
-            @let st = getStatusProps(row.status);
-            <p-tag [severity]="st.severity" [value]="st.label" [rounded]="true"></p-tag>
-          </td>
-          <td class="text-xs text-slate-500">{{ formatDate(row.createdAt) }}</td>
-          <td>
-            <div class="flex items-center justify-end gap-1">
-              <p-button 
-                icon="pi pi-eye" 
-                severity="secondary"
-                [text]="true"
-                [rounded]="true" 
-                pTooltip="Detail"
-                size="small"
-                (onClick)="onOpenDetail(row)"
-              ></p-button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="7" class="py-10 text-center text-sm text-slate-500">
-            Tidak ada laporan darurat yang cocok dengan filter saat ini.
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
-
-  <!-- Statistik per status -->
-  <p-panel header="Statistik Laporan Darurat" [toggleable]="true" [collapsed]="true" styleClass="text-sm">
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      @for (s of statsByStatus(); track s.status) {
-        <div
-          class="flex flex-col items-start gap-1 rounded-md border border-slate-200 bg-surface-alt px-3 py-2"
+      <div class="flex flex-1 flex-col gap-1">
+        <label for="search" class="text-xs font-medium text-slate-600"
+          >Cari nopol / merk / deskripsi</label
         >
-          <p-tag
-            [value]="s.label"
-            [severity]="s.severity"
-            [rounded]="true"
-            styleClass="text-[10px]"
-          ></p-tag>
-          <span class="text-2xl font-bold text-primary-900">{{ s.count }}</span>
+        <span class="p-input-icon-left">
+          <input
+            pInputText
+            id="search"
+            class="w-full"
+            placeholder="cth. B 1234 CD atau ban bocor"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </span>
+      </div>
+
+      <div class="flex flex-col gap-1 md:w-72">
+        <label for="status" class="text-xs font-medium text-slate-600">Status</label>
+        <p-multiSelect
+          inputId="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Semua status"
+          [maxSelectedLabels]="2"
+          selectedItemsLabel="{0} status dipilih"
+          [ngModel]="selectedStatuses()"
+          (ngModelChange)="selectedStatuses.set($event)"
+          styleClass="w-full"
+        ></p-multiSelect>
+      </div>
+
+      <p-button
+        icon="pi pi-filter-slash"
+        label="Reset"
+        severity="secondary"
+        [text]="true"
+        (onClick)="onResetFilter()"
+      ></p-button>
+    </div>
+
+    <!-- Tabel Darurat -->
+    <div class="sikep-table-wrap">
+      <p-table
+        [value]="filteredList()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        dataKey="id"
+        [rowHover]="true"
+        [stripedRows]="true"
+        currentPageReportTemplate="{first}–{last} dari {totalRecords} laporan"
+        [showCurrentPageReport]="true"
+        responsiveLayout="scroll"
+        styleClass="text-sm"
+      >
+        <ng-template #header>
+          <tr>
+            <th class="w-32">Kendaraan</th>
+            <th class="w-32">Pengemudi</th>
+            <th>Deskripsi Kejadian</th>
+            <th class="w-40 text-right">Pengeluaran</th>
+            <th class="w-48">Status</th>
+            <th class="w-32">Tanggal</th>
+            <th class="w-24 text-right">Aksi</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-row>
+          <tr>
+            <td>
+              <button
+                type="button"
+                class="font-semibold text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                (click)="onOpenDetail(row)"
+              >
+                {{ row.kendaraan?.nomorPolisi || row.kendaraanLabel || '-' }}
+              </button>
+            </td>
+            <td>
+              {{ row.pengemudi?.fullName || row.pengemudi?.name || row.pengemudiNama || '-' }}
+            </td>
+            <td class="text-slate-700" [title]="row.deskripsiDarurat">
+              {{ truncate(row.deskripsiDarurat, 60) }}
+            </td>
+            <td class="text-right font-medium text-slate-800">
+              {{ formatRupiah(row.totalPengeluaran) }}
+            </td>
+            <td>
+              @let st = getStatusProps(row.status);
+              <p-tag [severity]="st.severity" [value]="st.label" [rounded]="true"></p-tag>
+            </td>
+            <td class="text-xs text-slate-500">{{ formatDate(row.createdAt) }}</td>
+            <td>
+              <div class="flex items-center justify-end gap-1">
+                <p-button
+                  icon="pi pi-eye"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  pTooltip="Detail"
+                  size="small"
+                  (onClick)="onOpenDetail(row)"
+                ></p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="7" class="py-10 text-center text-sm text-slate-500">
+              Tidak ada laporan darurat yang cocok dengan filter saat ini.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  } @else {
+    <!-- Mobile Card List -->
+    <div class="flex flex-col gap-4 mb-20">
+      @for (row of filteredList(); track row.id) {
+        <div
+          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3 transition active:scale-95"
+          (click)="onOpenDetail(row)"
+        >
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="font-bold text-slate-800 text-sm mb-1 leading-tight">
+                {{ row.kendaraan?.nomorPolisi || '-' }}
+              </p>
+              <p class="text-xs text-slate-500 line-clamp-1">
+                {{ truncate(row.deskripsiDarurat, 45) }}
+              </p>
+            </div>
+            @let st = getStatusProps(row.status);
+            <p-tag
+              [value]="st.label"
+              [severity]="st.severity"
+              [rounded]="true"
+              styleClass="text-[10px] px-2 py-0.5"
+            ></p-tag>
+          </div>
+
+          <div class="flex items-center gap-4 text-xs text-slate-600 mt-1">
+            <div class="flex items-center gap-1.5">
+              <i class="pi pi-user text-slate-400"></i>
+              <span>{{ truncate(row.pengemudi?.fullName || '-', 15) }}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i class="pi pi-calendar text-slate-400"></i>
+              <span>{{ formatDate(row.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center mt-2 pt-3 border-t border-slate-50">
+            <span class="text-xs font-medium text-slate-500">Total Pengeluaran</span>
+            <span class="font-bold text-slate-800">{{ formatRupiah(row.totalPengeluaran) }}</span>
+          </div>
+        </div>
+      } @empty {
+        <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-slate-200">
+          <i class="pi pi-inbox text-3xl text-slate-300 mb-3 block"></i>
+          <p class="text-sm font-medium text-slate-500">Belum ada laporan</p>
+          <p class="text-xs text-slate-400 mt-1">Laporan darurat akan muncul di sini</p>
         </div>
       }
     </div>
-  </p-panel>
+  }
+
+  <!-- Statistik per status -->
+  @if (!env.isMobile) {
+    <p-panel
+      header="Statistik Laporan Darurat"
+      [toggleable]="true"
+      [collapsed]="true"
+      styleClass="text-sm"
+    >
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        @for (s of statsByStatus(); track s.status) {
+          <div
+            class="flex flex-col items-start gap-1 rounded-md border border-slate-200 bg-surface-alt px-3 py-2"
+          >
+            <p-tag
+              [value]="s.label"
+              [severity]="s.severity"
+              [rounded]="true"
+              styleClass="text-[10px]"
+            ></p-tag>
+            <span class="text-2xl font-bold text-primary-900">{{ s.count }}</span>
+          </div>
+        }
+      </div>
+    </p-panel>
+  }
 
   <p-toast position="top-right"></p-toast>
 </div>

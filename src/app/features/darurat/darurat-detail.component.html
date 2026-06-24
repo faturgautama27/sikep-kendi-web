@@ -1,29 +1,38 @@
 <p-toast />
 
-<section class="flex w-full max-w-4xl flex-col gap-5">
+<section
+  class="flex w-full max-w-4xl flex-col gap-5"
+  [class.px-5]="env.isMobile"
+  [class.pt-5]="env.isMobile"
+  [class.pb-10]="env.isMobile"
+>
   @if (laporan(); as row) {
-    <app-page-header
-      [title]="'Detail Darurat #' + row.id"
-      [subtitle]="'Informasi kejadian darurat dan riwayat status.'"
-    >
-      <div page-header-action class="flex gap-2">
-        <p-button
-          icon="pi pi-arrow-left"
-          label="Kembali"
-          [outlined]="true"
-          severity="secondary"
-          [routerLink]="['/darurat']"
-        />
-        @if (isWaitingVerifikasi) {
+    @if (!env.isMobile) {
+      <app-page-header
+        [title]="'Detail Darurat #' + row.id"
+        [subtitle]="'Informasi kejadian darurat dan riwayat status.'"
+      >
+        <div page-header-action class="flex gap-2">
           <p-button
-            icon="pi pi-pencil"
-            label="Edit Laporan"
-            severity="info"
-            [routerLink]="['/darurat', row.id, 'edit']"
+            icon="pi pi-arrow-left"
+            label="Kembali"
+            [outlined]="true"
+            severity="secondary"
+            (onClick)="goBack()"
           />
-        }
-      </div>
-    </app-page-header>
+          @if (isWaitingVerifikasi) {
+            <p-button
+              icon="pi pi-pencil"
+              label="Edit Laporan"
+              severity="info"
+              [routerLink]="
+                env.isMobile ? ['/driver/darurat', row.id, 'edit'] : ['/darurat', row.id, 'edit']
+              "
+            />
+          }
+        </div>
+      </app-page-header>
+    }
 
     <div class="grid gap-4 md:grid-cols-2">
       <!-- Info Kejadian -->
@@ -74,8 +83,8 @@
         </div>
 
         <!-- Aksi -->
-        @if (isWaitingVerifikasi) {
-          <div class="mt-auto pt-4 border-t border-slate-100 flex gap-2">
+        @if (isWaitingVerifikasi && !env.isMobile) {
+          <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
             <p-button
               label="Verifikasi (Setuju)"
               icon="pi pi-check"
@@ -149,6 +158,17 @@
         </div>
       </div>
     }
+
+    <!-- Mobile Actions -->
+    @if (env.isMobile && isWaitingVerifikasi) {
+      <div
+        class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40"
+      >
+        <a [routerLink]="['/driver/darurat', row.id, 'edit']" class="block">
+          <p-button label="Edit Laporan" icon="pi pi-pencil" styleClass="w-full" class="w-full" />
+        </a>
+      </div>
+    }
   } @else {
     <div class="p-8 text-center text-slate-500">Memuat laporan...</div>
   }
@@ -159,7 +179,7 @@
   [header]="verifikasiApproved ? 'Verifikasi Laporan' : 'Tolak Laporan'"
   [(visible)]="verifikasiDialogVisible"
   [modal]="true"
-  [style]="{ width: '25vw' }"
+  [style]="{ width: '90vw', maxWidth: '400px' }"
 >
   <div class="flex flex-col gap-4 pt-2">
     <p>
@@ -193,7 +213,7 @@
   header="Approve Reimbursement"
   [(visible)]="approveDialogVisible"
   [modal]="true"
-  [style]="{ width: '25vw' }"
+  [style]="{ width: '90vw', maxWidth: '400px' }"
 >
   <div class="flex flex-col gap-4 pt-2">
     <p>Apakah Anda menyetujui pengajuan reimbursement untuk laporan darurat ini?</p>

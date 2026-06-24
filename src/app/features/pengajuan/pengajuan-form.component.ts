@@ -20,14 +20,17 @@ import { StepsModule } from 'primeng/steps';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { FileUploadModule } from 'primeng/fileupload';
 
 import { PageHeaderComponent } from '@core/layout';
 import { VehiclesState } from '@features/vehicles/state/vehicles.state';
 import { LoadVehicles } from '@features/vehicles/state/vehicles.actions';
 import { CreatePengajuan, UpdatePengajuan } from './state/pengajuan.actions';
 import { PENGAJUAN_DATA } from '@core/data-access/ports/pengajuan-data.port';
+import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
 import type { Vehicle } from '@shared/models';
 
+import { catchError, forkJoin, of } from 'rxjs';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Network } from '@capacitor/network';
@@ -49,6 +52,7 @@ type Step = 0 | 1 | 2;
     TagModule,
     ToastModule,
     PageHeaderComponent,
+    FileUploadModule,
   ],
   providers: [MessageService],
   templateUrl: './pengajuan-form.component.html',
@@ -61,6 +65,7 @@ export class PengajuanFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly msg = inject(MessageService);
   private readonly dataPort = inject(PENGAJUAN_DATA);
+  private readonly imageData = inject(IMAGE_DATA);
   protected readonly env = inject(APP_ENV);
   private readonly offlineQueue = inject(OfflineQueueDbService);
 
@@ -70,7 +75,7 @@ export class PengajuanFormComponent implements OnInit {
   protected readonly pengajuanId = signal<string | null>(null);
   protected readonly isEditMode = computed(() => !!this.pengajuanId());
   
-  protected readonly photos = signal<{ dataUrl: string }[]>([]);
+  protected readonly photos = signal<{ id?: string, dataUrl: string }[]>([]);
 
   private readonly allVehicles = this.store.selectSignal(VehiclesState.list);
   protected readonly vehicleOpts = computed(() =>
@@ -144,6 +149,18 @@ export class PengajuanFormComponent implements OnInit {
     return (this.step2.get('deskripsiKerusakan')!.value ?? '').length;
   }
   
+  private dataUrlToFile(dataUrl: string, filename: string): File {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  }
+
   protected async takePhoto() {
     if (this.photos().length >= 5) {
       this.msg.add({ severity: 'warn', summary: 'Batas Foto', detail: 'Maksimal 5 foto' });
@@ -157,17 +174,55 @@ export class PengajuanFormComponent implements OnInit {
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera
       });
-      
       if (image.dataUrl) {
-        this.photos.update(p => [...p, { dataUrl: image.dataUrl! }]);
+        this.submitting.set(true);
+        const file = this.dataUrlToFile(image.dataUrl, `pengajuan_${Date.now()}.jpg`);
+        this.imageData.upload(file).subscribe({
+          next: (res: any) => {
+            this.submitting.set(false);
+            this.photos.set([...this.photos(), { id: String(res.id), dataUrl: res.url }]);
+            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
+          },
+          error: () => {
+            this.submitting.set(false);
+            this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto' });
+          }
+        });
       }
     } catch (e) {
-      console.error('Camera error', e);
+      console.error(e);
     }
   }
   
   protected removePhoto(index: number) {
     this.photos.update(p => p.filter((_, i) => i !== index));
+  }
+
+  protected onUploadPhoto(event: { files: File[] }, uploader: unknown) {
+    const files: File[] = event.files;
+    this.submitting.set(true);
+    const uploads = files.map((f: File) => this.imageData.upload(f));
+    
+    forkJoin(uploads).pipe(
+      catchError(() => {
+        this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload foto pengajuan' });
+        return of([]);
+      })
+    ).subscribe(images => {
+      this.submitting.set(false);
+      const newItems = images.map((img: { id: string, url?: string }) => ({ id: String(img.id), dataUrl: img.url ?? '' }));
+      this.photos.update(p => [...p, ...newItems]);
+      (uploader as { clear: () => void }).clear();
+      this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
+    });
+  }
+
+  protected prevStep() {
+    this.goStep((this.step() - 1) as Step);
+  }
+
+  protected nextStep() {
+    this.goStep((this.step() + 1) as Step);
   }
 
   protected goStep(target: Step): void {
@@ -205,10 +260,9 @@ export class PengajuanFormComponent implements OnInit {
       sourceExecutionId: null,
       sourceItemId: null,
       spareparts: [],
-      photos: [],
+      fotoIds: this.photos().map(x => Number(x.id)),
       odometerSaatPengajuan: s1.odometerSaatPengajuan ?? 0,
       clientUuid: this.clientUuid,
-      offlinePhotos: this.photos().map(p => p.dataUrl)
     };
 
     if (this.env.isMobile) {
@@ -228,7 +282,9 @@ export class PengajuanFormComponent implements OnInit {
           jenis: input.jenis,
           deskripsi: input.deskripsi,
           odometerSaatPengajuan: input.odometerSaatPengajuan,
+          fotoIds: input.fotoIds,
         }) 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       : new CreatePengajuan(input as any);
 
     this.store.dispatch(action).subscribe({

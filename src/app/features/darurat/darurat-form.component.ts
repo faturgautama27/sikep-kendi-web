@@ -2,29 +2,28 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Store } from '@ngxs/store';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
+import { FileUploadModule } from 'primeng/fileupload';
+import { PageHeaderComponent } from '@core/layout';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { FileUploadModule, FileUploadEvent } from 'primeng/fileupload';
 
-import { PageHeaderComponent } from '@core/layout';
 import { CreateDarurat, UpdateDarurat } from './state/darurat.actions';
 import { VehiclesState } from '@features/vehicles/state/vehicles.state';
 import { LoadVehicles } from '@features/vehicles/state/vehicles.actions';
 import { DARURAT_DATA } from '@core/data-access/ports/darurat-data.port';
 import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
-import { catchError, forkJoin, of, tap } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { OfflineQueueDbService } from '@core/data-access/offline-queue-db.service';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-darurat-form',
@@ -94,8 +93,8 @@ export class DaruratFormComponent implements OnInit {
           });
           
           if (res.fotos) {
-            const kerusakan = res.fotos.filter(f => f.tipe === 'KERUSAKAN').map((f: any) => ({ id: String(f.imageId), url: f?.url ?? '' }));
-            const invoice = res.fotos.filter(f => f.tipe === 'INVOICE').map((f: any) => ({ id: String(f.imageId), url: f?.url ?? '' }));
+            const kerusakan = res.fotos.filter(f => f.tipe === 'KERUSAKAN').map((f: { imageId: number, url?: string }) => ({ id: String(f.imageId), url: f.url ?? '' }));
+            const invoice = res.fotos.filter(f => f.tipe === 'INVOICE').map((f: { imageId: number, url?: string }) => ({ id: String(f.imageId), url: f.url ?? '' }));
             this.fotoKerusakanIds.set(kerusakan);
             this.fotoInvoiceIds.set(invoice);
           }
@@ -105,21 +104,23 @@ export class DaruratFormComponent implements OnInit {
     }
   }
 
-  protected onUploadKerusakan(event: any, uploader: any) {
+
+
+  protected onUploadKerusakan(event: { files: File[] }, uploader: unknown) {
     const files: File[] = event.files;
     this.submitting.set(true);
-    const uploads = files.map(f => this.imageData.upload(f));
+    const uploads = files.map((f: File) => this.imageData.upload(f));
     
     forkJoin(uploads).pipe(
-      catchError(err => {
+      catchError(() => {
         this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload foto kerusakan' });
         return of([]);
       })
     ).subscribe(images => {
       this.submitting.set(false);
-      const newItems = images.map(img => ({ id: String(img.id), url: img.url }));
+      const newItems = images.map((img: { id: string, url?: string }) => ({ id: String(img.id), url: img.url ?? '' }));
       this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), ...newItems]);
-      uploader.clear();
+      (uploader as { clear: () => void }).clear();
       this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto kerusakan berhasil diupload' });
     });
   }
@@ -130,29 +131,41 @@ export class DaruratFormComponent implements OnInit {
     this.fotoKerusakanIds.set(arr);
   }
 
-  protected onUploadInvoice(event: any, uploader: any) {
+  protected removeInvoice(index: number) {
+    const arr = [...this.fotoInvoiceIds()];
+    arr.splice(index, 1);
+    this.fotoInvoiceIds.set(arr);
+  }
+
+  protected onUploadInvoice(event: { files: File[] }, uploader: unknown) {
     const files: File[] = event.files;
     this.submitting.set(true);
-    const uploads = files.map(f => this.imageData.upload(f));
+    const uploads = files.map((f: File) => this.imageData.upload(f));
     
     forkJoin(uploads).pipe(
-      catchError(err => {
+      catchError(() => {
         this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload foto invoice' });
         return of([]);
       })
     ).subscribe(images => {
       this.submitting.set(false);
-      const newItems = images.map(img => ({ id: String(img.id), url: img.url }));
+      const newItems = images.map((img: { id: string, url?: string }) => ({ id: String(img.id), url: img.url ?? '' }));
       this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), ...newItems]);
-      uploader.clear();
+      (uploader as { clear: () => void }).clear();
       this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto invoice berhasil diupload' });
     });
   }
 
-  protected removeInvoice(index: number) {
-    const arr = [...this.fotoInvoiceIds()];
-    arr.splice(index, 1);
-    this.fotoInvoiceIds.set(arr);
+  private dataUrlToFile(dataUrl: string, filename: string): File {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   }
 
   protected async takePhotoKerusakan() {
@@ -164,7 +177,19 @@ export class DaruratFormComponent implements OnInit {
         source: CameraSource.Camera
       });
       if (image.dataUrl) {
-        this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), { id: crypto.randomUUID(), url: image.dataUrl }]);
+        this.submitting.set(true);
+        const file = this.dataUrlToFile(image.dataUrl, `kerusakan_${Date.now()}.jpg`);
+        this.imageData.upload(file).subscribe({
+          next: (res: any) => {
+            this.submitting.set(false);
+            this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), { id: String(res.id), url: res.url }]);
+            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
+          },
+          error: () => {
+            this.submitting.set(false);
+            this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto' });
+          }
+        });
       }
     } catch (e) {
       console.error(e);
@@ -180,7 +205,19 @@ export class DaruratFormComponent implements OnInit {
         source: CameraSource.Camera
       });
       if (image.dataUrl) {
-        this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), { id: crypto.randomUUID(), url: image.dataUrl }]);
+        this.submitting.set(true);
+        const file = this.dataUrlToFile(image.dataUrl, `invoice_${Date.now()}.jpg`);
+        this.imageData.upload(file).subscribe({
+          next: (res: any) => {
+            this.submitting.set(false);
+            this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), { id: String(res.id), url: res.url }]);
+            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto invoice diupload' });
+          },
+          error: () => {
+            this.submitting.set(false);
+            this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload invoice' });
+          }
+        });
       }
     } catch (e) {
       console.error(e);
@@ -193,7 +230,7 @@ export class DaruratFormComponent implements OnInit {
       const pos = await Geolocation.getCurrentPosition();
       const text = `${pos.coords.latitude}, ${pos.coords.longitude}`;
       this.form.patchValue({ lokasiKejadian: text });
-    } catch (e) {
+    } catch {
       this.msg.add({ severity: 'error', summary: 'Lokasi', detail: 'Gagal mendapatkan lokasi GPS' });
     }
   }
@@ -224,9 +261,8 @@ export class DaruratFormComponent implements OnInit {
       lokasiKejadian: val.lokasiKejadian!,
       totalPengeluaran: val.totalPengeluaran!,
       deskripsiDarurat: val.deskripsiDarurat!,
-      fotoKerusakanIds: this.fotoKerusakanIds().map(x => x.id),
-      fotoInvoiceIds: this.fotoInvoiceIds().map(x => x.id),
-      offlinePhotos: this.fotoKerusakanIds().map(x => x.url).concat(this.fotoInvoiceIds().map(x => x.url))
+      fotoKerusakanIds: this.fotoKerusakanIds().map(x => Number(x.id)),
+      fotoInvoiceIds: this.fotoInvoiceIds().map(x => Number(x.id)),
     };
 
     if (this.env.isMobile) {
@@ -242,6 +278,7 @@ export class DaruratFormComponent implements OnInit {
 
     const action = this.isEditMode()
       ? new UpdateDarurat(this.daruratId()!, input)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       : new CreateDarurat(input as any);
 
     this.store.dispatch(action).subscribe({
