@@ -15,6 +15,22 @@ export type EvidenceCategory =
   | 'sparepart_sesudah'
   | 'pasca_perbaikan';
 
+export interface WorkOrderInvoice {
+  nomorInvoice: string;
+  totalTagihan: number;
+  tanggalInvoice: string;
+  imageUrl: string | null;
+}
+
+export interface WorkOrderPenawaranDetail {
+  id: string;
+  versi: number;
+  totalBiaya: number;
+  status: string;
+  catatanPerubahan?: string | null;
+  invoice: WorkOrderInvoice | null;
+}
+
 export interface WorkOrder {
   id: Uuid;
   nomor: string; // WO-2025-0001
@@ -35,6 +51,7 @@ export interface WorkOrder {
   rejectedReason: string | null;
   progressUpdates: WorkOrderProgress[];
   evidence: WorkOrderEvidence[];
+  penawaranDetail: WorkOrderPenawaranDetail | null;
 }
 
 export interface WorkOrderProgress {

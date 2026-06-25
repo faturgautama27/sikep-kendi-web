@@ -141,7 +141,6 @@ export const routes: Routes = [
       {
         path: 'work-orders/:id',
         loadComponent: () => import('@features/work-orders/work-order-detail.component').then((m) => m.WorkOrderDetailComponent),
-        canActivate: [permissionGuard],
         data: { title: 'Detail Work Order', requiredPermissions: ['work_order.read'] },
       },
       {

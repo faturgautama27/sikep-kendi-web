@@ -47,73 +47,191 @@
               <td class="font-medium text-slate-800">{{ item.namaSparepart || '-' }}</td>
               <td>{{ item.namaKerusakan || '-' }}</td>
               <td>{{ item.tindakanPerbaikan || '-' }}</td>
-              <td class="text-right font-medium text-primary-700">{{ formatRupiah(item.hargaItem) }}</td>
+              <td class="text-right font-medium text-primary-700">
+                {{ formatRupiah(item.hargaItem) }}
+              </td>
             </tr>
           </ng-template>
           <ng-template #footer>
             <tr>
               <td colspan="3" class="text-right font-bold">Total Biaya</td>
-              <td class="text-right font-bold text-primary-700">{{ formatRupiah(draft.totalHarga) }}</td>
+              <td class="text-right font-bold text-primary-700">
+                {{ formatRupiah(draft.totalHarga) }}
+              </td>
             </tr>
           </ng-template>
         </p-table>
 
         <!-- Approval Actions -->
-        <div *ngIf="(wo.status === 'DRAFT_CHECKLIST' || draft.status === 'DIKIRIM') && permissions().includes('draft_checklist.review')" class="mt-6 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4">
+        <div
+          *ngIf="
+            (wo.status === 'DRAFT_CHECKLIST' || draft.status === 'DIKIRIM') &&
+            permissions().includes('draft_checklist.review')
+          "
+          class="mt-6 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4"
+        >
           <h3 class="text-sm font-semibold text-primary-900">Review Draft Checklist</h3>
-          <p class="text-xs text-primary-700">Vendor telah mengirimkan draft. Silakan review dan setujui untuk lanjut ke penawaran resmi.</p>
+          <p class="text-xs text-primary-700">
+            Vendor telah mengirimkan draft. Silakan review dan setujui untuk lanjut ke penawaran
+            resmi.
+          </p>
           <div class="mt-2 flex items-end gap-3">
             <div class="flex-1">
-              <label class="mb-1 block text-xs font-medium text-primary-800">Catatan Revisi/Penolakan (Opsional)</label>
-              <input pInputText class="w-full" [(ngModel)]="catatan" placeholder="Masukkan alasan jika menolak..." />
+              <label class="mb-1 block text-xs font-medium text-primary-800"
+                >Catatan Revisi/Penolakan (Opsional)</label
+              >
+              <input
+                pInputText
+                class="w-full"
+                [(ngModel)]="catatan"
+                placeholder="Masukkan alasan jika menolak..."
+              />
             </div>
-            <p-button label="Tolak & Revisi" icon="pi pi-times" severity="danger" (onClick)="reject()"></p-button>
+            <p-button
+              label="Tolak & Revisi"
+              icon="pi pi-times"
+              severity="danger"
+              (onClick)="reject()"
+            ></p-button>
             <p-button label="Setujui Checklist" icon="pi pi-check" (onClick)="approve()"></p-button>
           </div>
         </div>
       </p-card>
 
       <!-- Penawaran (if exists) -->
-      <p-card header="Penawaran Resmi" *ngIf="latestPenawaran() as pnw">
-        <div class="mb-4 flex flex-col gap-1 border-b border-slate-200 pb-3">
-          <div class="flex justify-between items-center">
-            <span class="text-sm font-semibold text-slate-700">Status Penawaran</span>
-            <p-tag [value]="pnw.status" [severity]="pnw.status === 'DIKIRIM' ? 'info' : (pnw.status === 'DIVERIFIKASI' ? 'success' : 'warn')"></p-tag>
+      <p-card header="Penawaran Resmi" *ngIf="wo.penawaranDetail as pnw">
+        <div class="flex flex-col gap-3">
+          <!-- Status & Total -->
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div>
+              <p class="text-xs text-slate-500">Total Penawaran</p>
+              <p class="text-xl font-bold text-primary-700">{{ formatRupiah(pnw.totalBiaya) }}</p>
+            </div>
+            <p-tag
+              [value]="pnw.status"
+              [severity]="
+                pnw.status === 'DIKIRIM'
+                  ? 'info'
+                  : pnw.status === 'DIVERIFIKASI'
+                    ? 'success'
+                    : 'warn'
+              "
+            ></p-tag>
           </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-slate-500">Nomor Invoice</span>
-            <span class="font-mono font-medium">{{ pnw.nomorInvoice || '-' }}</span>
+
+          <!-- Invoice info -->
+          <div *ngIf="pnw.invoice as inv" class="grid grid-cols-2 gap-3">
+            <div>
+              <p class="text-xs text-slate-500">Nomor Invoice</p>
+              <p class="text-sm font-semibold font-mono text-slate-800">{{ inv.nomorInvoice }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500">Tanggal Invoice</p>
+              <p class="text-sm font-semibold text-slate-800">
+                {{ formatDateTime(inv.tanggalInvoice) }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500">Total Tagihan</p>
+              <p class="text-sm font-semibold text-primary-700">
+                {{ formatRupiah(inv.totalTagihan) }}
+              </p>
+            </div>
+            <div class="col-span-2" *ngIf="inv.imageUrl">
+              <p class="text-xs text-slate-500 mb-2">Scan/Foto Invoice</p>
+              <p-image
+                [src]="inv.imageUrl"
+                [preview]="true"
+                alt="Invoice"
+                imageClass="w-48 h-40 object-cover rounded-lg border border-slate-200"
+              ></p-image>
+            </div>
           </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-slate-500">Total Biaya</span>
-            <span class="font-bold text-primary-700">{{ formatRupiah(pnw.totalBiaya) }}</span>
+
+          <!-- No invoice yet -->
+          <div *ngIf="!pnw.invoice" class="text-sm text-slate-400 italic">
+            Invoice belum diunggah oleh Vendor.
           </div>
-          <div *ngIf="pnw.catatanPerubahan" class="mt-2 text-xs text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
+
+          <!-- Catatan perubahan -->
+          <div
+            *ngIf="pnw.catatanPerubahan"
+            class="text-xs text-orange-600 bg-orange-50 p-3 rounded-lg border border-orange-200"
+          >
             <strong>Catatan Perubahan:</strong> {{ pnw.catatanPerubahan }}
           </div>
-        </div>
 
-        <!-- Approval Actions for Penawaran -->
-        <div *ngIf="pnw.status === 'DIKIRIM' && permissions().includes('penawaran.review')" class="flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4">
-          <h3 class="text-sm font-semibold text-primary-900">Review Penawaran Resmi</h3>
-          <div class="mt-2 flex items-end gap-3">
-            <div class="flex-1">
-              <label class="mb-1 block text-xs font-medium text-primary-800">Catatan Revisi/Penolakan (Opsional)</label>
-              <input pInputText class="w-full" [(ngModel)]="catatan" placeholder="Masukkan alasan jika revisi..." />
+          <!-- Approval Actions: Pengurus Barang -->
+          <div
+            *ngIf="pnw.status === 'DIKIRIM' && permissions().includes('penawaran.approve')"
+            class="mt-2 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4"
+          >
+            <h3 class="text-sm font-semibold text-primary-900">Review Penawaran Resmi</h3>
+            <p class="text-xs text-primary-700">
+              Vendor telah mengirimkan penawaran lengkap dengan invoice. Setujui untuk meneruskan ke
+              Verifikator, atau minta revisi jika ada ketidaksesuaian.
+            </p>
+            <div class="mt-2 flex items-end gap-3">
+              <div class="flex-1">
+                <label class="mb-1 block text-xs font-medium text-primary-800"
+                  >Catatan Revisi (Opsional)</label
+                >
+                <input
+                  pInputText
+                  class="w-full"
+                  [(ngModel)]="catatan"
+                  placeholder="Masukkan alasan jika meminta revisi..."
+                />
+              </div>
+              <p-button
+                label="Minta Revisi"
+                icon="pi pi-undo"
+                severity="danger"
+                (onClick)="requestRevisiPenawaran()"
+              ></p-button>
+              <p-button
+                label="Setujui Penawaran"
+                icon="pi pi-check"
+                severity="success"
+                (onClick)="approvePenawaran()"
+              ></p-button>
             </div>
-            <p-button label="Minta Revisi" icon="pi pi-refresh" severity="danger"></p-button>
-            <p-button label="Setujui Penawaran" icon="pi pi-check" severity="success"></p-button>
+          </div>
+
+          <!-- Link ke halaman Verifikasi SHS: Verifikator -->
+          <div
+            *ngIf="pnw.status === 'DIVERIFIKASI' && permissions().includes('verifikasi.shs')"
+            class="mt-2 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4"
+          >
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-amber-900">Penawaran siap diverifikasi harga</p>
+              <p class="text-xs text-amber-700">
+                Pengurus Barang telah menyetujui penawaran ini. Silakan isi Standart Harga Supplier
+                (SHS) per item.
+              </p>
+            </div>
+            <a [routerLink]="['/work-orders', wo.id, 'verifikasi']">
+              <p-button
+                label="Buka Halaman Verifikasi SHS"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                severity="warn"
+              ></p-button>
+            </a>
           </div>
         </div>
       </p-card>
-      
+
       <!-- Evidence -->
       <p-card header="Dokumentasi Evidence">
         <div *ngIf="wo.evidence.length === 0" class="text-sm text-slate-500">
           Belum ada foto evidence yang diunggah.
         </div>
         <div *ngIf="wo.evidence.length > 0" class="grid grid-cols-2 gap-3 md:grid-cols-3">
-          <figure *ngFor="let ev of wo.evidence" class="flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+          <figure
+            *ngFor="let ev of wo.evidence"
+            class="flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+          >
             <p-image
               [src]="evidenceUrl(ev)"
               [preview]="true"
@@ -135,16 +253,27 @@
         <div *ngIf="wo.progressUpdates.length === 0" class="text-sm text-slate-500">
           Belum ada update progres dari vendor.
         </div>
-        <p-timeline *ngIf="wo.progressUpdates.length > 0" [value]="wo.progressUpdates" align="left" styleClass="w-full">
+        <p-timeline
+          *ngIf="wo.progressUpdates.length > 0"
+          [value]="wo.progressUpdates"
+          align="left"
+          styleClass="w-full"
+        >
           <ng-template #marker let-event>
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-white shadow">
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-white shadow"
+            >
               <i [class]="progressIcon(event.status)" class="text-sm"></i>
             </span>
           </ng-template>
           <ng-template #content let-event>
             <div class="flex flex-col gap-0.5 pb-3">
-              <span class="text-sm font-semibold text-primary-900">{{ progressLabel(event.status) }}</span>
-              <span class="text-xs text-slate-500">{{ formatDateTime(event.occurredAt) }} · {{ event.actorName }}</span>
+              <span class="text-sm font-semibold text-primary-900">{{
+                progressLabel(event.status)
+              }}</span>
+              <span class="text-xs text-slate-500"
+                >{{ formatDateTime(event.occurredAt) }} · {{ event.actorName }}</span
+              >
               <p *ngIf="event.notes" class="mt-1 text-sm text-slate-700">{{ event.notes }}</p>
             </div>
           </ng-template>

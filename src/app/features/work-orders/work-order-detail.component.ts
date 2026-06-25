@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { HttpClient } from '@angular/common/http';
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -11,13 +12,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TimelineModule } from 'primeng/timeline';
-import { PageHeaderComponent } from '@core/layout';
 
 import { WorkOrdersState, GetWorkOrderDetail } from './state';
-import { LoadDraftChecklist, DraftChecklistState, ApproveDraft, RejectDraft } from '@features/draft-checklist/state';
-import { PenawaranState, LoadPenawaran } from '@features/penawaran/state';
+import { DraftChecklistState, ApproveDraft, RejectDraft } from '@features/draft-checklist/state';
 import { AuthState } from '@features/login/state/auth.state';
 import type { WorkOrderProgressStatus, WorkOrderStatus, WorkOrderEvidence } from '@shared/models';
+import { APP_ENV } from '@core/data-access/app-env.token';
 
 const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DIBUAT: 'Dibuat',
@@ -70,7 +70,6 @@ function evidencePlaceholder(kategori: string): string {
     TableModule,
     TagModule,
     TimelineModule,
-    PageHeaderComponent,
   ],
   templateUrl: './work-order-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +78,8 @@ export class WorkOrderDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly store = inject(Store);
+  private readonly http = inject(HttpClient);
+  private readonly env = inject(APP_ENV);
 
   private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -87,8 +88,6 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly permissions = this.store.selectSignal(AuthState.permissions);
 
   protected catatan = '';
-
-  private readonly allPenawaran = this.store.selectSignal(PenawaranState.list);
 
   protected readonly drafts = computed(() =>
     this.draftList().filter((d) => String(d.workOrderId) === String(this.id))
@@ -100,16 +99,15 @@ export class WorkOrderDetailComponent implements OnInit {
     return list.sort((a, b) => b.versi - a.versi)[0];
   });
 
-  protected readonly penawaranList = computed(() =>
-    this.allPenawaran().filter((p) => String(p.workOrderId) === String(this.id)).sort((a, b) => b.versi - a.versi)
-  );
-  
-  protected readonly latestPenawaran = computed(() => this.penawaranList()[0] ?? null);
-
   ngOnInit() {
-    this.store.dispatch(new GetWorkOrderDetail(this.id));
-    this.store.dispatch(new LoadDraftChecklist(this.id));
-    this.store.dispatch(new LoadPenawaran(this.id));
+    this.store.dispatch(new GetWorkOrderDetail(this.id)); 
+
+    console.log("permissions =>", this.permissions().includes('draft_checklist.read'));
+    
+    // // Hanya load draft checklist jika memiliki permission (untuk mencegah 403 Forbidden Error)
+    // if (this.permissions().includes('draft_checklist.read')) {
+    //   this.store.dispatch(new LoadDraftChecklist(this.id));
+    // }
   }
 
   protected goBack() {
@@ -193,4 +191,26 @@ export class WorkOrderDetailComponent implements OnInit {
     });
     this.catatan = '';
   }
+
+  protected approvePenawaran() {
+    const pnw = this.detail()?.penawaranDetail;
+    if (!pnw) return;
+    this.http.post(`${this.env.apiBaseUrl}/work-orders/${this.id}/penawaran/${pnw.id}/approve-pb`, {}).subscribe({
+      next: () => this.store.dispatch(new GetWorkOrderDetail(this.id))
+    });
+  }
+
+  protected requestRevisiPenawaran() {
+    const pnw = this.detail()?.penawaranDetail;
+    if (!pnw) return;
+    this.http.post(`${this.env.apiBaseUrl}/work-orders/${this.id}/penawaran/${pnw.id}/request-revisi-pb`, {
+      catatanRevisi: this.catatan || 'Silakan revisi penawaran Anda.'
+    }).subscribe({
+      next: () => {
+        this.store.dispatch(new GetWorkOrderDetail(this.id));
+        this.catatan = '';
+      }
+    });
+  }
 }
+

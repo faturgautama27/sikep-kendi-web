@@ -43,10 +43,11 @@ interface BackendDraftChecklist {
 }
 
 interface BackendInvoice {
+  nomorInvoice: string;
   imageId: number;
   totalTagihan: number | string;
   tanggalInvoice: string;
-  image?: BackendImageRef;
+  image?: BackendImageRef & { signedUrl?: string };
 }
 
 interface BackendPenawaran {
@@ -226,7 +227,26 @@ function mapProgress(raw: BackendWorkOrder): WorkOrderProgress[] {
       occurredAt: raw.draftChecklists[0].updatedAt,
       actorId: String(raw.vendorId ?? 0),
       actorName: raw.vendor?.namaVendor ?? 'Vendor',
-      notes: `Draft checklist status ${raw.draftChecklists[0].status}.`,
+      notes: `Draft checklist ${raw.draftChecklists[0].status === 'DISETUJUI' ? 'disetujui oleh Pengurus Barang.' : 'dikirim oleh Vendor.'}`,
+    });
+  }
+
+  if (raw.penawaran?.length) {
+    const pnw = raw.penawaran[0];
+    events.push({
+      id: `wo-${raw.id}-penawaran`,
+      workOrderId: String(raw.id),
+      status: 'in_progress',
+      occurredAt: pnw.updatedAt,
+      actorId: String(raw.vendorId ?? 0),
+      actorName: raw.vendor?.namaVendor ?? 'Vendor',
+      notes: pnw.status === 'DIKIRIM'
+        ? 'Penawaran resmi dikirim ke Verifikator, menunggu persetujuan.'
+        : pnw.status === 'DIVERIFIKASI'
+          ? 'Penawaran telah diverifikasi.'
+          : pnw.status === 'REVISI'
+            ? 'Revisi penawaran diminta oleh Verifikator.'
+            : `Penawaran status ${pnw.status}.`,
     });
   }
 
@@ -279,6 +299,23 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
     rejectedReason: raw.verifikasiHarga?.status === 'REVISI_DIMINTA' ? (raw.verifikasiHarga.catatanRevisi ?? null) : null,
     progressUpdates: mapProgress(raw),
     evidence: mapEvidence(raw),
+    penawaranDetail: latestPenawaran
+      ? {
+          id: String(latestPenawaran.id),
+          versi: 1,
+          totalBiaya: asNumber(latestPenawaran.totalBiaya),
+          status: latestPenawaran.status,
+          catatanPerubahan: null,
+          invoice: latestPenawaran.invoice
+            ? {
+                nomorInvoice: latestPenawaran.invoice.nomorInvoice,
+                totalTagihan: asNumber(latestPenawaran.invoice.totalTagihan),
+                tanggalInvoice: latestPenawaran.invoice.tanggalInvoice,
+                imageUrl: latestPenawaran.invoice.image?.signedUrl ?? null,
+              }
+            : null,
+        }
+      : null,
   };
 }
 

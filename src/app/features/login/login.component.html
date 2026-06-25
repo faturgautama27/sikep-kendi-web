@@ -44,9 +44,7 @@
     <div class="relative space-y-3">
       @for (f of features; track f.label) {
         <div class="flex items-center gap-3">
-          <div
-            class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 flex-shrink-0"
-          >
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 shrink-0">
             <i [class]="f.icon + ' text-white text-xs'"></i>
           </div>
           <span class="text-sm text-white/80">{{ f.label }}</span>
@@ -82,7 +80,7 @@
         <div
           class="mb-5 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
         >
-          <i class="pi pi-exclamation-circle flex-shrink-0"></i>
+          <i class="pi pi-exclamation-circle shrink-0"></i>
           <span>{{ errorMessage() }}</span>
         </div>
       }

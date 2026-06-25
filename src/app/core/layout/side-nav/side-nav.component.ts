@@ -11,7 +11,7 @@ interface NavItem {
   readonly route: string;
   readonly permission?: string | readonly string[];
 }
-interface NavGroup { readonly label: string; readonly items: readonly NavItem[]; }
+interface NavGroup { readonly label: string; readonly items: readonly NavItem[]; isVendorOnly?: boolean }
 
 @Component({
   selector: 'app-side-nav',
@@ -43,6 +43,7 @@ export class SideNavComponent {
     },
     {
       label: 'Portal Vendor',
+      isVendorOnly: true,
       items: [
         { label: 'Dashboard', icon: 'pi pi-chart-line', route: '/vendor/dashboard', permission: 'work_order.read' },
         {
@@ -87,7 +88,18 @@ export class SideNavComponent {
 
   protected readonly visibleNavGroups = computed<NavGroup[]>(() => {
     const perms = this.permissions();
+    const userRole = this.store.selectSignal(AuthState.roles)();
+
     return this.navGroups
+      .filter((group) => {
+        // Jika group adalah vendor only, cek role
+        if (group.isVendorOnly) {
+          const allowedRoles: any = ['vendor', 'admin_sistem'];
+          return allowedRoles.some((role: any) => userRole?.includes(role));
+        }
+        // Group lain tampil untuk semua (termasuk admin/user biasa)
+        return true;
+      })
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => this.canShow(this.requiredPermissionsFor(item), perms)),

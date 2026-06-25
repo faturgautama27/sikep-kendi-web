@@ -149,11 +149,19 @@ export class VendorPenawaranComponent implements OnInit {
           }))
         };
 
-        const createOrRevisi$ = isNew 
-          ? this.store.dispatch(new CreatePenawaran(this.workOrderId, payloadPenawaran))
-          : this.store.dispatch(new SubmitRevisiPenawaran(p.id, payloadPenawaran));
+        let action$: any;
+        if (!p) {
+          action$ = this.store.dispatch(new CreatePenawaran(this.workOrderId, payloadPenawaran));
+        } else if (p.status === 'REVISI') {
+          action$ = this.store.dispatch(new SubmitRevisiPenawaran(p.id, payloadPenawaran));
+        } else if (p.status === 'DRAFT') {
+          action$ = of(null);
+        } else {
+          this.submitting.set(false);
+          return;
+        }
 
-        createOrRevisi$.pipe(
+        action$.pipe(
           catchError((err) => {
             this.submitting.set(false);
             this.msg.add({ severity: 'error', summary: 'Gagal', detail: err.error?.message || 'Gagal menyimpan penawaran.' });
@@ -197,10 +205,12 @@ export class VendorPenawaranComponent implements OnInit {
               });
             });
           } else {
-            // No new file (e.g. during Revisi), just submit
-            this.store.dispatch(new SubmitPenawaran(latestPenawaran.id));
+            // No new file (e.g. during Revisi), just finish
+            if (!p || p.status === 'DRAFT') {
+              this.store.dispatch(new SubmitPenawaran(latestPenawaran.id));
+            }
             this.submitting.set(false);
-            this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Penawaran revisi terkirim ke Verifikator.' });
+            this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Penawaran terkirim ke Verifikator.' });
           }
         });
       },
