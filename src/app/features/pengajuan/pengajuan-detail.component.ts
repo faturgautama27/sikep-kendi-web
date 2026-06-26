@@ -100,7 +100,7 @@ export class PengajuanDetailComponent implements OnInit {
       next: (res) => {
         this.pengajuan.set(res);
         // Fetch vendors only if status is menunggu_verifikasi
-        if (res.status === 'menunggu_verifikasi') {
+        if (res.status === 'menunggu_verifikasi' && !this.env.isMobile) {
           this.adminDataPort.getVendors().subscribe({
             next: (vendors) => {
               this.vendorOpts.set(
