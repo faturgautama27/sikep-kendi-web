@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { PreviewBannerComponent } from '@core/layout/preview-banner/preview-banner.component';
+import { PushService } from '@core/services/push.service';
 import { MessageService } from 'primeng/api';
-import { Toast, ToastModule } from "primeng/toast";
+import { Toast, ToastModule } from 'primeng/toast';
 
 /**
  * Root komponen aplikasi SiKeP KenDI.
@@ -17,7 +18,7 @@ import { Toast, ToastModule } from "primeng/toast";
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, PreviewBannerComponent, ToastModule],
-  providers: [MessageService],
+  providers: [MessageService, PushService],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

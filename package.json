@@ -43,6 +43,7 @@
     "@ngxs/store": "^21.0.0",
     "@primeng/themes": "^21.0.4",
     "apexcharts": "^5.13.0",
+    "firebase": "^12.15.0",
     "ng-apexcharts": "^2.4.0",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.8",

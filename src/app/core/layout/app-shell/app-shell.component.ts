@@ -10,6 +10,7 @@ import { LoadDarurat } from '@features/darurat/state';
 import { LoadVehicles } from '@features/vehicles/state';
 import { LoadAuditLogs } from '@features/audit/state';
 import { LoadNotifications, LoadNotificationPreferences } from '@features/notifications/state';
+import { PushService } from '@core/services/push.service';
 
 import { SideNavComponent } from '../side-nav/side-nav.component';
 import { TopBarComponent } from '../top-bar/top-bar.component';
@@ -36,8 +37,10 @@ import { TopBarComponent } from '../top-bar/top-bar.component';
 })
 export class AppShellComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly pushService = inject(PushService);
 
   ngOnInit(): void {
+    this.pushService.init();
     const permissions = this.store.selectSnapshot(AuthState.permissions);
     const has = (permission: string): boolean =>
       permissions.includes('*') || permissions.includes(permission);

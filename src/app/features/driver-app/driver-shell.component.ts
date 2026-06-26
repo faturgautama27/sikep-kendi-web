@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NavigationEnd, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { inject } from '@angular/core';
+import { inject, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
+import { PushService } from '@core/services/push.service';
 import { filter, map } from 'rxjs/operators';
 import { trigger, transition, style, animate, query } from '@angular/animations';
 
@@ -82,9 +83,14 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle: string; color: str
     </div>
   `,
 })
-export class DriverShellComponent {
+export class DriverShellComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly pushService = inject(PushService);
+
+  ngOnInit() {
+    this.pushService.init();
+  }
 
   protected readonly tabs = DRIVER_TABS;
 

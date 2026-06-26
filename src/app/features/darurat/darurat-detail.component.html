@@ -104,7 +104,7 @@
           </div>
         }
 
-        @if (isWaitingApprove) {
+        @if (isWaitingApprove && !env.isMobile) {
           <div class="mt-auto pt-4 border-t border-slate-100">
             <p-button
               label="Approve Reimbursement"
