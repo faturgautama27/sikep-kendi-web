@@ -200,22 +200,43 @@
 
           <!-- Link ke halaman Verifikasi SHS: Verifikator -->
           <div
-            *ngIf="pnw.status === 'DIVERIFIKASI' && permissions().includes('verifikasi.shs')"
+            *ngIf="pnw.status === 'DIVERIFIKASI' && wo.status !== 'DIBAYAR' && permissions().includes('verifikasi.shs')"
             class="mt-2 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4"
           >
             <div class="flex-1">
               <p class="text-sm font-semibold text-amber-900">Penawaran siap diverifikasi harga</p>
               <p class="text-xs text-amber-700">
-                Pengurus Barang telah menyetujui penawaran ini. Silakan isi Standart Harga Supplier
+                Pengurus Barang telah menyetujui penawaran ini. Silakan cek form Standart Harga Supplier
                 (SHS) per item.
               </p>
             </div>
             <a [routerLink]="['/work-orders', wo.id, 'verifikasi']">
               <p-button
-                label="Buka Halaman Verifikasi SHS"
+                label="{{ wo.verifikasiHarga?.status === 'DISETUJUI' ? 'Lihat Detail Verifikasi' : 'Buka Halaman Verifikasi SHS' }}"
                 icon="pi pi-arrow-right"
                 iconPos="right"
                 severity="warn"
+              ></p-button>
+            </a>
+          </div>
+
+          <!-- Link ke halaman Pembayaran: Bendahara -->
+          <div
+            *ngIf="wo.status === 'DIVERIFIKASI' && wo.verifikasiHarga?.status === 'DISETUJUI' && permissions().includes('pembayaran.proses')"
+            class="mt-2 flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50 p-4"
+          >
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-indigo-900">Proses Pembayaran</p>
+              <p class="text-xs text-indigo-700">
+                Harga telah disetujui Verifikator. Silakan proses pembayaran ke Vendor.
+              </p>
+            </div>
+            <a [routerLink]="['/work-orders', wo.id, 'pembayaran']">
+              <p-button
+                label="Buka Halaman Pembayaran"
+                icon="pi pi-credit-card"
+                iconPos="right"
+                severity="info"
               ></p-button>
             </a>
           </div>

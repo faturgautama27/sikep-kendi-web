@@ -57,6 +57,7 @@ interface BackendPenawaran {
   createdAt: string;
   updatedAt: string;
   invoice?: BackendInvoice | null;
+  items?: any[];
 }
 
 interface BackendVerifikator {
@@ -71,6 +72,7 @@ interface BackendVerifikasiHarga {
   verifikasiAt?: string | null;
   updatedAt: string;
   verifikator?: BackendVerifikator | null;
+  shsItems?: any[];
 }
 
 interface BackendBuktiTransfer {
@@ -306,6 +308,14 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
           totalBiaya: asNumber(latestPenawaran.totalBiaya),
           status: latestPenawaran.status,
           catatanPerubahan: null,
+          items: latestPenawaran.items?.map((item: any) => ({
+            id: item.id,
+            urutan: item.urutan ?? 1,
+            namaKerusakan: item.namaKerusakan ?? '',
+            namaSparepart: item.namaSparepart ?? '',
+            tindakanPerbaikan: item.tindakanPerbaikan ?? '',
+            hargaItem: asNumber(item.hargaItem),
+          })) ?? [],
           invoice: latestPenawaran.invoice
             ? {
                 nomorInvoice: latestPenawaran.invoice.nomorInvoice,
@@ -314,6 +324,21 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
                 imageUrl: latestPenawaran.invoice.image?.signedUrl ?? null,
               }
             : null,
+        }
+      : null,
+    verifikasiHarga: raw.verifikasiHarga
+      ? {
+          id: String(raw.verifikasiHarga.id),
+          status: raw.verifikasiHarga.status,
+          catatanRevisi: raw.verifikasiHarga.catatanRevisi,
+          shsItems: raw.verifikasiHarga.shsItems?.map((s: any) => ({
+            id: s.id,
+            namaItem: s.namaItem ?? '',
+            hargaVendor: asNumber(s.hargaVendor),
+            hargaStandart: asNumber(s.hargaStandart),
+            selisih: asNumber(s.selisih),
+            keterangan: s.keterangan ?? '',
+          })) ?? [],
         }
       : null,
   };

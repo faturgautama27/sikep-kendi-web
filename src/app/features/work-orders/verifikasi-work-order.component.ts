@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -84,35 +84,37 @@ export class VerifikasiWorkOrderComponent implements OnInit {
   );
   protected readonly selisihTotal = computed(() => this.totalVendor() - this.totalShs());
   protected readonly allShsFilled = computed(() => this.rows().every((r) => r.hargaShs !== null && r.hargaShs > 0));
+  protected readonly isReadOnly = computed(() => this.detail()?.verifikasiHarga?.status === 'DISETUJUI' || this.detail()?.status === 'DIVERIFIKASI' || this.detail()?.status === 'DIBAYAR');
 
-  ngOnInit(): void {
-    this.store.dispatch(new GetWorkOrderDetail(this.workOrderId));
-    this.loadVerifikasiDetail();
-  }
+  constructor() {
+    effect(() => {
+      const d = this.detail();
+      if (!d) {
+        this.loading.set(true);
+        return;
+      }
 
-  private loadVerifikasiDetail(): void {
-    this.loading.set(true);
-    this.http.get<any>(`${this.env.apiBaseUrl}/work-orders/${this.workOrderId}/verifikasi-detail`).subscribe({
-      next: (data) => {
-        const items: PenawaranItem[] = data?.penawaran?.[0]?.items ?? [];
-        const existingShsItems: any[] = data?.verifikasiHarga?.shsItems ?? [];
-
+      const items = d.penawaranDetail?.items ?? [];
+      const existingShsItems = d.verifikasiHarga?.shsItems ?? [];
+      // Hanya set ulang rows jika items berubah atau belum ada isinya (mencegah overwrite saat user mengetik)
+      if (this.rows().length === 0 && items.length > 0) {
         this.rows.set(
           items.map((item) => {
             const existing = existingShsItems.find((s: any) => s.namaItem === item.namaKerusakan);
             return {
               ...item,
-              hargaShs: existing ? Number(existing.hargaStandart) : null,
+              hargaShs: existing ? parseFloat(existing.hargaStandart as string) : null,
               catatanShs: existing?.keterangan ?? '',
             };
           })
         );
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-      },
-    });
+      }
+      this.loading.set(false);
+    }, { allowSignalWrites: true });
+  }
+
+  ngOnInit(): void {
+    this.store.dispatch(new GetWorkOrderDetail(this.workOrderId));
   }
 
   protected selisihItem(row: ShsInputRow): number {

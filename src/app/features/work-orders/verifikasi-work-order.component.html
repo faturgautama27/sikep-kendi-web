@@ -72,6 +72,7 @@
               [minFractionDigits]="0"
               [maxFractionDigits]="0"
               [min]="0"
+              [disabled]="isReadOnly()"
               placeholder="0"
               inputStyleClass="text-right w-full"
               styleClass="w-full"
@@ -86,7 +87,7 @@
                  pTooltip="Selisih melebihi 20%"></i>
             </td>
             <td>
-              <input pInputText [(ngModel)]="row.catatanShs" placeholder="Catatan (opsional)" class="w-full text-sm" />
+              <input pInputText [(ngModel)]="row.catatanShs" [disabled]="isReadOnly()" placeholder="Catatan (opsional)" class="w-full text-sm" />
             </td>
           </tr>
         </ng-template>
@@ -109,7 +110,7 @@
       </p-table>
 
       <!-- Simpan SHS button -->
-      <div class="mt-4 flex justify-end">
+      <div class="mt-4 flex justify-end" *ngIf="!isReadOnly()">
         <p-button
           label="Simpan SHS (Draft)"
           icon="pi pi-save"
@@ -121,7 +122,7 @@
     </p-card>
 
     <!-- Action section -->
-    <p-card header="Keputusan Verifikasi">
+    <p-card header="Keputusan Verifikasi" *ngIf="!isReadOnly()">
       <div class="flex flex-col gap-4">
         <!-- Warning jika SHS belum lengkap -->
         <div *ngIf="!allShsFilled()" class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">

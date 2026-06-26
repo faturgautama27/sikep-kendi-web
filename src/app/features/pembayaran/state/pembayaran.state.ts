@@ -112,6 +112,7 @@ export class PembayaranState {
 
   @Action(UploadBuktiTransfer)
   uploadBukti(ctx: StateContext<PembayaranStateModel>, action: UploadBuktiTransfer) {
+    const payloadId = action.payload['imageId'] || action.payload['buktiTransferId'];
     if (!this.env.previewMode) {
       return this.data.bukti(action.workOrderId, action.payload).pipe(
         tap(() => {
@@ -120,7 +121,7 @@ export class PembayaranState {
               item.workOrderId === action.workOrderId
                 ? {
                     ...item,
-                    buktiTransferId: (action.payload['buktiTransferId'] as string | undefined) ?? item.buktiTransferId,
+                    buktiTransferId: (payloadId as string | number | undefined)?.toString() ?? item.buktiTransferId,
                     status: 'PAID' as const,
                   }
                 : item,
@@ -135,7 +136,7 @@ export class PembayaranState {
         item.workOrderId === action.workOrderId
           ? {
               ...item,
-              buktiTransferId: (action.payload['buktiTransferId'] as string | undefined) ?? item.buktiTransferId,
+              buktiTransferId: (payloadId as string | number | undefined)?.toString() ?? item.buktiTransferId,
               status: 'PAID' as const,
             }
           : item,

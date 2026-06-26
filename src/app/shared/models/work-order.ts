@@ -1,6 +1,31 @@
 import type { Uuid, Timestamp, Money } from './common';
 import type { Image } from './image';
 
+export interface WorkOrderPenawaranItem {
+  id: number;
+  urutan: number;
+  namaKerusakan: string;
+  namaSparepart: string;
+  tindakanPerbaikan: string;
+  hargaItem: number | string;
+}
+
+export interface WorkOrderShsItem {
+  id: number;
+  namaItem: string;
+  hargaVendor: number | string;
+  hargaStandart: number | string;
+  selisih: number | string;
+  keterangan: string;
+}
+
+export interface WorkOrderVerifikasiHarga {
+  id: string;
+  status: string;
+  catatanRevisi?: string | null;
+  shsItems: WorkOrderShsItem[];
+}
+
 export type WorkOrderStatus =
   | 'DIBUAT'
   | 'VENDOR_DITUGASKAN'
@@ -29,6 +54,7 @@ export interface WorkOrderPenawaranDetail {
   status: string;
   catatanPerubahan?: string | null;
   invoice: WorkOrderInvoice | null;
+  items: WorkOrderPenawaranItem[];
 }
 
 export interface WorkOrder {
@@ -52,6 +78,7 @@ export interface WorkOrder {
   progressUpdates: WorkOrderProgress[];
   evidence: WorkOrderEvidence[];
   penawaranDetail: WorkOrderPenawaranDetail | null;
+  verifikasiHarga?: WorkOrderVerifikasiHarga | null;
 }
 
 export interface WorkOrderProgress {
