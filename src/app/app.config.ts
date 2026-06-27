@@ -18,6 +18,7 @@ import { withNgxsLoggerPlugin } from '@ngxs/logger-plugin';
 import { withNgxsRouterPlugin } from '@ngxs/router-plugin';
 import { withNgxsStoragePlugin, STORAGE_ENGINE } from '@ngxs/storage-plugin';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 
 // Register Indonesian locale data for Angular pipes (date, number, currency)
 registerLocaleData(localeId, 'id-ID');
@@ -124,6 +125,7 @@ export const appConfig: ApplicationConfig = {
     { provide: APP_ENV, useValue: environment },
     { provide: LOCALE_ID, useValue: 'id-ID' },
     { provide: STORAGE_ENGINE, useClass: CapacitorStorageEngine },
+    MessageService,
     provideSikepKendiData(),
     provideAppInitializer(() => {
       inject(FixtureBootstrapService).hydrate();

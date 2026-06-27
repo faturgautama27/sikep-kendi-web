@@ -7,6 +7,7 @@ export interface FirebaseConfig {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
+  vapidKey?: string;
 }
 
 export interface AppEnvironment {

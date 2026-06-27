@@ -15,6 +15,9 @@ import { PushService } from '@core/services/push.service';
 import { SideNavComponent } from '../side-nav/side-nav.component';
 import { TopBarComponent } from '../top-bar/top-bar.component';
 
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+
 /**
  * AppShell: layout root SiKeP KenDI yang membungkus halaman authenticated.
  *
@@ -30,7 +33,8 @@ import { TopBarComponent } from '../top-bar/top-bar.component';
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, TopBarComponent, SideNavComponent],
+  imports: [RouterOutlet, TopBarComponent, SideNavComponent, ToastModule],
+  providers: [MessageService],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

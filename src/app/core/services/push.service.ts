@@ -32,18 +32,62 @@ export class PushService {
       const app = initializeApp(this.env.firebaseConfig);
       const messaging = getMessaging(app);
 
-      const currentToken = await getToken(messaging);
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { type: 'classic' });
+      await navigator.serviceWorker.ready;
+
+      const currentToken = await getToken(messaging, {
+        vapidKey: this.env.firebaseConfig?.vapidKey,
+        serviceWorkerRegistration: registration
+      });
       if (currentToken) {
         await this.registerToken(currentToken, 'web');
+        
+        // Debug: Pastikan browser benar-benar bisa memunculkan Notifikasi
+        if (Notification.permission === 'granted') {
+           new Notification('SiKeP KenDI Terhubung!', { body: 'Web Push berhasil diinisialisasi.' });
+        }
       }
 
       onMessage(messaging, (payload: any) => {
+        console.log('messaging payload =>', payload);
+
+        const title = payload.notification?.title || payload.data?.title || 'Notifikasi Baru';
+        const body = payload.notification?.body || payload.data?.body;
+
+        // 1. Tampilkan OS-level Notification (Native Web Push)
+        if (Notification.permission === 'granted') {
+          new Notification(title, {
+            body: body,
+            icon: '/favicon.ico'
+          });
+        }
+
+        // 2. Tampilkan Toast UI dalam Web
         this.messageService.add({
           severity: 'info',
-          summary: payload.notification?.title || 'Notifikasi Baru',
-          detail: payload.notification?.body,
+          summary: title,
+          detail: body,
           life: 5000,
         });
+      });
+
+      // FALLBACK DEBUG: Tangkap raw message dari Service Worker
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        console.log('Raw SW Message received:', event.data);
+        if (event.data && event.data.isFirebaseMessaging) {
+          const payload = event.data;
+          const title = payload.notification?.title || payload.data?.title || 'Notifikasi Baru (Raw)';
+          const body = payload.notification?.body || payload.data?.body;
+          if (Notification.permission === 'granted') {
+            new Notification(title, { body: body, icon: '/favicon.ico' });
+          }
+          this.messageService.add({
+            severity: 'info',
+            summary: title,
+            detail: body,
+            life: 5000,
+          });
+        }
       });
     } catch (err) {
       console.error('Error initializing web push', err);

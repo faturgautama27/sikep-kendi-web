@@ -16,5 +16,7 @@ export const environment: AppEnvironment = {
     storageBucket: 'sikep-kendi.firebasestorage.app',
     messagingSenderId: '506725239952',
     appId: '1:506725239952:web:cb6a8fa2e5f75796e31c15',
+    vapidKey:
+      'BARqKYoB-74ejflxLQz_COYrxdvdPGx5rE_aUgsYD2cgjVZOsmrMlhlczcUMuVoHIhKD_D6XSu2q-mxBQkcsczE',
   },
 };
