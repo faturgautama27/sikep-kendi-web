@@ -42,7 +42,12 @@ export class ApiDashboardData implements DashboardDataPort {
   }
 
   private mapCostBreakdown(
-    raw: Array<{ month?: string; jumlahPengajuan?: number; jumlahDisetujui?: number; jumlahDitolak?: number }>,
+    raw: Array<{
+      month?: string;
+      jumlahPengajuan?: number;
+      jumlahDisetujui?: number;
+      jumlahDitolak?: number;
+    }>,
     period: { from: string; to: string },
   ): CostBreakdown {
     const byCategory = raw.map((row) => ({
@@ -64,7 +69,7 @@ export class ApiDashboardData implements DashboardDataPort {
     return raw.map((row, idx) => ({
       vehicleId: `status-${row.status ?? idx}`,
       vehiclePlate: row.status ?? '-',
-      merk: 'Status Armada',
+      merk: 'Status Kendaraan Dinas',
       tipe: row.status ?? '-',
       deviationCount: Number(row._count?._all ?? 0),
       lastDeviationAt: new Date().toISOString(),
@@ -79,34 +84,36 @@ export class ApiDashboardData implements DashboardDataPort {
   }
 
   getSummary(): Observable<DashboardSummary> {
-    return this.http.get<Record<string, unknown>>(this.url('/dashboard/summary')).pipe(
-      map((raw) => this.mapSummary(raw)),
-    );
+    return this.http
+      .get<Record<string, unknown>>(this.url('/dashboard/summary'))
+      .pipe(map((raw) => this.mapSummary(raw)));
   }
 
   getCostBreakdown(period: { from: string; to: string }): Observable<CostBreakdown> {
     const params = new HttpParams().set('from', period.from).set('to', period.to);
     return this.http
-      .get<Array<{ month?: string; jumlahPengajuan?: number; jumlahDisetujui?: number; jumlahDitolak?: number }>>(
-        this.url('/dashboard/pengajuan-chart'),
-        { params },
-      )
-      .pipe(
-        map((raw) => this.mapCostBreakdown(raw, period)),
-      );
+      .get<
+        Array<{
+          month?: string;
+          jumlahPengajuan?: number;
+          jumlahDisetujui?: number;
+          jumlahDitolak?: number;
+        }>
+      >(this.url('/dashboard/pengajuan-chart'), { params })
+      .pipe(map((raw) => this.mapCostBreakdown(raw, period)));
   }
 
   getTopDeviationVehicles(): Observable<TopDeviationVehicle[]> {
     return this.http
-      .get<Array<{ status?: string; _count?: { _all?: number } }>>(this.url('/dashboard/kendaraan-status'))
-      .pipe(
-        map((raw) => this.mapTopDeviation(raw)),
-      );
+      .get<
+        Array<{ status?: string; _count?: { _all?: number } }>
+      >(this.url('/dashboard/kendaraan-status'))
+      .pipe(map((raw) => this.mapTopDeviation(raw)));
   }
 
   getVendorPerformance(): Observable<VendorPerformance[]> {
-    return this.http.get<unknown>(this.url('/dashboard/vendor')).pipe(
-      map((raw) => this.mapVendorPerf(raw)),
-    );
+    return this.http
+      .get<unknown>(this.url('/dashboard/vendor'))
+      .pipe(map((raw) => this.mapVendorPerf(raw)));
   }
 }

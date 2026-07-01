@@ -11,7 +11,11 @@ interface NavItem {
   readonly route: string;
   readonly permission?: string | readonly string[];
 }
-interface NavGroup { readonly label: string; readonly items: readonly NavItem[]; isVendorOnly?: boolean }
+interface NavGroup {
+  readonly label: string;
+  readonly items: readonly NavItem[];
+  isVendorOnly?: boolean;
+}
 
 @Component({
   selector: 'app-side-nav',
@@ -33,13 +37,43 @@ export class SideNavComponent {
       label: 'Menu Utama',
       items: [
         { label: 'Dashboard', icon: 'pi pi-th-large', route: '/dashboard' },
-        { label: 'Master Armada', icon: 'pi pi-truck', route: '/vehicles', permission: 'kendaraan.read' },
-        { label: 'Pengajuan', icon: 'pi pi-file-edit', route: '/pengajuan', permission: 'pengajuan.read' },
-        { label: 'Work Order', icon: 'pi pi-wrench', route: '/work-orders', permission: 'work_order.read' },
-        { label: 'Laporan Darurat', icon: 'pi pi-exclamation-triangle', route: '/darurat', permission: 'darurat.read' },
-        { label: 'Laporan Biaya Perbaikan', icon: 'pi pi-chart-pie', route: '/laporan/biaya-perbaikan', permission: 'laporan.read' },
+        {
+          label: 'Master Kendaraan Dinas',
+          icon: 'pi pi-truck',
+          route: '/vehicles',
+          permission: 'kendaraan.read',
+        },
+        {
+          label: 'Pengajuan',
+          icon: 'pi pi-file-edit',
+          route: '/pengajuan',
+          permission: 'pengajuan.read',
+        },
+        {
+          label: 'Work Order',
+          icon: 'pi pi-wrench',
+          route: '/work-orders',
+          permission: 'work_order.read',
+        },
+        {
+          label: 'Laporan Darurat',
+          icon: 'pi pi-exclamation-triangle',
+          route: '/darurat',
+          permission: 'darurat.read',
+        },
+        {
+          label: 'Laporan Biaya Perbaikan',
+          icon: 'pi pi-chart-pie',
+          route: '/laporan/biaya-perbaikan',
+          permission: 'laporan.read',
+        },
         { label: 'Audit Log', icon: 'pi pi-shield', route: '/audit', permission: 'audit_log.read' },
-        { label: 'SHS Master', icon: 'pi pi-tags', route: '/admin/shs-master', permission: 'user.manage' },
+        {
+          label: 'SHS Master',
+          icon: 'pi pi-tags',
+          route: '/admin/shs-master',
+          permission: 'user.manage',
+        },
         { label: 'Pengaturan', icon: 'pi pi-cog', route: '/admin', permission: 'user.manage' },
       ],
     },
@@ -47,7 +81,12 @@ export class SideNavComponent {
       label: 'Portal Vendor',
       isVendorOnly: true,
       items: [
-        { label: 'Dashboard', icon: 'pi pi-chart-line', route: '/vendor/dashboard', permission: 'work_order.read' },
+        {
+          label: 'Dashboard',
+          icon: 'pi pi-chart-line',
+          route: '/vendor/dashboard',
+          permission: 'work_order.read',
+        },
         {
           label: 'Notifikasi WO',
           icon: 'pi pi-bell',
@@ -82,9 +121,7 @@ export class SideNavComponent {
     },
     {
       label: 'Sistem',
-      items: [
-        { label: 'Profil', icon: 'pi pi-user', route: '/profile' },
-      ],
+      items: [{ label: 'Profil', icon: 'pi pi-user', route: '/profile' }],
     },
   ];
 
@@ -123,7 +160,9 @@ export class SideNavComponent {
   private canShow(required: readonly string[], permissions: string[]): boolean {
     if (required.length === 0) return true;
     if (this.env.previewMode && permissions.length === 0) return true;
-    return permissions.includes('*') || required.some((permission) => permissions.includes(permission));
+    return (
+      permissions.includes('*') || required.some((permission) => permissions.includes(permission))
+    );
   }
 
   private indexRoutePermissions(routes: readonly Route[], parentPath: string): void {
@@ -167,7 +206,9 @@ export class SideNavComponent {
 
         const itemPerms = this.requiredPermissionsFor(item);
         if (itemPerms.length === 0 && routePerms.length > 0) {
-          console.warn(`[SideNav] Menu item "${item.label}" has no permission but route requires: ${routePerms.join(', ')}`);
+          console.warn(
+            `[SideNav] Menu item "${item.label}" has no permission but route requires: ${routePerms.join(', ')}`,
+          );
           continue;
         }
 

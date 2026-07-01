@@ -27,7 +27,7 @@ export class LoginComponent {
   readonly submitting = signal(false);
 
   protected readonly features = [
-    { icon: 'pi pi-truck', label: 'Manajemen Armada Dinas' },
+    { icon: 'pi pi-truck', label: 'Manajemen Kendaraan Dinas' },
     { icon: 'pi pi-wrench', label: 'Pemeliharaan Terencana (PM/CM/PdM)' },
     { icon: 'pi pi-list-check', label: 'Draft Checklist & Verifikasi Work Order' },
     { icon: 'pi pi-receipt', label: 'Penawaran, SHS, dan Pembayaran' },

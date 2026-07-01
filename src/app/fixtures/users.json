@@ -98,7 +98,7 @@
       "fullName": "Agus Pramono",
       "email": "pengemudi@sikepkendi.go.id",
       "contact": "0855555555",
-      "unitKerja": "Operasional Armada",
+      "unitKerja": "Operasional Kendaraan Dinas",
       "roles": ["pengemudi"],
       "permissions": ["kendaraan.read", "pengajuan.create", "darurat.create", "odometer.create"],
       "active": true,

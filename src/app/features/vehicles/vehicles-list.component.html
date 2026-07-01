@@ -2,9 +2,9 @@
   <!-- Header -->
   <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-primary-900">Master Kendaraan</h1>
+      <h1 class="text-2xl font-bold text-primary-900">Master Kendaraan Dinas</h1>
       <p class="text-sm text-slate-500">
-        Kelola daftar inventaris armada kendaraan operasional beserta statusnya.
+        Kelola daftar inventaris kendaraan dinas operasional beserta statusnya.
       </p>
     </div>
     <p-button
@@ -18,7 +18,9 @@
   <!-- Filter bar -->
   <div class="flex flex-col gap-3 sikep-table-wrap p-4 shadow-sm md:flex-row md:items-end md:gap-4">
     <div class="flex flex-1 flex-col gap-1">
-      <label for="search" class="text-xs font-medium text-slate-600">Cari nomor polisi / merk</label>
+      <label for="search" class="text-xs font-medium text-slate-600"
+        >Cari nomor polisi / merk</label
+      >
       <span class="p-input-icon-left">
         <input
           pInputText
@@ -72,9 +74,9 @@
 
   <!-- Tabel Kendaraan -->
   <div class="sikep-table-wrap">
-    <p-table 
-      [value]="filteredList()" 
-      [paginator]="true" 
+    <p-table
+      [value]="filteredList()"
+      [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 20, 50]"
       dataKey="id"
@@ -117,15 +119,19 @@
             <p-tag [severity]="eweSeverity(row)" [value]="eweLabel(row)" [rounded]="true"></p-tag>
           </td>
           <td>
-            <p-tag [severity]="statusSeverity(row.status)" [value]="statusLabel(row.status)" [rounded]="true"></p-tag>
+            <p-tag
+              [severity]="statusSeverity(row.status)"
+              [value]="statusLabel(row.status)"
+              [rounded]="true"
+            ></p-tag>
           </td>
           <td>
             <div class="flex items-center justify-end gap-1">
-              <p-button 
-                icon="pi pi-eye" 
+              <p-button
+                icon="pi pi-eye"
                 severity="secondary"
                 [text]="true"
-                [rounded]="true" 
+                [rounded]="true"
                 pTooltip="Detail"
                 size="small"
                 (onClick)="onView(row)"
