@@ -1,0 +1,158 @@
+<div class="flex flex-col gap-5">
+  <div class="flex justify-between items-center">
+    <app-page-header
+      title="Master Standar Harga Satuan"
+      subtitle="Kelola master data harga komponen pemeliharaan kendaraan."
+    />
+    <p-button label="Tambah SHS" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <p-table
+      [value]="list()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="10"
+      [globalFilterFields]="['kodeItem', 'namaItem']"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Kode</th>
+          <th>Nama Item</th>
+          <th>Satuan</th>
+          <th class="text-right">Harga Maks (Rp)</th>
+          <th>Status</th>
+          <th class="text-center w-32">Aksi</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td class="font-mono text-sm text-slate-600">{{ item.kodeItem }}</td>
+          <td class="font-medium text-slate-800">{{ item.namaItem }}</td>
+          <td>{{ item.satuan }}</td>
+          <td class="text-right font-mono text-primary-700">
+            {{ formatRupiah(item.hargaMaksimum) }}
+          </td>
+          <td>
+            <p-tag
+              [value]="item.isAktif ? 'Aktif' : 'Nonaktif'"
+              [severity]="item.isAktif ? 'success' : 'danger'"
+            ></p-tag>
+          </td>
+          <td class="text-center">
+            <div class="flex items-center justify-center gap-2">
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="info"
+                (onClick)="openEditDialog(item)"
+              ></p-button>
+              <p-button
+                [icon]="item.isAktif ? 'pi pi-ban' : 'pi pi-check'"
+                [text]="true"
+                [rounded]="true"
+                [severity]="item.isAktif ? 'danger' : 'success'"
+                (onClick)="toggleStatus(item)"
+              ></p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center py-8 text-slate-500">Belum ada data Master SHS.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog
+  [header]="isEditMode ? 'Edit SHS Master' : 'Tambah SHS Master'"
+  [(visible)]="displayDialog"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '500px' }"
+  [draggable]="false"
+>
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mt-2">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium">Kode Item <span class="text-red-500">*</span></label>
+      <input
+        pInputText
+        formControlName="kodeItem"
+        class="w-full"
+        placeholder="Contoh: SHS-OLI-01"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium"
+        >Nama Item / Kerusakan <span class="text-red-500">*</span></label
+      >
+      <input
+        pInputText
+        formControlName="namaItem"
+        class="w-full"
+        placeholder="Contoh: Ganti Oli Mesin"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium">Satuan <span class="text-red-500">*</span></label>
+        <input
+          pInputText
+          formControlName="satuan"
+          class="w-full"
+          placeholder="Contoh: Liter, LTR, PCS"
+        />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium"
+          >Harga Maksimum (Rp) <span class="text-red-500">*</span></label
+        >
+        <p-inputnumber formControlName="hargaMaksimum" class="w-full" styleClass="w-full" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium">Sumber Referensi Harga</label>
+      <input
+        pInputText
+        formControlName="sumberReferensi"
+        class="w-full"
+        placeholder="Contoh: SK Walikota No..."
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium">Keterangan</label>
+      <textarea pTextarea formControlName="keterangan" rows="3" class="w-full"></textarea>
+    </div>
+
+    <div class="flex items-center gap-2 mt-2">
+      <p-checkbox formControlName="isAktif" [binary]="true" inputId="chkAktif"></p-checkbox>
+      <label for="chkAktif" class="font-medium text-slate-700 cursor-pointer">Item Aktif</label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4 border-t border-slate-100 pt-4">
+      <p-button
+        label="Batal"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        (onClick)="closeDialog()"
+        [disabled]="submitting"
+      ></p-button>
+      <p-button
+        label="Simpan"
+        icon="pi pi-save"
+        type="submit"
+        [loading]="submitting"
+        [disabled]="form.invalid"
+      ></p-button>
+    </div>
+  </form>
+</p-dialog>

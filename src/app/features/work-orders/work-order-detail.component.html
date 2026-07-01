@@ -8,7 +8,17 @@
         <p class="text-sm text-slate-500">Dibuat pada {{ formatDateTime(wo.assignedAt) }}</p>
       </div>
     </div>
-    <p-tag [value]="statusLabel(wo.status)" [severity]="statusSeverity(wo.status)"></p-tag>
+    <div class="flex items-center gap-3">
+      <div *ngIf="wo.status !== 'DIBUAT'" class="flex gap-2">
+        <a [routerLink]="['/work-orders', wo.id, 'spk']" target="_blank">
+          <p-button icon="pi pi-print" label="Cetak SPK" severity="secondary" [outlined]="true" size="small"></p-button>
+        </a>
+        <a [routerLink]="['/work-orders', wo.id, 'bast']" target="_blank">
+          <p-button icon="pi pi-print" label="Cetak BAST" severity="secondary" [outlined]="true" size="small"></p-button>
+        </a>
+      </div>
+      <p-tag [value]="statusLabel(wo.status)" [severity]="statusSeverity(wo.status)"></p-tag>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -200,19 +210,23 @@
 
           <!-- Link ke halaman Verifikasi SHS: Verifikator -->
           <div
-            *ngIf="pnw.status === 'DIVERIFIKASI' && wo.status !== 'DIBAYAR' && permissions().includes('verifikasi.shs')"
+            *ngIf="wo.status === 'PENAWARAN' || wo.status === 'DIVERIFIKASI' || wo.status === 'MENUNGGU_PPTK' || wo.status === 'DISETUJUI_PPTK' || wo.status === 'DIBAYAR'"
             class="mt-2 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4"
           >
             <div class="flex-1">
               <p class="text-sm font-semibold text-amber-900">Penawaran siap diverifikasi harga</p>
               <p class="text-xs text-amber-700">
-                Pengurus Barang telah menyetujui penawaran ini. Silakan cek form Standart Harga Supplier
-                (SHS) per item.
+                Pengurus Barang telah menyetujui penawaran ini. Silakan cek form Standart Harga
+                Satuan (SHS) per item.
               </p>
             </div>
             <a [routerLink]="['/work-orders', wo.id, 'verifikasi']">
               <p-button
-                label="{{ wo.verifikasiHarga?.status === 'DISETUJUI' ? 'Lihat Detail Verifikasi' : 'Buka Halaman Verifikasi SHS' }}"
+                label="{{
+                  wo.verifikasiHarga?.status === 'DISETUJUI'
+                    ? 'Lihat Detail Verifikasi'
+                    : 'Buka Halaman Verifikasi SHS'
+                }}"
                 icon="pi pi-arrow-right"
                 iconPos="right"
                 severity="warn"
@@ -220,9 +234,48 @@
             </a>
           </div>
 
+          <!-- Approval Actions: PPTK -->
+          <div
+            *ngIf="wo.status === 'MENUNGGU_PPTK' && (isPPTK() || isAdmin())"
+            class="mt-2 flex flex-col gap-3 rounded-lg border border-purple-200 bg-purple-50 p-4"
+          >
+            <h3 class="text-sm font-semibold text-purple-900">Review PPTK</h3>
+            <p class="text-xs text-purple-700">
+              Verifikator telah menyetujui harga SHS. Silakan tinjau dan berikan persetujuan akhir.
+            </p>
+            <div class="mt-2 flex items-end gap-3">
+              <div class="flex-1">
+                <label class="mb-1 block text-xs font-medium text-purple-800"
+                  >Catatan (Opsional)</label
+                >
+                <input
+                  pInputText
+                  class="w-full"
+                  [(ngModel)]="catatan"
+                  placeholder="Masukkan alasan jika menolak..."
+                />
+              </div>
+              <p-button
+                label="Tolak"
+                icon="pi pi-times"
+                severity="danger"
+                (onClick)="rejectPPTK()"
+              ></p-button>
+              <p-button
+                label="Setujui PPTK"
+                icon="pi pi-check"
+                severity="success"
+                (onClick)="approvePPTK()"
+              ></p-button>
+            </div>
+          </div>
+
           <!-- Link ke halaman Pembayaran: Bendahara -->
           <div
-            *ngIf="wo.status === 'DIVERIFIKASI' && wo.verifikasiHarga?.status === 'DISETUJUI' && permissions().includes('pembayaran.proses')"
+            *ngIf="
+              wo.status === 'DISETUJUI_PPTK' &&
+              permissions().includes('pembayaran.proses')
+            "
             class="mt-2 flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50 p-4"
           >
             <div class="flex-1">

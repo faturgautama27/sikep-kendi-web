@@ -20,7 +20,7 @@
             severity="secondary"
             (onClick)="goBack()"
           />
-          @if (isWaitingVerifikasi) {
+          @if (isWaitingVerifikasiPB && (isDriver() || isPB() || isAdmin())) {
             <p-button
               icon="pi pi-pencil"
               label="Edit Laporan"
@@ -82,8 +82,8 @@
           </div>
         </div>
 
-        <!-- Aksi -->
-        @if (isWaitingVerifikasi && !env.isMobile) {
+        <!-- Aksi PB -->
+        @if (isWaitingVerifikasiPB && (isPB() || isAdmin()) && !env.isMobile) {
           <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
             <p-button
               label="Verifikasi (Setuju)"
@@ -91,7 +91,7 @@
               severity="success"
               class="flex-1"
               styleClass="w-full"
-              (onClick)="openVerifikasi(true)"
+              (onClick)="openVerifikasi(true, 'FASE_A')"
             ></p-button>
             <p-button
               label="Tolak"
@@ -99,22 +99,110 @@
               severity="danger"
               class="flex-1"
               styleClass="w-full"
-              (onClick)="openVerifikasi(false)"
+              (onClick)="openVerifikasi(false, 'FASE_A')"
             ></p-button>
           </div>
         }
 
-        @if (isWaitingApprove && !env.isMobile) {
+        <!-- Aksi Driver / Admin -->
+        @if (isWaitingReimburse && (isDriver() || isAdmin()) && !env.isMobile) {
+          <div class="mt-auto pt-4 border-t border-slate-100">
+            <a [routerLink]="['/darurat', row.id, 'reimbursement']" class="block">
+              <p-button
+                label="Submit Reimbursement"
+                icon="pi pi-upload"
+                severity="info"
+                styleClass="w-full"
+              ></p-button>
+            </a>
+          </div>
+        }
+
+        <!-- Aksi PB (Input SHS) -->
+        @if (isWaitingSHS && (isPB() || isAdmin()) && !env.isMobile) {
           <div class="mt-auto pt-4 border-t border-slate-100">
             <p-button
-              label="Approve Reimbursement"
-              icon="pi pi-check-circle"
-              severity="success"
+              label="Input SHS"
+              icon="pi pi-file-edit"
+              severity="help"
               styleClass="w-full"
-              (onClick)="openApprove()"
+              (onClick)="openSHS()"
             ></p-button>
           </div>
         }
+
+        <!-- Aksi Verifikator -->
+        @if (isWaitingVerifikator && (isVerifikator() || isAdmin()) && !env.isMobile) {
+          <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
+            <p-button
+              label="Setujui (Verifikator)"
+              icon="pi pi-check"
+              severity="success"
+              class="flex-1"
+              styleClass="w-full"
+              (onClick)="openVerifikasi(true, 'VERIFIKATOR')"
+            ></p-button>
+            <p-button
+              label="Tolak (Verifikator)"
+              icon="pi pi-times"
+              severity="danger"
+              class="flex-1"
+              styleClass="w-full"
+              (onClick)="openVerifikasi(false, 'VERIFIKATOR')"
+            ></p-button>
+          </div>
+        }
+
+        <!-- Aksi PPTK -->
+        @if (isWaitingPPTK && (isPPTK() || isAdmin()) && !env.isMobile) {
+          <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
+            <p-button
+              label="Setujui (PPTK)"
+              icon="pi pi-check"
+              severity="success"
+              class="flex-1"
+              styleClass="w-full"
+              (onClick)="openVerifikasi(true, 'PPTK')"
+            ></p-button>
+            <p-button
+              label="Tolak (PPTK)"
+              icon="pi pi-times"
+              severity="danger"
+              class="flex-1"
+              styleClass="w-full"
+              (onClick)="openVerifikasi(false, 'PPTK')"
+            ></p-button>
+          </div>
+        }
+        <!-- Aksi Keuangan (Upload Bukti Bayar) -->
+        @if (isWaitingPembayaran && (isKeuangan() || isAdmin()) && !env.isMobile) {
+          <div class="mt-auto pt-4 border-t border-slate-100">
+            <p-button
+              label="Upload Bukti Pembayaran"
+              icon="pi pi-money-bill"
+              severity="success"
+              styleClass="w-full"
+              (onClick)="openPembayaran()"
+            ></p-button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Timeline Progress (Simplified) -->
+    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h3 class="mb-4 text-lg font-semibold text-slate-800">Timeline Progress</h3>
+      <div class="flex flex-col gap-4 text-sm text-slate-600">
+        <!-- In a real app, this should loop through historiMaintenance. For now we just show current status as the latest milestone -->
+        <div class="flex gap-4 items-start">
+          <div class="flex flex-col items-center mt-1">
+            <div class="h-3 w-3 rounded-full bg-blue-500"></div>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-bold text-slate-800">Status Saat Ini: {{ getStatusProps(row.status).label }}</span>
+            <span class="text-xs text-slate-400">Pembaruan sistem terakhir</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -145,7 +233,7 @@
             <h4 class="text-sm font-medium text-slate-500 mb-3">Bukti Invoice/Struk</h4>
             <div class="flex flex-wrap gap-4">
               @for (foto of row.fotos; track foto.id) {
-                @if (foto.tipe === 'INVOICE') {
+                @if (foto.tipe === 'NOTA_KWITANSI') {
                   <div
                     class="w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
                   >
@@ -160,14 +248,21 @@
     }
 
     <!-- Mobile Actions -->
-    @if (env.isMobile && isWaitingVerifikasi) {
-      <div
-        class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40"
-      >
-        <a [routerLink]="['/driver/darurat', row.id, 'edit']" class="block">
-          <p-button label="Edit Laporan" icon="pi pi-pencil" styleClass="w-full" class="w-full" />
-        </a>
-      </div>
+    @if (env.isMobile) {
+      @if (isWaitingVerifikasiPB) {
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
+          <a [routerLink]="['/driver/darurat', row.id, 'edit']" class="block">
+            <p-button label="Edit Laporan" icon="pi pi-pencil" styleClass="w-full" class="w-full" />
+          </a>
+        </div>
+      }
+      @if (isWaitingReimburse && isDriver()) {
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
+          <a [routerLink]="['/driver/darurat', row.id, 'reimbursement']" class="block">
+            <p-button label="Submit Reimbursement" icon="pi pi-upload" styleClass="w-full" class="w-full" severity="info" />
+          </a>
+        </div>
+      }
     }
   } @else {
     <div class="p-8 text-center text-slate-500">Memuat laporan...</div>
@@ -184,8 +279,12 @@
   <div class="flex flex-col gap-4 pt-2">
     <p>
       Apakah Anda yakin ingin {{ verifikasiApproved ? 'memverifikasi' : 'menolak' }} laporan darurat
-      ini?
+      ini (Tahap {{ verifikasiType }})?
     </p>
+    <div class="flex flex-col gap-1">
+      <label>Komentar</label>
+      <textarea pTextarea [(ngModel)]="verifikasiKomentar" rows="2" class="w-full"></textarea>
+    </div>
     @if (!verifikasiApproved) {
       <div class="flex flex-col gap-1">
         <label>Alasan Penolakan</label>
@@ -208,23 +307,52 @@
   </ng-template>
 </p-dialog>
 
-<!-- Dialog Approve Reimbursement -->
+
+
+<!-- Dialog Input SHS -->
 <p-dialog
-  header="Approve Reimbursement"
-  [(visible)]="approveDialogVisible"
+  header="Input SHS Master"
+  [(visible)]="shsDialogVisible"
   [modal]="true"
-  [style]="{ width: '90vw', maxWidth: '400px' }"
+  [style]="{ width: '90vw', maxWidth: '600px' }"
 >
   <div class="flex flex-col gap-4 pt-2">
-    <p>Apakah Anda menyetujui pengajuan reimbursement untuk laporan darurat ini?</p>
+    <p class="text-sm text-slate-500">Pilih komponen SHS untuk darurat ini.</p>
+    <div class="p-4 border border-slate-200 rounded text-center text-slate-500">
+      (Form SHS detail)
+    </div>
   </div>
   <ng-template pTemplate="footer">
     <p-button
       label="Batal"
       severity="secondary"
       [outlined]="true"
-      (onClick)="approveDialogVisible = false"
+      (onClick)="shsDialogVisible = false"
     />
-    <p-button label="Approve" severity="success" (onClick)="submitApprove()" />
+    <p-button label="Simpan SHS" severity="help" (onClick)="submitSHS()" />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog Pembayaran -->
+<p-dialog
+  header="Upload Bukti Pembayaran"
+  [(visible)]="pembayaranDialogVisible"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '500px' }"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    <p class="text-sm text-slate-500">Unggah bukti transfer atau pembayaran untuk laporan darurat ini.</p>
+    <div class="p-4 border border-dashed border-slate-300 rounded text-center text-slate-500">
+      Area upload bukti bayar
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="pembayaranDialogVisible = false"
+    />
+    <p-button label="Submit Bukti" severity="success" (onClick)="submitPembayaran()" />
   </ng-template>
 </p-dialog>

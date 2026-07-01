@@ -59,7 +59,6 @@ export class DaruratFormComponent implements OnInit {
   protected readonly isEditMode = computed(() => !!this.daruratId());
 
   protected readonly fotoKerusakanIds = signal<{ id: string; url: string }[]>([]);
-  protected readonly fotoInvoiceIds = signal<{ id: string; url: string }[]>([]);
 
   private readonly allVehicles = this.store.selectSignal(VehiclesState.list);
   protected readonly vehicleOpts = computed(() =>
@@ -73,7 +72,7 @@ export class DaruratFormComponent implements OnInit {
     lokasiKejadian: ['', Validators.required],
     latitude: [null as number | null],
     longitude: [null as number | null],
-    totalPengeluaran: [0, [Validators.required, Validators.min(0)]],
+    estimasiBiaya: [null as number | null, [Validators.min(0)]],
     deskripsiDarurat: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
   });
 
@@ -90,15 +89,13 @@ export class DaruratFormComponent implements OnInit {
           this.form.patchValue({
             kendaraanId: String(res.kendaraanId),
             lokasiKejadian: res.lokasiKejadian ?? '',
-            totalPengeluaran: res.totalPengeluaran,
+            estimasiBiaya: res.estimasiBiaya ?? null,
             deskripsiDarurat: res.deskripsiDarurat,
           });
           
           if (res.fotos) {
             const kerusakan = res.fotos.filter(f => f.tipe === 'KERUSAKAN').map((f: { imageId: number, url?: string }) => ({ id: String(f.imageId), url: f.url ?? '' }));
-            const invoice = res.fotos.filter(f => f.tipe === 'INVOICE').map((f: { imageId: number, url?: string }) => ({ id: String(f.imageId), url: f.url ?? '' }));
             this.fotoKerusakanIds.set(kerusakan);
-            this.fotoInvoiceIds.set(invoice);
           }
         },
         error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data laporan' }),
@@ -133,30 +130,6 @@ export class DaruratFormComponent implements OnInit {
     this.fotoKerusakanIds.set(arr);
   }
 
-  protected removeInvoice(index: number) {
-    const arr = [...this.fotoInvoiceIds()];
-    arr.splice(index, 1);
-    this.fotoInvoiceIds.set(arr);
-  }
-
-  protected onUploadInvoice(event: { files: File[] }, uploader: unknown) {
-    const files: File[] = event.files;
-    this.submitting.set(true);
-    const uploads = files.map((f: File) => this.imageData.upload(f));
-    
-    forkJoin(uploads).pipe(
-      catchError(() => {
-        this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload foto invoice' });
-        return of([]);
-      })
-    ).subscribe(images => {
-      this.submitting.set(false);
-      const newItems = images.map((img: { id: string, url?: string }) => ({ id: String(img.id), url: img.url ?? '' }));
-      this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), ...newItems]);
-      (uploader as { clear: () => void }).clear();
-      this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto invoice berhasil diupload' });
-    });
-  }
 
   private dataUrlToFile(dataUrl: string, filename: string): File {
     const arr = dataUrl.split(',');
@@ -198,33 +171,6 @@ export class DaruratFormComponent implements OnInit {
     }
   }
 
-  protected async takePhotoInvoice() {
-    try {
-      const image = await Camera.getPhoto({
-        quality: 60,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
-      });
-      if (image.dataUrl) {
-        this.submitting.set(true);
-        const file = this.dataUrlToFile(image.dataUrl, `invoice_${Date.now()}.jpg`);
-        this.imageData.upload(file).subscribe({
-          next: (res: any) => {
-            this.submitting.set(false);
-            this.fotoInvoiceIds.set([...this.fotoInvoiceIds(), { id: String(res.id), url: res.url }]);
-            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto invoice diupload' });
-          },
-          error: () => {
-            this.submitting.set(false);
-            this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload invoice' });
-          }
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
 
   protected async getLocation(): Promise<void> {
     try {
@@ -280,10 +226,7 @@ export class DaruratFormComponent implements OnInit {
       return;
     }
 
-    if (this.fotoInvoiceIds().length === 0) {
-      this.msg.add({ severity: 'error', summary: 'Validasi', detail: 'Minimal 1 foto invoice harus diupload' });
-      return;
-    }
+
 
     this.submitting.set(true);
     const val = this.form.getRawValue();
@@ -294,10 +237,9 @@ export class DaruratFormComponent implements OnInit {
       lokasiKejadian: val.lokasiKejadian!,
       latitude: val.latitude ?? undefined,
       longitude: val.longitude ?? undefined,
-      totalPengeluaran: val.totalPengeluaran!,
+      estimasiBiaya: val.estimasiBiaya ?? undefined,
       deskripsiDarurat: val.deskripsiDarurat!,
       fotoKerusakanIds: this.fotoKerusakanIds().map(x => Number(x.id)),
-      fotoInvoiceIds: this.fotoInvoiceIds().map(x => Number(x.id)),
     };
 
     if (this.env.isMobile) {

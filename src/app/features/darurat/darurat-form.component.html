@@ -34,10 +34,10 @@
   <!-- Info Alert -->
   <div class="rounded-xl bg-blue-50 border border-blue-100 p-4 flex gap-3">
     <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
-    <p class="text-xs leading-relaxed text-blue-800">
-      Gunakan form ini <b>hanya</b> untuk kejadian darurat di jalan (misal: mogok, kecelakaan, atau
-      perbaikan mendesak).
-    </p>
+    <div class="text-xs leading-relaxed text-blue-800">
+      <b>Laporan Fase Pertama</b><br/>
+      Gunakan form ini <b>hanya</b> untuk kejadian darurat di jalan (misal: mogok, kecelakaan, atau perbaikan mendesak). Bukti pembayaran dan nota diunggah setelah laporan disetujui.
+    </div>
   </div>
 
   <div
@@ -97,20 +97,20 @@
     <input type="hidden" formControlName="latitude" />
     <input type="hidden" formControlName="longitude" />
 
-    <!-- Total Pengeluaran -->
+    <!-- Estimasi Biaya -->
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
-        >Total Pengeluaran (Opsional)</label
+        >Estimasi Biaya (Opsional)</label
       >
       <p-inputnumber
-        formControlName="totalPengeluaran"
+        formControlName="estimasiBiaya"
         mode="currency"
         currency="IDR"
         locale="id-ID"
         styleClass="w-full"
         inputStyleClass="w-full rounded-xl border-slate-200 py-3 text-sm"
       ></p-inputnumber>
-      <small class="text-slate-400 ml-1">Kosongkan jika tidak ada pengeluaran tunai.</small>
+      <small class="text-slate-400 ml-1">Kosongkan jika belum diketahui.</small>
     </div>
 
     <!-- Deskripsi Kejadian -->
@@ -194,62 +194,6 @@
       }
     </div>
 
-    <!-- Foto Invoice -->
-    <div class="flex flex-col gap-2 md:col-span-2 mt-4 md:mt-2">
-      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
-        >Foto Bukti / Struk / Nota <span class="text-red-500">*</span></label
-      >
-
-      @if (fotoInvoiceIds().length > 0) {
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
-          @for (img of fotoInvoiceIds(); track img.id; let idx = $index) {
-            <div
-              class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm"
-            >
-              @if (img.url) {
-                <img [src]="img.url" class="w-full h-full object-cover" />
-              } @else {
-                <div class="w-full h-full flex items-center justify-center text-slate-300">
-                  <i class="pi pi-file text-3xl"></i>
-                </div>
-              }
-              <button
-                type="button"
-                (click)="removeInvoice(idx)"
-                class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center backdrop-blur-md active:scale-95 transition shadow-md"
-              >
-                <i class="pi pi-trash text-sm"></i>
-              </button>
-            </div>
-          }
-        </div>
-      }
-
-      @if (env.isMobile) {
-        <button
-          type="button"
-          (click)="takePhotoInvoice()"
-          class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-emerald-200 bg-emerald-50/50 aspect-square text-emerald-600 active:bg-emerald-100 transition w-1/2"
-        >
-          <i class="pi pi-camera text-2xl"></i>
-          <span class="text-xs font-semibold">Foto Struk</span>
-        </button>
-      } @else {
-        <p-fileupload
-          #fuInvoice
-          mode="advanced"
-          [multiple]="true"
-          accept="image/*"
-          [maxFileSize]="10000000"
-          chooseLabel="Pilih Tambahan Foto"
-          uploadLabel="Upload"
-          cancelLabel="Batal"
-          [customUpload]="true"
-          (uploadHandler)="onUploadInvoice($event, fuInvoice)"
-        >
-        </p-fileupload>
-      }
-    </div>
   </div>
 
   <!-- Desktop Buttons -->

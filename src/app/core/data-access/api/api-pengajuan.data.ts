@@ -45,13 +45,13 @@ export class ApiPengajuanData implements PengajuanDataPort {
 
   private mapJenis(jenis: string | undefined): Pengajuan['jenis'] {
     const value = (jenis ?? '').toUpperCase();
-    if (value === 'SERVIS_RUTIN' || value === 'PERBAIKAN_KERUSAKAN') {
-      return value;
+    if (value === 'SERVIS_RUTIN' || value === 'PERBAIKAN_KERUSAKAN' || value === 'GANTI_SPARE_PART') {
+      return value as Pengajuan['jenis'];
     }
     return 'PERBAIKAN_KERUSAKAN';
   }
 
-  private mapPengajuan(raw: any): Pengajuan {
+  private mapPengajuan(raw: any, warnings?: string[]): Pengajuan {
     const id = String(raw['id'] ?? '');
     const createdAt = String(raw['createdAt'] ?? new Date().toISOString());
     const fotos = Array.isArray(raw['fotos'])
@@ -99,6 +99,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
       verifikasiAt: (raw['verifikasiAt'] as string | null | undefined) ?? null,
       komentarVerifikasi: (raw['komentarVerifikasi'] as string | null | undefined) ?? null,
       alasanPenolakan: (raw['alasanPenolakan'] as string | null | undefined) ?? null,
+      warnings,
     };
   }
 
@@ -154,7 +155,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
         fotoIds: input.fotoIds || [],
       })
       .pipe(
-        map((resp) => this.mapPengajuan(this.unwrapOne(resp))),
+        map((resp: any) => this.mapPengajuan(this.unwrapOne(resp), resp.warnings)),
       );
   }
 

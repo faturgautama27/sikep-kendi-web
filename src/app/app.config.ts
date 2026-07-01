@@ -39,6 +39,8 @@ import { WorkOrdersState } from '@features/work-orders/state';
 import { NotificationsState } from '@features/notifications/state';
 import { AuditState } from '@features/audit/state';
 import { DashboardState } from '@features/dashboard/state';
+import { ShsMasterState } from '@features/shs-master/state/shs-master.state';
+import { LaporanState } from '@features/laporan/state/laporan.state';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { DaruratState } from '@features/darurat/state';
@@ -90,6 +92,8 @@ const SIKEP_KENDI_STATES = [
   NotificationsState,
   AuditState,
   DashboardState,
+  ShsMasterState,
+  LaporanState,
 ];
 
 export const appConfig: ApplicationConfig = {

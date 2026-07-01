@@ -1,7 +1,7 @@
 import type { Uuid, Timestamp, Money } from './common';
 import type { Image } from './image';
 
-export type PengajuanJenis = 'SERVIS_RUTIN' | 'PERBAIKAN_KERUSAKAN';
+export type PengajuanJenis = 'SERVIS_RUTIN' | 'PERBAIKAN_KERUSAKAN' | 'GANTI_SPARE_PART';
 export type PengajuanStatus =
   | 'draft'
   | 'menunggu_verifikasi'
@@ -44,6 +44,7 @@ export interface Pengajuan {
   verifikasiAt?: Timestamp | null;
   komentarVerifikasi?: string | null;
   alasanPenolakan?: string | null;
+  warnings?: string[];
 }
 
 export interface PengajuanSparepart {

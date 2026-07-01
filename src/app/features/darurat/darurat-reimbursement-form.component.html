@@ -1,0 +1,202 @@
+<p-toast />
+
+<!-- ── Desktop Header ─────────────────────────────────────────────────── -->
+@if (!env.isMobile) {
+  <div class="mb-5 max-w-3xl">
+    <app-page-header
+      title="Pengajuan Reimbursement Darurat"
+      subtitle="Unggah nota pembayaran dan kondisi kendaraan setelah perbaikan."
+    >
+      <div page-header-action>
+        <p-button
+          icon="pi pi-arrow-left"
+          label="Kembali"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="goBack()"
+        />
+      </div>
+    </app-page-header>
+  </div>
+}
+
+<!-- ── Main Form Content ──────────────────────────────────────────────── -->
+<div
+  class="space-y-6"
+  [class.px-5]="env.isMobile"
+  [class.py-6]="env.isMobile"
+  [class.pb-6]="env.isMobile"
+  [class.min-h-screen]="env.isMobile"
+  [class.bg-slate-50]="env.isMobile"
+  [class.max-w-3xl]="!env.isMobile"
+  [class.p-6]="!env.isMobile"
+  [class.bg-white]="!env.isMobile"
+  [class.rounded-xl]="!env.isMobile"
+  [class.border]="!env.isMobile"
+  [class.border-slate-200]="!env.isMobile"
+  [class.shadow-sm]="!env.isMobile"
+  [formGroup]="form"
+>
+  <!-- Info Alert -->
+  <div class="rounded-xl bg-blue-50 border border-blue-100 p-4 flex gap-3">
+    <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+    <div class="text-xs leading-relaxed text-blue-800">
+      <b>Fase Kedua (Penyelesaian Perbaikan)</b><br/>
+      Masukkan total tagihan/pembayaran, unggah minimal 1 foto nota (kwitansi), dan minimal 1 foto kondisi kendaraan setelah diperbaiki.
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-6">
+    <!-- Total Reimbursement -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Total Reimbursement (Rp) <span class="text-red-500">*</span></label
+      >
+      <p-inputnumber
+        formControlName="totalReimbursement"
+        mode="currency"
+        currency="IDR"
+        locale="id-ID"
+        styleClass="w-full"
+        inputStyleClass="w-full rounded-xl border-slate-200 py-3 text-sm"
+      ></p-inputnumber>
+      @if (form.controls.totalReimbursement.invalid && form.controls.totalReimbursement.touched) {
+        <small class="text-red-500 font-medium ml-1">Total pengeluaran minimal Rp 1.000</small>
+      }
+    </div>
+
+    <!-- Foto Nota -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Foto Nota / Kwitansi Pembayaran <span class="text-red-500">*</span></label
+      >
+
+      @if (fotoNotaIds().length > 0) {
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+          @for (img of fotoNotaIds(); track img.id; let idx = $index) {
+            <div class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm">
+              <img [src]="img.url" class="w-full h-full object-cover" />
+              <button
+                type="button"
+                (click)="removeFoto(idx, 'nota')"
+                class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center backdrop-blur-md active:scale-95 transition shadow-md"
+              >
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (env.isMobile) {
+        <button
+          type="button"
+          (click)="takePhoto('nota')"
+          class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 p-4 text-blue-600 active:bg-blue-100 transition w-full md:w-1/2"
+        >
+          <i class="pi pi-camera text-2xl"></i>
+          <span class="text-xs font-semibold">Ambil Foto Nota</span>
+        </button>
+      } @else {
+        <p-fileupload
+          #fuNota
+          mode="advanced"
+          [multiple]="true"
+          accept="image/*"
+          chooseLabel="Upload Foto Nota"
+          uploadLabel="Upload"
+          cancelLabel="Batal"
+          [customUpload]="true"
+          (uploadHandler)="onUpload($event, fuNota, 'nota')"
+        ></p-fileupload>
+      }
+    </div>
+
+    <!-- Divider -->
+    <div class="h-px w-full bg-slate-200 my-2"></div>
+
+    <!-- Foto Pasca Perbaikan -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
+        >Foto Kendaraan Setelah Perbaikan <span class="text-red-500">*</span></label
+      >
+
+      @if (fotoSetelahPerbaikanIds().length > 0) {
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+          @for (img of fotoSetelahPerbaikanIds(); track img.id; let idx = $index) {
+            <div class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm">
+              <img [src]="img.url" class="w-full h-full object-cover" />
+              <button
+                type="button"
+                (click)="removeFoto(idx, 'perbaikan')"
+                class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center backdrop-blur-md active:scale-95 transition shadow-md"
+              >
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (env.isMobile) {
+        <button
+          type="button"
+          (click)="takePhoto('perbaikan')"
+          class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 p-4 text-blue-600 active:bg-blue-100 transition w-full md:w-1/2"
+        >
+          <i class="pi pi-camera text-2xl"></i>
+          <span class="text-xs font-semibold">Ambil Foto Kendaraan</span>
+        </button>
+      } @else {
+        <p-fileupload
+          #fuPerbaikan
+          mode="advanced"
+          [multiple]="true"
+          accept="image/*"
+          chooseLabel="Upload Foto Kendaraan"
+          uploadLabel="Upload"
+          cancelLabel="Batal"
+          [customUpload]="true"
+          (uploadHandler)="onUpload($event, fuPerbaikan, 'perbaikan')"
+        ></p-fileupload>
+      }
+    </div>
+  </div>
+
+  <!-- Desktop Buttons -->
+  @if (!env.isMobile) {
+    <div class="flex justify-end gap-2 mt-6">
+      <p-button
+        severity="secondary"
+        label="Batal"
+        [outlined]="true"
+        (onClick)="goBack()"
+      />
+      <p-button
+        label="Ajukan Reimbursement"
+        icon="pi pi-check"
+        [loading]="submitting()"
+        (onClick)="submit()"
+      />
+    </div>
+  }
+</div>
+
+<!-- ── Mobile Sticky Bottom Bar ──────────────────────────────────────── -->
+@if (env.isMobile) {
+  <div class="pb-8 pt-2 px-5">
+    <button
+      class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-[0.98] active:bg-blue-700 disabled:opacity-70 disabled:active:scale-100"
+      [disabled]="submitting()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <i class="pi pi-spin pi-spinner text-lg"></i>
+        <span>Menyimpan...</span>
+      } @else {
+        <i class="pi pi-send text-lg"></i>
+        <span>Ajukan Reimbursement</span>
+      }
+    </button>
+  </div>
+}

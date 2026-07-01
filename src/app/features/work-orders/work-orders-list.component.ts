@@ -46,6 +46,8 @@ const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DRAFT_CHECKLIST: 'Draft Checklist',
   PENAWARAN: 'Penawaran',
   DIVERIFIKASI: 'Diverifikasi',
+  MENUNGGU_PPTK: 'Menunggu PPTK',
+  DISETUJUI_PPTK: 'Disetujui PPTK',
   DIBAYAR: 'Dibayar',
 };
 
@@ -124,6 +126,8 @@ export class WorkOrdersListComponent {
       DRAFT_CHECKLIST: 0,
       PENAWARAN: 0,
       DIVERIFIKASI: 0,
+      MENUNGGU_PPTK: 0,
+      DISETUJUI_PPTK: 0,
       DIBAYAR: 0,
     };
     for (const wo of this.list() || []) {

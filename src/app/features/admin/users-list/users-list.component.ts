@@ -181,6 +181,7 @@ export class UsersListComponent implements OnInit {
   }
 
   private formatRoleName(r: string): string {
+    if (r === 'pptk') return 'PPTK';
     return r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ');
   }
 

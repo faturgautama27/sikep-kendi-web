@@ -3,15 +3,23 @@ import { User } from './user';
 import { Image } from './image';
 
 export type DaruratStatus =
-  | 'MENUNGGU_VERIFIKASI'
-  | 'TERVERIFIKASI'
-  | 'DITOLAK'
-  | 'REIMBURSE_APPROVED';
+  | 'MENUNGGU_VERIFIKASI_PB'
+  | 'DISETUJUI_PB'
+  | 'DITOLAK_PB'
+  | 'MENUNGGU_REIMBURSEMENT'
+  | 'REIMBURSEMENT_DIAJUKAN'
+  | 'MENUNGGU_SHS_PB'
+  | 'SHS_DIKERJAKAN'
+  | 'MENUNGGU_PPTK'
+  | 'DISETUJUI_PPTK'
+  | 'DIBAYAR'
+  | 'DITOLAK_VERIFIKATOR'
+  | 'DITOLAK_PPTK';
 
 export interface LaporanDaruratFoto {
   id: number;
   laporanDaruratId: number;
-  tipe: 'KERUSAKAN' | 'INVOICE';
+  tipe: 'KERUSAKAN' | 'NOTA_KWITANSI' | 'SETELAH_PERBAIKAN';
   imageId: number;
   urutan: number;
   image?: Image;
@@ -27,14 +35,21 @@ export interface LaporanDarurat {
   lokasiKejadian: string | null;
   latitude: number | null;
   longitude: number | null;
-  totalPengeluaran: number;
+  estimasiBiaya?: number | null;
+  totalReimbursement?: number | null;
+  totalPengeluaran?: number | null;
   status: DaruratStatus;
   verifikasiOlehId: string | null;
   verifikasiAt: string | null;
-  approveReimburseOlehId: string | null;
-  approveReimburseAt: string | null;
+  catatanVerifikasiPB?: string | null;
+  catatanVerifikator?: string | null;
+  catatanPptk?: string | null;
+  alasanPenolakanPptk?: string | null;
   createdAt: string;
   updatedAt: string;
+  historiMaintenance?: any;
+  shsItems?: any[];
+  buktiDarurat?: any;
 
   // relations
   kendaraan?: Vehicle;

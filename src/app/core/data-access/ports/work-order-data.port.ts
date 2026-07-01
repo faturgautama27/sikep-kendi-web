@@ -14,6 +14,8 @@ export interface WorkOrderDataPort {
   list(filter?: WorkOrderFilter): Observable<WorkOrder[]>;
   getById(id: string): Observable<WorkOrder>;
   assignVendor(workOrderId: string, vendorId: string): Observable<WorkOrder>;
+  approvePPTK(workOrderId: string): Observable<WorkOrder>;
+  rejectPPTK(workOrderId: string, catatan: string): Observable<WorkOrder>;
 }
 
 export const WORKORDER_DATA = new InjectionToken<WorkOrderDataPort>('WORKORDER_DATA');

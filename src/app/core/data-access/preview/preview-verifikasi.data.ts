@@ -20,4 +20,8 @@ export class PreviewVerifikasiData implements VerifikasiDataPort {
   revisi(woId: string, payload: Record<string, unknown>): Observable<unknown> {
     return of({ woId, status: 'REVISI_DIMINTA', ...payload });
   }
+
+  pptkApprove(woId: string, approved: boolean, alasan?: string, komentar?: string): Observable<unknown> {
+    return of({ woId, status: approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK', alasan, komentar });
+  }
 }

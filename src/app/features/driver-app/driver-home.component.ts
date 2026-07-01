@@ -29,10 +29,14 @@ export class DriverHomeComponent implements OnInit {
     ).length;
     
     const activeDarurat = this.daruratList().filter(
-      d => d.status === 'MENUNGGU_VERIFIKASI' || d.status === 'TERVERIFIKASI' || d.status === 'REIMBURSE_APPROVED'
+      d => !['DIBAYAR', 'DITOLAK_PB', 'DITOLAK_VERIFIKATOR', 'DITOLAK_PPTK'].includes(d.status)
     ).length;
 
     return { pengajuan: activePengajuan, darurat: activeDarurat };
+  });
+
+  protected readonly daruratNeedAction = computed(() => {
+    return this.daruratList().filter(d => d.status === 'DISETUJUI_PB' || d.status === 'DITOLAK_VERIFIKATOR').length;
   });
 
   protected readonly recentActivities = computed(() => {

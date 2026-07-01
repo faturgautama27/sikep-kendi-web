@@ -21,6 +21,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FileUploadModule } from 'primeng/fileupload';
+import { DialogModule } from 'primeng/dialog';
 
 import { PageHeaderComponent } from '@core/layout';
 import { VehiclesState } from '@features/vehicles/state/vehicles.state';
@@ -53,6 +54,7 @@ type Step = 0 | 1 | 2;
     ToastModule,
     PageHeaderComponent,
     FileUploadModule,
+    DialogModule,
   ],
   providers: [MessageService],
   templateUrl: './pengajuan-form.component.html',
@@ -74,8 +76,9 @@ export class PengajuanFormComponent implements OnInit {
   protected readonly clientUuid = crypto.randomUUID();
   protected readonly pengajuanId = signal<string | null>(null);
   protected readonly isEditMode = computed(() => !!this.pengajuanId());
-  
   protected readonly photos = signal<{ id?: string, dataUrl: string }[]>([]);
+  protected readonly warningDialogVisible = signal(false);
+  protected readonly submissionWarnings = signal<string[]>([]);
 
   private readonly allVehicles = this.store.selectSignal(VehiclesState.list);
   protected readonly vehicleOpts = computed(() =>
@@ -247,7 +250,7 @@ export class PengajuanFormComponent implements OnInit {
     const s2 = this.step2.getRawValue();
 
     const input = {
-      jenis: s1.jenisPengajuan === 'servis_rutin' ? 'SERVIS_RUTIN' as const : 'PERBAIKAN_KERUSAKAN' as const,
+      jenis: s1.jenisPengajuan === 'servis_rutin' ? 'SERVIS_RUTIN' as const : s1.jenisPengajuan === 'ganti_spare_part' ? 'GANTI_SPARE_PART' as const : 'PERBAIKAN_KERUSAKAN' as const,
       vehicleId: s1.vehicleId!,
       vehiclePlate: v.nomorPolisi,
       regulationVersionId: '',
@@ -288,19 +291,38 @@ export class PengajuanFormComponent implements OnInit {
       : new CreatePengajuan(input as any);
 
     this.store.dispatch(action).subscribe({
-      next: () => {
+      next: (state: any) => {
         this.submitting.set(false);
-        this.msg.add({ 
-          severity: 'success', 
-          summary: this.isEditMode() ? 'Pengajuan diupdate' : 'Pengajuan berhasil dikirim', 
-          detail: 'Menunggu verifikasi.' 
-        });
-        setTimeout(() => this.router.navigate([this.env.isMobile ? '/driver' : '/pengajuan']), 1500);
+        // Extract warnings if present in the newly created pengajuan
+        const pengajuanList = state?.pengajuan?.list ?? [];
+        const created = pengajuanList[0];
+        
+        if (created?.warnings?.length > 0) {
+          this.submissionWarnings.set(created.warnings);
+          this.warningDialogVisible.set(true);
+        } else {
+          this.msg.add({ 
+            severity: 'success', 
+            summary: this.isEditMode() ? 'Pengajuan diupdate' : 'Pengajuan berhasil dikirim', 
+            detail: 'Menunggu verifikasi.' 
+          });
+          setTimeout(() => this.router.navigate([this.env.isMobile ? '/driver' : '/pengajuan']), 1500);
+        }
       },
       error: () => {
         this.submitting.set(false);
         this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Terjadi kesalahan saat menyimpan pengajuan.' });
       },
     });
+  }
+
+  protected closeWarningDialog(): void {
+    this.warningDialogVisible.set(false);
+    this.msg.add({ 
+      severity: 'success', 
+      summary: 'Pengajuan Selesai', 
+      detail: 'Menunggu verifikasi lebih lanjut.' 
+    });
+    setTimeout(() => this.router.navigate([this.env.isMobile ? '/driver' : '/pengajuan']), 1000);
   }
 }

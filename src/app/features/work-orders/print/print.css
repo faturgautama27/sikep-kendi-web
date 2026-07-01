@@ -1,0 +1,29 @@
+@media print {
+  body {
+    background: white !important;
+  }
+  .no-print, 
+  nav, 
+  header, 
+  aside,
+  app-shell,
+  .p-toast {
+    display: none !important;
+  }
+  .print-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}
+
+.print-container {
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+@page {
+  size: A4;
+  margin: 20mm;
+}

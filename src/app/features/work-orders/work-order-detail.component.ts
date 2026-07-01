@@ -13,7 +13,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TimelineModule } from 'primeng/timeline';
 
-import { WorkOrdersState, GetWorkOrderDetail } from './state';
+import { WorkOrdersState, GetWorkOrderDetail, ApprovePPTK, RejectPPTK } from './state';
 import { DraftChecklistState, ApproveDraft, RejectDraft } from '@features/draft-checklist/state';
 import { AuthState } from '@features/login/state/auth.state';
 import type { WorkOrderProgressStatus, WorkOrderStatus, WorkOrderEvidence } from '@shared/models';
@@ -25,6 +25,8 @@ const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DRAFT_CHECKLIST: 'Draft Checklist',
   PENAWARAN: 'Penawaran',
   DIVERIFIKASI: 'Diverifikasi',
+  MENUNGGU_PPTK: 'Menunggu PPTK',
+  DISETUJUI_PPTK: 'Disetujui PPTK',
   DIBAYAR: 'Dibayar',
 };
 
@@ -99,6 +101,10 @@ export class WorkOrderDetailComponent implements OnInit {
     return list.sort((a, b) => b.versi - a.versi)[0];
   });
 
+  protected readonly user = this.store.selectSignal(AuthState.user);
+  protected readonly isPPTK = computed(() => this.user()?.roles?.includes('pptk'));
+  protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin_sistem'));
+
   ngOnInit() {
     this.store.dispatch(new GetWorkOrderDetail(this.id)); 
 
@@ -126,8 +132,10 @@ export class WorkOrderDetailComponent implements OnInit {
       case 'DRAFT_CHECKLIST':
       case 'PENAWARAN':
       case 'DIVERIFIKASI':
+      case 'MENUNGGU_PPTK':
         return 'warn';
       case 'DIBAYAR':
+      case 'DISETUJUI_PPTK':
         return 'success';
       default:
         return 'secondary';
@@ -210,6 +218,18 @@ export class WorkOrderDetailComponent implements OnInit {
         this.store.dispatch(new GetWorkOrderDetail(this.id));
         this.catatan = '';
       }
+    });
+  }
+
+  protected approvePPTK() {
+    this.store.dispatch(new ApprovePPTK(this.id)).subscribe(() => {
+      this.catatan = '';
+    });
+  }
+
+  protected rejectPPTK() {
+    this.store.dispatch(new RejectPPTK(this.id, this.catatan || 'Ditolak PPTK.')).subscribe(() => {
+      this.catatan = '';
     });
   }
 }

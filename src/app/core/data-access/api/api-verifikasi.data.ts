@@ -29,4 +29,8 @@ export class ApiVerifikasiData implements VerifikasiDataPort {
   revisi(woId: string, payload: Record<string, unknown>): Observable<unknown> {
     return this.http.post<unknown>(this.url(`/work-orders/${woId}/verifikasi/revisi`), payload);
   }
+
+  pptkApprove(woId: string, approved: boolean, alasan?: string, komentar?: string): Observable<unknown> {
+    return this.http.post<unknown>(this.url(`/work-orders/${woId}/verifikasi/pptk-approve`), { approved, alasan, komentar });
+  }
 }

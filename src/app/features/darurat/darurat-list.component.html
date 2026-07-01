@@ -167,7 +167,7 @@
               {{ truncate(row.deskripsiDarurat, 60) }}
             </td>
             <td class="text-right font-medium text-slate-800">
-              {{ formatRupiah(row.totalPengeluaran) }}
+              {{ formatRupiah(row.totalPengeluaran || 0) }}
             </td>
             <td>
               @let st = getStatusProps(row.status);
@@ -238,7 +238,7 @@
 
           <div class="flex justify-between items-center mt-2 pt-3 border-t border-slate-50">
             <span class="text-xs font-medium text-slate-500">Total Pengeluaran</span>
-            <span class="font-bold text-slate-800">{{ formatRupiah(row.totalPengeluaran) }}</span>
+            <span class="font-bold text-slate-800">{{ formatRupiah(row.totalPengeluaran || 0) }}</span>
           </div>
         </div>
       } @empty {

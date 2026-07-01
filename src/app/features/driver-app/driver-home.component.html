@@ -81,6 +81,11 @@
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
           <i class="pi pi-exclamation-triangle text-lg text-white"></i>
         </div>
+        @if (daruratNeedAction() > 0) {
+          <div class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-yellow-900 shadow-md">
+            {{ daruratNeedAction() }}
+          </div>
+        }
         <div>
           <p class="text-sm font-bold text-white">Lapor Darurat</p>
           <p class="text-xs text-red-100 mt-0.5">Butuh penanganan instan</p>
@@ -90,7 +95,7 @@
       <!-- Pengajuan Servis -->
       <a
         routerLink="/driver/pengajuan/new"
-        class="flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95"
+        class="relative flex flex-col gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm transition active:scale-95"
       >
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
           <i class="pi pi-wrench text-lg text-blue-600"></i>

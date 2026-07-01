@@ -98,6 +98,10 @@
             />
             <label for="pk" class="font-medium text-slate-700">Perbaikan Kerusakan</label>
           </div>
+          <div class="flex items-center gap-3">
+            <p-radiobutton formControlName="jenisPengajuan" value="ganti_spare_part" inputId="gs" />
+            <label for="gs" class="font-medium text-slate-700">Ganti Spare Part</label>
+          </div>
         </div>
       </div>
 
@@ -287,7 +291,9 @@
               {{
                 step1.get('jenisPengajuan')!.value === 'servis_rutin'
                   ? 'Servis Rutin'
-                  : 'Perbaikan Kerusakan'
+                  : step1.get('jenisPengajuan')!.value === 'ganti_spare_part'
+                    ? 'Ganti Spare Part'
+                    : 'Perbaikan Kerusakan'
               }}
             </span>
           </div>
@@ -332,6 +338,32 @@
     </div>
   }
 </div>
+
+<!-- Warning Dialog -->
+<p-dialog
+  header="Perhatian"
+  [visible]="warningDialogVisible()"
+  [modal]="true"
+  [closable]="false"
+  [style]="{ width: '90vw', maxWidth: '400px' }"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 flex gap-3">
+      <i class="pi pi-exclamation-triangle text-amber-500 mt-1"></i>
+      <div class="text-sm text-amber-800">
+        Pengajuan berhasil dibuat, namun ada peringatan dari sistem:
+        <ul class="list-disc pl-4 mt-2">
+          @for (w of submissionWarnings(); track $index) {
+            <li>{{ w }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Mengerti" severity="info" (onClick)="closeWarningDialog()" />
+  </ng-template>
+</p-dialog>
 
 <!-- ── Mobile Sticky Bottom Bar ──────────────────────────────────────── -->
 @if (env.isMobile) {

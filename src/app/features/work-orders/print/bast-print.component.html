@@ -1,0 +1,76 @@
+@if (wo(); as w) {
+  <!-- Print Layout Container -->
+  <div class="print-container">
+    <!-- Non-print controls -->
+    <div class="no-print p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+      <button class="px-4 py-2 bg-white border border-slate-300 rounded shadow-sm text-sm font-medium hover:bg-slate-50" (click)="goBack()">Kembali</button>
+      <button class="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm font-medium hover:bg-blue-700" onclick="window.print()">Cetak BAST</button>
+    </div>
+
+    <!-- Print Page Content -->
+    <div class="print-page bg-white p-8 max-w-[210mm] mx-auto min-h-[297mm]">
+      <!-- Header / Kop Surat Dummy -->
+      <div class="border-b-4 border-double border-slate-800 pb-4 mb-6 flex flex-col items-center text-center">
+        <h1 class="text-xl font-black uppercase tracking-wider">KEMENTERIAN KEUANGAN REPUBLIK INDONESIA</h1>
+        <h2 class="text-sm font-bold uppercase">DIREKTORAT JENDERAL PERBENDAHARAAN</h2>
+        <p class="text-xs mt-1">Gedung Prijadi Praptosuhardjo II Lt. 2, Jl. Lapangan Banteng Timur No.2-4, Jakarta Pusat 10710</p>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center mb-8">
+        <h3 class="text-lg font-bold underline uppercase">Berita Acara Serah Terima (BAST)</h3>
+        <p class="text-sm mt-1">Nomor: BAST-{{ w.nomor }}/{{ printDate.getFullYear() }}</p>
+      </div>
+
+      <!-- Body -->
+      <div class="text-sm leading-relaxed space-y-4 text-justify">
+        <p>Pada hari ini, <b>{{ printDate | date:'fullDate':'':'id-ID' }}</b>, yang bertanda tangan di bawah ini:</p>
+        
+        <table class="w-full ml-4 mb-4">
+          <tr><td class="w-48 align-top">Nama Bengkel / Vendor</td><td class="w-4 align-top">:</td><td class="font-bold">{{ w.vendor?.nama || '-' }}</td></tr>
+          <tr><td class="align-top">Alamat</td><td class="align-top">:</td><td>{{ w.vendor?.alamat || '-' }}</td></tr>
+        </table>
+        
+        <p>Selanjutnya disebut sebagai <b>PIHAK PERTAMA</b> (Penyedia Jasa).</p>
+
+        <table class="w-full ml-4 mb-4 mt-4">
+          <tr><td class="w-48 align-top">Nama</td><td class="w-4 align-top">:</td><td>Pengurus Barang</td></tr>
+          <tr><td class="align-top">Instansi</td><td class="align-top">:</td><td>Direktorat Jenderal Perbendaharaan</td></tr>
+        </table>
+
+        <p>Selanjutnya disebut sebagai <b>PIHAK KEDUA</b> (Penerima Hasil Pekerjaan).</p>
+
+        <p>Menyatakan bahwa PIHAK PERTAMA telah menyerahkan hasil pekerjaan pemeliharaan/perbaikan kendaraan kepada PIHAK KEDUA, dan PIHAK KEDUA telah menerima hasil pekerjaan tersebut dengan baik, dengan rincian sebagai berikut:</p>
+
+        <table class="w-full border-collapse border border-slate-800 mb-4 mt-2">
+          <tbody>
+            <tr><td class="border border-slate-800 p-2 w-48 font-bold bg-slate-100">Nomor SPK / WO</td><td class="border border-slate-800 p-2">{{ w.nomor }}</td></tr>
+            <tr><td class="border border-slate-800 p-2 font-bold bg-slate-100">Kendaraan</td><td class="border border-slate-800 p-2">{{ w.pengajuan?.vehiclePlate || w.pengajuanId }}</td></tr>
+            <tr><td class="border border-slate-800 p-2 font-bold bg-slate-100">Rincian Pekerjaan Selesai</td><td class="border border-slate-800 p-2 whitespace-pre-line">{{ w.pengajuan?.deskripsi || '-' }}</td></tr>
+          </tbody>
+        </table>
+
+        <p>Demikian Berita Acara Serah Terima ini dibuat dalam 2 (dua) rangkap untuk dipergunakan sebagaimana mestinya.</p>
+        
+      </div>
+
+      <!-- Signatures -->
+      <div class="mt-16 flex justify-between text-sm text-center">
+        <div class="w-1/3">
+          <p>PIHAK PERTAMA</p>
+          <p class="mb-20">{{ w.vendor?.nama }}</p>
+          <p class="underline">( ........................................ )</p>
+          <p>Penyedia Jasa</p>
+        </div>
+        <div class="w-1/3">
+          <p>PIHAK KEDUA</p>
+          <p class="mb-20">Pengurus Barang</p>
+          <p class="underline">( ........................................ )</p>
+          <p>NIP. ........................................</p>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="p-10 text-center">Memuat dokumen...</div>
+}

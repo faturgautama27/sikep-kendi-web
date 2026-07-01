@@ -53,7 +53,6 @@ export class ApiDaruratData implements DaruratDataPort {
       clientUuid: crypto.randomUUID(),
       kendaraanId: Number(payload.kendaraanId),
       fotoKerusakanIds: payload.fotoKerusakanIds || [],
-      fotoInvoiceIds: payload.fotoInvoiceIds || [],
     }).pipe(
       map(res => this.unwrapOne(res))
     );
@@ -68,14 +67,38 @@ export class ApiDaruratData implements DaruratDataPort {
     );
   }
 
-  verifikasi(id: string, approved: boolean, alasan?: string): Observable<LaporanDarurat> {
-    return this.http.post<any>(this.url(`/darurat/${id}/verifikasi`), { approved, alasan }).pipe(
+  verifikasiFaseA(id: string, approved: boolean, alasan?: string, komentar?: string): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/verifikasi-fase-a`), { approved, alasan, komentar }).pipe(
       map(res => this.unwrapOne(res))
     );
   }
 
-  approveReimbursement(id: string): Observable<LaporanDarurat> {
-    return this.http.post<any>(this.url(`/darurat/${id}/approve-reimbursement`), {}).pipe(
+  submitReimbursement(id: string, payload: { totalReimbursement: number, fotoNotaIds: number[], fotoSetelahPerbaikanIds: number[] }): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/submit-reimbursement`), payload).pipe(
+      map(res => this.unwrapOne(res))
+    );
+  }
+
+  inputShs(id: string, items: any[]): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/input-shs`), { items }).pipe(
+      map(res => this.unwrapOne(res))
+    );
+  }
+
+  verifikasiVerifikator(id: string, approved: boolean, alasan?: string, komentar?: string): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/verifikasi-verifikator`), { approved, alasan, komentar }).pipe(
+      map(res => this.unwrapOne(res))
+    );
+  }
+
+  pptkApprove(id: string, approved: boolean, alasan?: string, komentar?: string): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/pptk-approve`), { approved, alasan, komentar }).pipe(
+      map(res => this.unwrapOne(res))
+    );
+  }
+
+  uploadBuktiPembayaran(id: string, imageId: number): Observable<LaporanDarurat> {
+    return this.http.post<any>(this.url(`/darurat/${id}/bukti-pembayaran`), { imageId }).pipe(
       map(res => this.unwrapOne(res))
     );
   }

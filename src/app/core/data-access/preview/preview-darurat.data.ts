@@ -22,11 +22,27 @@ export class PreviewDaruratData implements DaruratDataPort {
     return of({ id, ...payload } as unknown as LaporanDarurat);
   }
 
-  verifikasi(id: string, approved: boolean, alasan?: string): Observable<LaporanDarurat> {
-    return of({ id, status: approved ? 'TERVERIFIKASI' : 'DITOLAK', alasan } as unknown as LaporanDarurat);
+  verifikasiFaseA(id: string, approved: boolean, alasan?: string, komentar?: string): Observable<LaporanDarurat> {
+    return of({ id, status: approved ? 'DISETUJUI_PB' : 'DITOLAK_PB', alasan, komentar } as unknown as LaporanDarurat);
   }
 
-  approveReimbursement(id: string): Observable<LaporanDarurat> {
-    return of({ id, status: 'REIMBURSE_APPROVED' } as unknown as LaporanDarurat);
+  submitReimbursement(id: string, payload: { totalReimbursement: number, fotoNotaIds: number[], fotoSetelahPerbaikanIds: number[] }): Observable<LaporanDarurat> {
+    return of({ id, status: 'REIMBURSEMENT_DIAJUKAN', ...payload } as unknown as LaporanDarurat);
+  }
+
+  inputShs(id: string, items: any[]): Observable<LaporanDarurat> {
+    return of({ id, status: 'SHS_DIKERJAKAN' } as unknown as LaporanDarurat);
+  }
+
+  verifikasiVerifikator(id: string, approved: boolean, alasan?: string, komentar?: string): Observable<LaporanDarurat> {
+    return of({ id, status: approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR', alasan, komentar } as unknown as LaporanDarurat);
+  }
+
+  pptkApprove(id: string, approved: boolean, alasan?: string, komentar?: string): Observable<LaporanDarurat> {
+    return of({ id, status: approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK', alasan, komentar } as unknown as LaporanDarurat);
+  }
+
+  uploadBuktiPembayaran(id: string, imageId: number): Observable<LaporanDarurat> {
+    return of({ id, status: 'DIBAYAR' } as unknown as LaporanDarurat);
   }
 }

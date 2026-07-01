@@ -8,18 +8,24 @@ import { DARURAT_DATA, type DaruratDataPort } from '@core/data-access/ports/daru
 import { LaporanDarurat } from '@shared/models';
 
 import {
-  ApproveReimburseDarurat,
   CreateDarurat,
   UpdateDarurat,
   LoadDarurat,
-  VerifikasiDarurat,
+  GetLaporanDaruratDetail,
+  VerifikasiDaruratFaseA,
+  SubmitReimbursementDarurat,
+  InputShsDarurat,
+  VerifikasiVerifikatorDarurat,
+  PptkApproveDarurat,
+  UploadBuktiPembayaranDarurat,
 } from './darurat.actions';
 
 interface DaruratStateModel {
   list: LaporanDarurat[];
+  detail: LaporanDarurat | null;
 }
 
-const INITIAL: DaruratStateModel = { list: [] };
+const INITIAL: DaruratStateModel = { list: [], detail: null };
 
 @State<DaruratStateModel>({ name: 'darurat', defaults: INITIAL })
 @Injectable()
@@ -30,6 +36,11 @@ export class DaruratState {
   @Selector()
   static list(state: DaruratStateModel): LaporanDarurat[] {
     return state.list;
+  }
+
+  @Selector()
+  static detail(state: DaruratStateModel): LaporanDarurat | null {
+    return state.detail;
   }
 
   @Action(HydrateFromFixtures)
@@ -48,6 +59,26 @@ export class DaruratState {
     );
   }
 
+  @Action(GetLaporanDaruratDetail)
+  getDetail(ctx: StateContext<DaruratStateModel>, action: GetLaporanDaruratDetail) {
+    if (!this.env.previewMode) {
+      return this.data.detail(action.id).pipe(
+        tap((detail) => {
+          ctx.patchState({ detail });
+        })
+      );
+    }
+    
+    // Preview Mode
+    const existing = ctx.getState().list.find(d => d.id === action.id);
+    if (existing) {
+      ctx.patchState({ detail: existing });
+    } else {
+      ctx.patchState({ detail: { id: action.id } as LaporanDarurat });
+    }
+    return;
+  }
+
   @Action(CreateDarurat)
   create(ctx: StateContext<DaruratStateModel>, action: CreateDarurat) {
     if (!this.env.previewMode) {
@@ -62,7 +93,7 @@ export class DaruratState {
     const next = {
       ...action.payload,
       id: `drt-${Date.now()}`,
-      status: 'MENUNGGU_VERIFIKASI',
+      status: 'MENUNGGU_VERIFIKASI_PB',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as unknown as LaporanDarurat;
@@ -95,45 +126,110 @@ export class DaruratState {
     return;
   }
 
-  @Action(VerifikasiDarurat)
-  verifikasi(ctx: StateContext<DaruratStateModel>, action: VerifikasiDarurat) {
+  @Action(VerifikasiDaruratFaseA)
+  verifikasiFaseA(ctx: StateContext<DaruratStateModel>, action: VerifikasiDaruratFaseA) {
     if (!this.env.previewMode) {
-      return this.data
-        .verifikasi(action.id, action.approved, action.alasan)
-        .pipe(
-          tap(() => {
-            ctx.dispatch(new LoadDarurat());
-          }),
-        );
+      return this.data.verifikasiFaseA(action.id, action.approved, action.alasan, action.komentar).pipe(
+        tap(() => ctx.dispatch(new GetLaporanDaruratDetail(action.id))),
+      );
     }
-
     ctx.patchState({
       list: ctx.getState().list.map((item) =>
-        item.id === action.id
-          ? {
-              ...item,
-              status: action.approved ? 'TERVERIFIKASI' : 'DITOLAK',
-            } as LaporanDarurat
-          : item,
+        item.id === action.id ? { ...item, status: action.approved ? 'DISETUJUI_PB' : 'DITOLAK_PB' } as LaporanDarurat : item,
       ),
+      detail: ctx.getState().detail?.id === action.id 
+        ? { ...ctx.getState().detail!, status: action.approved ? 'DISETUJUI_PB' : 'DITOLAK_PB' } 
+        : ctx.getState().detail
     });
     return;
   }
 
-  @Action(ApproveReimburseDarurat)
-  approveReimburse(ctx: StateContext<DaruratStateModel>, action: ApproveReimburseDarurat) {
+  @Action(SubmitReimbursementDarurat)
+  submitReimbursement(ctx: StateContext<DaruratStateModel>, action: SubmitReimbursementDarurat) {
     if (!this.env.previewMode) {
-      return this.data.approveReimbursement(action.id).pipe(
-        tap(() => {
-          ctx.dispatch(new LoadDarurat());
-        }),
+      return this.data.submitReimbursement(action.id, action.payload).pipe(
+        tap(() => ctx.dispatch(new GetLaporanDaruratDetail(action.id))),
       );
     }
-
     ctx.patchState({
       list: ctx.getState().list.map((item) =>
-        item.id === action.id ? { ...item, status: 'REIMBURSE_APPROVED' as const } as LaporanDarurat : item,
+        item.id === action.id ? { ...item, status: 'REIMBURSEMENT_DIAJUKAN' } as LaporanDarurat : item,
       ),
+      detail: ctx.getState().detail?.id === action.id 
+        ? { ...ctx.getState().detail!, status: 'REIMBURSEMENT_DIAJUKAN' } 
+        : ctx.getState().detail
+    });
+    return;
+  }
+
+  @Action(InputShsDarurat)
+  inputShs(ctx: StateContext<DaruratStateModel>, action: InputShsDarurat) {
+    if (!this.env.previewMode) {
+      return this.data.inputShs(action.id, action.items).pipe(
+        tap(() => ctx.dispatch(new GetLaporanDaruratDetail(action.id))),
+      );
+    }
+    ctx.patchState({
+      list: ctx.getState().list.map((item) =>
+        item.id === action.id ? { ...item, status: 'SHS_DIKERJAKAN' } as LaporanDarurat : item,
+      ),
+      detail: ctx.getState().detail?.id === action.id 
+        ? { ...ctx.getState().detail!, status: 'SHS_DIKERJAKAN' } 
+        : ctx.getState().detail
+    });
+    return;
+  }
+
+  @Action(VerifikasiVerifikatorDarurat)
+  verifikasiVerifikator(ctx: StateContext<DaruratStateModel>, action: VerifikasiVerifikatorDarurat) {
+    if (!this.env.previewMode) {
+      return this.data.verifikasiVerifikator(action.id, action.approved, action.alasan, action.komentar).pipe(
+        tap(() => ctx.dispatch(new GetLaporanDaruratDetail(action.id))),
+      );
+    }
+    ctx.patchState({
+      list: ctx.getState().list.map((item) =>
+        item.id === action.id ? { ...item, status: action.approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR' } as LaporanDarurat : item,
+      ),
+      detail: ctx.getState().detail?.id === action.id 
+        ? { ...ctx.getState().detail!, status: action.approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR' } 
+        : ctx.getState().detail
+    });
+    return;
+  }
+
+  @Action(PptkApproveDarurat)
+  pptkApprove(ctx: StateContext<DaruratStateModel>, action: PptkApproveDarurat) {
+    if (!this.env.previewMode) {
+      return this.data.pptkApprove(action.id, action.approved, action.alasan, action.komentar).pipe(
+        tap(() => ctx.dispatch(new GetLaporanDaruratDetail(action.id))),
+      );
+    }
+    ctx.patchState({
+      list: ctx.getState().list.map((item) =>
+        item.id === action.id ? { ...item, status: action.approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK' } as LaporanDarurat : item,
+      ),
+      detail: ctx.getState().detail?.id === action.id 
+        ? { ...ctx.getState().detail!, status: action.approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK' } 
+        : ctx.getState().detail
+    });
+    return;
+  }
+
+  @Action(UploadBuktiPembayaranDarurat)
+  uploadBuktiPembayaran(ctx: StateContext<DaruratStateModel>, action: UploadBuktiPembayaranDarurat) {
+    if (!this.env.previewMode) {
+      return this.data.uploadBuktiPembayaran(action.id, action.imageId).pipe(
+        tap(() => ctx.dispatch(new GetLaporanDaruratDetail(action.id))),
+      );
+    }
+    ctx.patchState({
+      list: ctx.getState().list.map((item) =>
+        item.id === action.id ? { ...item, status: 'DIBAYAR' } as LaporanDarurat : item,
+      ),
+      detail: ctx.getState().detail?.id === action.id 
+        ? { ...ctx.getState().detail!, status: 'DIBAYAR' } 
+        : ctx.getState().detail
     });
     return;
   }

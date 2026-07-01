@@ -380,4 +380,16 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
       })
       .pipe(map((row) => mapWorkOrder(row)));
   }
+
+  approvePPTK(workOrderId: string): Observable<WorkOrder> {
+    return this.http
+      .post<BackendWorkOrder>(this.url(`/work-orders/${workOrderId}/approve-pptk`), {})
+      .pipe(map((row) => mapWorkOrder(row)));
+  }
+
+  rejectPPTK(workOrderId: string, catatan: string): Observable<WorkOrder> {
+    return this.http
+      .post<BackendWorkOrder>(this.url(`/work-orders/${workOrderId}/reject-pptk`), { catatanRevisi: catatan })
+      .pipe(map((row) => mapWorkOrder(row)));
+  }
 }

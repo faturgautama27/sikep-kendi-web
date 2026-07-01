@@ -17,3 +17,5 @@ export * from './preview-image.data';
 export * from './preview-notification.data';
 export * from './preview-audit.data';
 export * from './preview-dashboard.data';
+export * from './preview-shs-master.data';
+export * from './preview-laporan.data';

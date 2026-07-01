@@ -21,6 +21,8 @@ const STATUS_LABELS: Record<WorkOrderStatus, string> = {
   DRAFT_CHECKLIST: 'Draft Checklist',
   PENAWARAN: 'Penawaran',
   DIVERIFIKASI: 'Diverifikasi',
+  MENUNGGU_PPTK: 'Menunggu PPTK',
+  DISETUJUI_PPTK: 'Disetujui PPTK',
   DIBAYAR: 'Selesai',
 };
 
@@ -30,6 +32,8 @@ const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'da
   DRAFT_CHECKLIST: 'warn',
   PENAWARAN: 'warn',
   DIVERIFIKASI: 'success',
+  MENUNGGU_PPTK: 'warn',
+  DISETUJUI_PPTK: 'success',
   DIBAYAR: 'success',
 };
 

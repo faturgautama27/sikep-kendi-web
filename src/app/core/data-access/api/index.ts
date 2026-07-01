@@ -11,3 +11,5 @@ export * from './api-image.data';
 export * from './api-notification.data';
 export * from './api-audit.data';
 export * from './api-dashboard.data';
+export * from './api-shs-master.data';
+export * from './api-laporan.data';

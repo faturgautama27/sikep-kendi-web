@@ -17,6 +17,8 @@ export interface WorkOrderShsItem {
   hargaStandart: number | string;
   selisih: number | string;
   keterangan: string;
+  shsMasterId?: number | null;
+  shsMaster?: any;
 }
 
 export interface WorkOrderVerifikasiHarga {
@@ -32,6 +34,8 @@ export type WorkOrderStatus =
   | 'DRAFT_CHECKLIST'
   | 'PENAWARAN'
   | 'DIVERIFIKASI'
+  | 'MENUNGGU_PPTK'
+  | 'DISETUJUI_PPTK'
   | 'DIBAYAR';
 export type WorkOrderProgressStatus = 'received' | 'in_progress' | 'completed';
 export type EvidenceCategory =
@@ -79,6 +83,9 @@ export interface WorkOrder {
   evidence: WorkOrderEvidence[];
   penawaranDetail: WorkOrderPenawaranDetail | null;
   verifikasiHarga?: WorkOrderVerifikasiHarga | null;
+  pengajuan?: any;
+  vendor?: any;
+  totalBiaya?: number;
 }
 
 export interface WorkOrderProgress {

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  OnInit,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
@@ -20,7 +27,8 @@ import type { Pengajuan, PengajuanJenis, PengajuanStatus } from '@shared/models'
 import { AuthState } from '@features/login/state';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { LoadPengajuan } from './state/pengajuan.actions';
-import { NgClass } from "../../../../node_modules/@angular/common/types/_common_module-chunk";
+import { NgClass } from '../../../../node_modules/@angular/common/types/_common_module-chunk';
+import { DialogModule } from 'primeng/dialog';
 
 interface StatusOption {
   label: string;
@@ -44,6 +52,7 @@ const JENIS_OPTIONS: JenisOption[] = [
   { label: 'Semua jenis', value: null },
   { label: 'Servis Rutin', value: 'SERVIS_RUTIN' },
   { label: 'Perbaikan Kerusakan', value: 'PERBAIKAN_KERUSAKAN' },
+  { label: 'Ganti Spare Part', value: 'GANTI_SPARE_PART' },
 ];
 
 const STATUS_LABEL: Record<PengajuanStatus, string> = {
@@ -79,7 +88,8 @@ const STATUS_LABEL: Record<PengajuanStatus, string> = {
     TableModule,
     TagModule,
     ToastModule,
-],
+    DialogModule,
+  ],
   providers: [MessageService],
   templateUrl: './pengajuan-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -214,6 +224,10 @@ export class PengajuanListComponent implements OnInit {
         return 'info';
       case 'PERBAIKAN_KERUSAKAN':
         return 'warn';
+      case 'GANTI_SPARE_PART':
+        return 'secondary';
+      default:
+        return 'secondary';
     }
   }
 
@@ -227,6 +241,8 @@ export class PengajuanListComponent implements OnInit {
         return 'Perbaikan';
       case 'SERVIS_RUTIN':
         return 'Servis';
+      case 'GANTI_SPARE_PART':
+        return 'Spare Part';
     }
   }
 

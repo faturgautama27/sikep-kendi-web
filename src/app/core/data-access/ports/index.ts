@@ -12,3 +12,5 @@ export * from './notification-data.port';
 export * from './audit-data.port';
 export * from './dashboard-data.port';
 export * from './admin-data.port';
+export * from './shs-master-data.port';
+export * from './laporan-data.port';

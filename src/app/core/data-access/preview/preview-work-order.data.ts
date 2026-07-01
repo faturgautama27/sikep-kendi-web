@@ -26,4 +26,12 @@ export class PreviewWorkOrderData implements WorkOrderDataPort {
   assignVendor(workOrderId: string, vendorId: string): Observable<WorkOrder> {
     return of({ id: workOrderId, vendorId } as unknown as WorkOrder);
   }
+
+  approvePPTK(workOrderId: string): Observable<WorkOrder> {
+    return of({ id: workOrderId, status: 'DISETUJUI_PPTK' } as unknown as WorkOrder);
+  }
+
+  rejectPPTK(workOrderId: string, catatan: string): Observable<WorkOrder> {
+    return of({ id: workOrderId, status: 'DIVERIFIKASI', rejectedReason: catatan } as unknown as WorkOrder);
+  }
 }

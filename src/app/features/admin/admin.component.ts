@@ -17,6 +17,7 @@ const ADMIN_TABS: readonly AdminTab[] = [
   { key: 'users', label: 'Pengguna', icon: 'pi pi-users', route: '/admin/users' },
   { key: 'roles', label: 'Peran & Akses', icon: 'pi pi-id-card', route: '/admin/roles' },
   { key: 'vendors', label: 'Vendor', icon: 'pi pi-building', route: '/admin/vendors' },
+  { key: 'shs-master', label: 'SHS Master', icon: 'pi pi-tags', route: '/admin/shs-master' },
   { key: 'early-warning', label: 'Early Warning', icon: 'pi pi-bolt', route: '/admin/early-warning' },
 ];
 

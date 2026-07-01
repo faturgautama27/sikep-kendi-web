@@ -56,6 +56,11 @@ export const routes: Routes = [
         data: { title: 'Edit Laporan Darurat'},
       },
       {
+        path: 'darurat/:id/reimbursement',
+        loadComponent: () => import('@features/darurat/darurat-reimbursement-form.component').then(m => m.DaruratReimbursementFormComponent),
+        data: { title: 'Ajukan Reimbursement'},
+      },
+      {
         path: 'darurat/:id',
         loadComponent: () => import('@features/darurat/darurat-detail.component').then(m => m.DaruratDetailComponent),
         data: { title: 'Detail Laporan Darurat'},
@@ -139,6 +144,12 @@ export const routes: Routes = [
         data: { title: 'Work Order', requiredPermissions: ['work_order.read'] },
       },
       {
+        path: 'laporan/biaya-perbaikan',
+        loadComponent: () => import('@features/laporan/laporan-list.component').then((m) => m.LaporanListComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Laporan Biaya Perbaikan', requiredPermissions: ['laporan.read'] },
+      },
+      {
         path: 'work-orders/:id',
         loadComponent: () => import('@features/work-orders/work-order-detail.component').then((m) => m.WorkOrderDetailComponent),
         data: { title: 'Detail Work Order', requiredPermissions: ['work_order.read'] },
@@ -154,6 +165,18 @@ export const routes: Routes = [
         loadComponent: () => import('@features/work-orders/pembayaran-work-order.component').then((m) => m.PembayaranWorkOrderComponent),
         canActivate: [permissionGuard],
         data: { title: 'Proses Pembayaran', requiredPermissions: ['pembayaran.proses'] },
+      },
+      {
+        path: 'work-orders/:id/spk',
+        loadComponent: () => import('@features/work-orders/print/spk-print.component').then((m) => m.SpkPrintComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Cetak SPK', requiredPermissions: ['work_order.read'] },
+      },
+      {
+        path: 'work-orders/:id/bast',
+        loadComponent: () => import('@features/work-orders/print/bast-print.component').then((m) => m.BastPrintComponent),
+        canActivate: [permissionGuard],
+        data: { title: 'Cetak BAST', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'darurat',
@@ -276,6 +299,10 @@ export const routes: Routes = [
           {
             path: 'early-warning',
             loadComponent: () => import('@features/admin/early-warning-config/early-warning-config.component').then((m) => m.EarlyWarningConfigComponent),
+          },
+          {
+            path: 'shs-master',
+            loadComponent: () => import('@features/shs-master/shs-master-list.component').then((m) => m.ShsMasterListComponent),
           },
         ],
         data: { title: 'Admin', requiredPermissions: ['user.manage'] },

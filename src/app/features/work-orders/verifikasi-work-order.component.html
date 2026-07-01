@@ -1,12 +1,18 @@
 <section class="flex flex-col gap-4 pb-8">
   <!-- Header -->
   <div class="flex items-center gap-3">
-    <p-button icon="pi pi-arrow-left" severity="secondary" [text]="true" (onClick)="goBack()" pTooltip="Kembali ke Detail WO"></p-button>
+    <p-button
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [text]="true"
+      (onClick)="goBack()"
+      pTooltip="Kembali ke Detail WO"
+    ></p-button>
     <app-page-header
       title="Verifikasi Harga & SHS"
-      subtitle="Isi Standart Harga Supplier per item sebagai pembanding harga penawaran vendor."
-    /></div>
-
+      subtitle="Isi Standart Harga Satuan per item sebagai pembanding harga penawaran vendor."
+    />
+  </div>
 
   <!-- Loading state -->
   <div *ngIf="loading()" class="flex items-center justify-center py-16">
@@ -21,7 +27,10 @@
           <p class="text-xs text-slate-500">Total Penawaran Vendor</p>
           <p class="text-2xl font-bold text-primary-700">{{ formatRupiah(pnw.totalBiaya) }}</p>
         </div>
-        <p-tag [value]="pnw.status" [severity]="pnw.status === 'DIVERIFIKASI' ? 'success' : 'info'"></p-tag>
+        <p-tag
+          [value]="pnw.status"
+          [severity]="pnw.status === 'DIVERIFIKASI' ? 'success' : 'info'"
+        ></p-tag>
       </div>
 
       <!-- Invoice image preview -->
@@ -39,8 +48,8 @@
     <!-- Tabel SHS per item -->
     <p-card header="Tabel Perbandingan Harga per Item">
       <p class="mb-4 text-xs text-slate-500">
-        Isi kolom <strong>Harga SHS</strong> (Standart Harga Supplier) untuk setiap item sebagai harga referensi pasar.
-        Item dengan selisih &gt; 20% akan ditandai merah.
+        Isi kolom <strong>Harga SHS</strong> (Standart Harga Satuan) untuk setiap item sebagai harga
+        referensi pasar. Item dengan selisih &gt; 20% akan ditandai merah.
       </p>
 
       <p-table [value]="rows()" [scrollable]="true" styleClass="p-datatable-sm">
@@ -64,30 +73,49 @@
               <p class="text-xs text-slate-400">{{ row.tindakanPerbaikan }}</p>
             </td>
             <td class="text-sm text-slate-600">{{ row.namaSparepart || '-' }}</td>
-            <td class="text-right font-mono text-sm text-slate-700">{{ formatRupiah(row.hargaItem) }}</td>
+            <td class="text-right font-mono text-sm text-slate-700">
+              {{ formatRupiah(row.hargaItem) }}
+            </td>
             <td>
               <p-inputnumber
-              [(ngModel)]="row.hargaShs"
-              mode="decimal"
-              [minFractionDigits]="0"
-              [maxFractionDigits]="0"
-              [min]="0"
-              [disabled]="isReadOnly()"
-              placeholder="0"
-              inputStyleClass="text-right w-full"
-              styleClass="w-full"
-            ></p-inputnumber>
+                [(ngModel)]="row.hargaShs"
+                mode="decimal"
+                [minFractionDigits]="0"
+                [maxFractionDigits]="0"
+                [min]="0"
+                [disabled]="isReadOnly()"
+                placeholder="0"
+                inputStyleClass="text-right w-full"
+                styleClass="w-full"
+              ></p-inputnumber>
             </td>
-            <td class="text-right font-mono text-sm" [class.text-red-600]="selisihItem(row) > 0" [class.text-green-600]="selisihItem(row) <= 0">
+            <td
+              class="text-right font-mono text-sm"
+              [class.text-red-600]="selisihItem(row) > 0"
+              [class.text-green-600]="selisihItem(row) <= 0"
+            >
               {{ formatRupiah(selisihItem(row)) }}
             </td>
-            <td class="text-right text-sm font-semibold" [class.text-red-600]="isHighDeviation(row)" [class.text-slate-600]="!isHighDeviation(row)">
-              {{ selisihPersen(row) | number:'1.1-1' }}%
-              <i *ngIf="isHighDeviation(row)" class="pi pi-exclamation-triangle ml-1 text-red-500"
-                 pTooltip="Selisih melebihi 20%"></i>
+            <td
+              class="text-right text-sm font-semibold"
+              [class.text-red-600]="isHighDeviation(row)"
+              [class.text-slate-600]="!isHighDeviation(row)"
+            >
+              {{ selisihPersen(row) | number: '1.1-1' }}%
+              <i
+                *ngIf="isHighDeviation(row)"
+                class="pi pi-exclamation-triangle ml-1 text-red-500"
+                pTooltip="Selisih melebihi 20%"
+              ></i>
             </td>
             <td>
-              <input pInputText [(ngModel)]="row.catatanShs" [disabled]="isReadOnly()" placeholder="Catatan (opsional)" class="w-full text-sm" />
+              <input
+                pInputText
+                [(ngModel)]="row.catatanShs"
+                [disabled]="isReadOnly()"
+                placeholder="Catatan (opsional)"
+                class="w-full text-sm"
+              />
             </td>
           </tr>
         </ng-template>
@@ -96,12 +124,16 @@
             <td colspan="3" class="text-right text-slate-600">TOTAL</td>
             <td class="text-right font-mono text-primary-700">{{ formatRupiah(totalVendor()) }}</td>
             <td class="text-right font-mono text-primary-700">{{ formatRupiah(totalShs()) }}</td>
-            <td class="text-right font-mono" [class.text-red-600]="selisihTotal() > 0" [class.text-green-600]="selisihTotal() <= 0">
+            <td
+              class="text-right font-mono"
+              [class.text-red-600]="selisihTotal() > 0"
+              [class.text-green-600]="selisihTotal() <= 0"
+            >
               {{ formatRupiah(selisihTotal()) }}
             </td>
             <td class="text-right">
               <span *ngIf="totalVendor() > 0">
-                {{ ((totalVendor() - totalShs()) / totalVendor() * 100) | number:'1.1-1' }}%
+                {{ ((totalVendor() - totalShs()) / totalVendor()) * 100 | number: '1.1-1' }}%
               </span>
             </td>
             <td></td>
@@ -125,7 +157,10 @@
     <p-card header="Keputusan Verifikasi" *ngIf="!isReadOnly()">
       <div class="flex flex-col gap-4">
         <!-- Warning jika SHS belum lengkap -->
-        <div *ngIf="!allShsFilled()" class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div
+          *ngIf="!allShsFilled()"
+          class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
+        >
           <i class="pi pi-exclamation-circle mr-2"></i>
           Isi harga SHS untuk semua item sebelum menyetujui verifikasi.
         </div>
@@ -133,7 +168,10 @@
         <!-- Setujui -->
         <div class="rounded-lg border border-green-200 bg-green-50 p-4">
           <h3 class="text-sm font-semibold text-green-900">Setujui Verifikasi</h3>
-          <p class="mt-1 text-xs text-green-700">Penawaran vendor dinyatakan wajar. Status WO akan berubah ke DIVERIFIKASI dan Bendahara akan menerima notifikasi.</p>
+          <p class="mt-1 text-xs text-green-700">
+            Penawaran vendor dinyatakan wajar. Status WO akan berubah ke DIVERIFIKASI dan Bendahara
+            akan menerima notifikasi.
+          </p>
           <div class="mt-3 flex justify-end">
             <p-button
               label="Setujui Verifikasi"
@@ -149,7 +187,10 @@
         <!-- Minta revisi -->
         <div class="rounded-lg border border-red-200 bg-red-50 p-4">
           <h3 class="text-sm font-semibold text-red-900">Minta Revisi ke Vendor</h3>
-          <p class="mt-1 text-xs text-red-700">Penawaran perlu disesuaikan. Tuliskan catatan yang jelas agar vendor tahu item mana yang perlu direvisi.</p>
+          <p class="mt-1 text-xs text-red-700">
+            Penawaran perlu disesuaikan. Tuliskan catatan yang jelas agar vendor tahu item mana yang
+            perlu direvisi.
+          </p>
           <div class="mt-3 flex flex-col gap-2">
             <textarea
               pTextarea

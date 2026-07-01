@@ -5,6 +5,7 @@ export type RoleName =
   | 'vendor'
   | 'pengurus_barang'
   | 'verifikator'
+  | 'pptk'
   | 'bendahara'
   | 'admin_sistem'
 ;

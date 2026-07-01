@@ -80,6 +80,9 @@ export class SyncService {
         case 'RECORD_ODOMETER':
           await firstValueFrom(this.vehicleData.addOdometerReading(payload.vehicleId, payload.reading));
           break;
+        case 'SUBMIT_REIMBURSEMENT_DARURAT':
+          await firstValueFrom(this.daruratData.submitReimbursement(payload.id, payload.payload));
+          break;
         default:
           throw new Error('Unknown sync type: ' + item.type);
       }

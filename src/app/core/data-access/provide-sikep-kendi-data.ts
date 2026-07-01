@@ -15,6 +15,8 @@ import {
   NOTIFICATION_DATA,
   AUDIT_DATA,
   DASHBOARD_DATA,
+  SHS_MASTER_DATA,
+  LAPORAN_DATA,
 } from './ports';
 
 import {
@@ -31,6 +33,8 @@ import {
   PreviewNotificationData,
   PreviewAuditData,
   PreviewDashboardData,
+  PreviewShsMasterData,
+  PreviewLaporanData,
 } from './preview';
 
 import {
@@ -47,6 +51,8 @@ import {
   ApiNotificationData,
   ApiAuditData,
   ApiDashboardData,
+  ApiShsMasterData,
+  ApiLaporanData,
 } from './api';
 
 /**
@@ -126,6 +132,16 @@ export function provideSikepKendiData(): EnvironmentProviders {
       provide: DASHBOARD_DATA,
       useFactory: chooseAdapter<PreviewDashboardData, ApiDashboardData>(),
       deps: [APP_ENV, PreviewDashboardData, ApiDashboardData],
+    },
+    {
+      provide: SHS_MASTER_DATA,
+      useFactory: chooseAdapter<PreviewShsMasterData, ApiShsMasterData>(),
+      deps: [APP_ENV, PreviewShsMasterData, ApiShsMasterData],
+    },
+    {
+      provide: LAPORAN_DATA,
+      useFactory: chooseAdapter<PreviewLaporanData, ApiLaporanData>(),
+      deps: [APP_ENV, PreviewLaporanData, ApiLaporanData],
     },
   ]);
 }

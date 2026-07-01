@@ -11,6 +11,8 @@ import {
   LoadWorkOrders,
   GetWorkOrderDetail,
   AssignVendor,
+  ApprovePPTK,
+  RejectPPTK,
 } from './work-orders.actions';
 
 export interface WorkOrdersStateModel {
@@ -128,6 +130,42 @@ export class WorkOrdersState {
       ),
       detail: updatedDetail,
     });
+    return;
+  }
+
+  @Action(ApprovePPTK)
+  approvePPTK(ctx: StateContext<WorkOrdersStateModel>, action: ApprovePPTK) {
+    if (!this.env.previewMode) {
+      return this.data.approvePPTK(action.workOrderId).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId)))
+      );
+    }
+    
+    // Preview mode state update
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({
+        detail: { ...currentDetail, status: 'DISETUJUI_PPTK' }
+      });
+    }
+    return;
+  }
+
+  @Action(RejectPPTK)
+  rejectPPTK(ctx: StateContext<WorkOrdersStateModel>, action: RejectPPTK) {
+    if (!this.env.previewMode) {
+      return this.data.rejectPPTK(action.workOrderId, action.catatan).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId)))
+      );
+    }
+    
+    // Preview mode state update
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({
+        detail: { ...currentDetail, status: 'DIVERIFIKASI', rejectedReason: action.catatan }
+      });
+    }
     return;
   }
 }
