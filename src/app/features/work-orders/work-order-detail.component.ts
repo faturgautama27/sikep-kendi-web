@@ -14,7 +14,7 @@ import { TagModule } from 'primeng/tag';
 import { TimelineModule } from 'primeng/timeline';
 
 import { WorkOrdersState, GetWorkOrderDetail, ApprovePPTK, RejectPPTK } from './state';
-import { DraftChecklistState, ApproveDraft, RejectDraft } from '@features/draft-checklist/state';
+import { DraftChecklistState, ApproveDraft, RejectDraft, LoadDraftChecklist } from '@features/draft-checklist/state';
 import { AuthState } from '@features/login/state/auth.state';
 import type { WorkOrderProgressStatus, WorkOrderStatus, WorkOrderEvidence } from '@shared/models';
 import { APP_ENV } from '@core/data-access/app-env.token';
@@ -91,9 +91,10 @@ export class WorkOrderDetailComponent implements OnInit {
 
   protected catatan = '';
 
-  protected readonly drafts = computed(() =>
-    this.draftList().filter((d) => String(d.workOrderId) === String(this.id))
-  );
+  protected readonly drafts = computed(() =>{
+    const draft = this.draftList().filter((d) => parseFloat(d.workOrderId) === parseFloat(this.id));
+    return draft;
+  });
   
   protected readonly latestDraft = computed(() => {
     const list = this.drafts();
@@ -108,12 +109,9 @@ export class WorkOrderDetailComponent implements OnInit {
   ngOnInit() {
     this.store.dispatch(new GetWorkOrderDetail(this.id)); 
 
-    console.log("permissions =>", this.permissions().includes('draft_checklist.read'));
-    
-    // // Hanya load draft checklist jika memiliki permission (untuk mencegah 403 Forbidden Error)
-    // if (this.permissions().includes('draft_checklist.read')) {
-    //   this.store.dispatch(new LoadDraftChecklist(this.id));
-    // }
+    if (!this.user()?.roles[0].includes('driver')) {
+      this.store.dispatch(new LoadDraftChecklist(this.id));
+    }
   }
 
   protected goBack() {

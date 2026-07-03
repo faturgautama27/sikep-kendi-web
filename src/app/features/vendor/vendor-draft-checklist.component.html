@@ -55,7 +55,7 @@
             </div>
           }
           <div class="sikep-table-wrap">
-            <p-table [value]="isReadOnly() ? (activeDraft()?.items ?? []) : editItems()" dataKey="_key" styleClass="text-sm" [rowHover]="true">
+            <p-table [value]="isReadOnly() ? (activeDraft()?.items ?? []) : editItems()" dataKey="_key" [rowHover]="true">
               <ng-template #header>
                 <tr>
                   <th class="w-10">No</th>
@@ -63,6 +63,7 @@
                   <th>Sparepart</th>
                   <th>Tindakan</th>
                   <th class="w-36 text-right">Harga (Rp)</th>
+                  <th class="w-20">Foto</th>
                   @if (canEdit()) { <th class="w-24 text-right">Aksi</th> }
                 </tr>
               </ng-template>
@@ -73,6 +74,20 @@
                   <td>{{ item.namaSparepart || '—' }}</td>
                   <td class="whitespace-pre-line text-xs">{{ item.tindakanPerbaikan }}</td>
                   <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
+                  <td>
+                    @if (item.fotos && item.fotos.length > 0) {
+                      <p-button 
+                        [label]="item.fotos.length + ' foto'" 
+                        icon="pi pi-camera" 
+                        size="small" 
+                        [text]="true" 
+                        severity="info"
+                        (onClick)="toggleRowExpand($event, item)" 
+                      />
+                    } @else {
+                      <span class="text-xs text-slate-400">—</span>
+                    }
+                  </td>
                   @if (canEdit()) {
                     <td class="text-right">
                       <div class="flex justify-end gap-1">
@@ -85,13 +100,13 @@
               </ng-template>
               <ng-template #footer>
                 <tr class="bg-slate-50 font-semibold">
-                  <td [colSpan]="canEdit() ? 4 : 4" class="text-right">Total Estimasi:</td>
+                  <td [colSpan]="canEdit() ? 5 : 5" class="text-right">Total Estimasi:</td>
                   <td class="text-right text-primary-700">{{ formatCurrency(isReadOnly() ? (activeDraft()?.totalHarga ?? 0) : totalHarga()) }}</td>
                   @if (canEdit()) { <td></td> }
                 </tr>
               </ng-template>
               <ng-template #emptymessage>
-                <tr><td [colSpan]="canEdit() ? 6 : 5" class="text-center text-slate-400 py-6">Belum ada item. Klik "Tambah Item" untuk memulai.</td></tr>
+                <tr><td [colSpan]="canEdit() ? 7 : 6" class="text-center text-slate-400 py-6">Belum ada item. Klik "Tambah Item" untuk memulai.</td></tr>
               </ng-template>
             </p-table>
           </div>
@@ -218,4 +233,25 @@
       (onClick)="saveItem()"
     />
   </ng-template>
+</p-dialog>
+<!-- Photo Gallery Modal -->
+<p-dialog header="Galeri Foto Checklist" [visible]="photoGalleryVisible()" (visibleChange)="photoGalleryVisible.set($event)" [modal]="true" [style]="{ width: '90vw', maxWidth: '1200px' }" [draggable]="false">
+  @if (selectedItemFotos().length > 0) {
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      @for (foto of selectedItemFotos(); track foto.imageId) {
+        <div class="rounded-lg overflow-hidden border border-slate-200 aspect-square bg-slate-100 hover:shadow-lg transition cursor-pointer" (click)="openPhotoModal(foto.url)">
+          <img [src]="foto.url" [alt]="'Foto ' + foto.imageId" class="w-full h-full object-cover" />
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="text-center text-slate-400">Tidak ada foto.</p>
+  }
+</p-dialog>
+
+<!-- Full Screen Photo Modal -->
+<p-dialog header="Foto Fullscreen" [visible]="photoModalVisible()" (visibleChange)="photoModalVisible.set($event)" [modal]="true" [style]="{ width: '95vw', maxWidth: '1000px', height: '90vh' }" [draggable]="false" [maximizable]="true">
+  <div class="flex items-center justify-center w-full h-full bg-slate-900 rounded-lg overflow-auto">
+    <img [src]="selectedPhotoUrl()" class="w-auto h-auto max-w-full max-h-full object-contain" />
+  </div>
 </p-dialog>
