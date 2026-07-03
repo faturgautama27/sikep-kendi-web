@@ -21,9 +21,14 @@ const STATUS_LABELS: Record<WorkOrderStatus, string> = {
   DRAFT_CHECKLIST: 'Draft Checklist',
   PENAWARAN: 'Penawaran',
   DIVERIFIKASI: 'Diverifikasi',
+  MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice',
+  MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
   DIBAYAR: 'Selesai',
+  DITOLAK_PB: 'Ditolak PB',
+  DITOLAK_VERIFIKATOR: 'Ditolak Verifikator',
+  DITOLAK_PPTK: 'Ditolak PPTK',
 };
 
 const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'danger' | 'secondary'> = {
@@ -32,9 +37,14 @@ const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'da
   DRAFT_CHECKLIST: 'warn',
   PENAWARAN: 'warn',
   DIVERIFIKASI: 'success',
+  MENUNGGU_INVOICE_VENDOR: 'warn',
+  MENUNGGU_VERIFIKATOR: 'warn',
   MENUNGGU_PPTK: 'warn',
   DISETUJUI_PPTK: 'success',
   DIBAYAR: 'success',
+  DITOLAK_PB: 'danger',
+  DITOLAK_VERIFIKATOR: 'danger',
+  DITOLAK_PPTK: 'danger',
 };
 
 @Component({
@@ -105,10 +115,10 @@ export class VendorWorkOrdersComponent {
 
   private matchByView(row: WorkOrder, view: VendorView): boolean {
     switch (view) {
-      case 'draft': return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST'].includes(row.status);
-      case 'penawaran': return ['PENAWARAN'].includes(row.status);
-      case 'riwayat': return ['DIVERIFIKASI', 'DIBAYAR'].includes(row.status);
-      default: return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN'].includes(row.status);
+      case 'draft': return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'DITOLAK_PB'].includes(row.status);
+      case 'penawaran': return ['PENAWARAN', 'MENUNGGU_INVOICE_VENDOR'].includes(row.status);
+      case 'riwayat': return ['DIVERIFIKASI', 'MENUNGGU_VERIFIKATOR', 'MENUNGGU_PPTK', 'DISETUJUI_PPTK', 'DIBAYAR', 'DITOLAK_VERIFIKATOR', 'DITOLAK_PPTK'].includes(row.status);
+      default: return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN', 'MENUNGGU_INVOICE_VENDOR'].includes(row.status);
     }
   }
 

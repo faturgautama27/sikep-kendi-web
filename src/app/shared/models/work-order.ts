@@ -34,9 +34,14 @@ export type WorkOrderStatus =
   | 'DRAFT_CHECKLIST'
   | 'PENAWARAN'
   | 'DIVERIFIKASI'
+  | 'MENUNGGU_INVOICE_VENDOR'
+  | 'MENUNGGU_VERIFIKATOR'
   | 'MENUNGGU_PPTK'
   | 'DISETUJUI_PPTK'
-  | 'DIBAYAR';
+  | 'DIBAYAR'
+  | 'DITOLAK_PB'
+  | 'DITOLAK_VERIFIKATOR'
+  | 'DITOLAK_PPTK';
 export type WorkOrderProgressStatus = 'received' | 'in_progress' | 'completed';
 export type EvidenceCategory =
   | 'kondisi_awal'

@@ -1,23 +1,43 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { HttpClient } from '@angular/common/http';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { SelectModule } from 'primeng/select';
 import { ImageModule } from 'primeng/image';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
-import { WorkOrdersState, GetWorkOrderDetail, ApprovePPTK, RejectPPTK } from './state';
+import {
+  WorkOrdersState,
+  GetWorkOrderDetail,
+  ApprovePPTK,
+  RejectPPTK,
+  SaveShsMapping,
+  PbReviewShs,
+  SubmitInvoice,
+  VerifikatorReview,
+  PptkDecision,
+} from './state';
 import { DraftChecklistState, ApproveDraft, RejectDraft, LoadDraftChecklist } from '@features/draft-checklist/state';
 import { AuthState } from '@features/login/state/auth.state';
 import type { WorkOrderProgressStatus, WorkOrderStatus, WorkOrderEvidence } from '@shared/models';
 import { APP_ENV } from '@core/data-access/app-env.token';
+import { IMAGE_DATA, type ImageDataPort } from '@core/data-access/ports/image-data.port';
+import type { ShsItemInput } from '@core/data-access/ports/work-order-data.port';
 
 const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DIBUAT: 'Dibuat',
@@ -25,9 +45,14 @@ const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DRAFT_CHECKLIST: 'Draft Checklist',
   PENAWARAN: 'Penawaran',
   DIVERIFIKASI: 'Diverifikasi',
+  MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice Vendor',
+  MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
   DIBAYAR: 'Dibayar',
+  DITOLAK_PB: 'Ditolak PB',
+  DITOLAK_VERIFIKATOR: 'Ditolak Verifikator',
+  DITOLAK_PPTK: 'Ditolak PPTK',
 };
 
 const PROGRESS_LABEL: Record<WorkOrderProgressStatus, string> = {
@@ -43,19 +68,11 @@ const EVIDENCE_LABEL: Record<string, string> = {
   pasca_perbaikan: 'Pasca Perbaikan',
 };
 
-function evidencePlaceholder(kategori: string): string {
-  switch (kategori) {
-    case 'kondisi_awal':
-      return 'https://picsum.photos/seed/k1/400/300';
-    case 'sparepart_sebelum':
-      return 'https://picsum.photos/seed/s1/400/300';
-    case 'sparepart_sesudah':
-      return 'https://picsum.photos/seed/s2/400/300';
-    case 'pasca_perbaikan':
-      return 'https://picsum.photos/seed/p1/400/300';
-    default:
-      return 'https://picsum.photos/seed/d1/400/300';
-  }
+interface ShsItemLocal extends ShsItemInput {
+  _key: number;
+  hargaShs?: number;
+  melebihiShs: boolean;
+  jumlah?: number;
 }
 
 @Component({
@@ -64,15 +81,22 @@ function evidencePlaceholder(kategori: string): string {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     RouterLink,
     ButtonModule,
     CardModule,
+    DialogModule,
+    SelectModule,
     ImageModule,
+    InputNumberModule,
     InputTextModule,
     TableModule,
     TagModule,
+    TextareaModule,
     TimelineModule,
+    ToastModule,
   ],
+  providers: [MessageService],
   templateUrl: './work-order-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -82,6 +106,9 @@ export class WorkOrderDetailComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly http = inject(HttpClient);
   private readonly env = inject(APP_ENV);
+  private readonly fb = inject(FormBuilder);
+  private readonly imageData = inject<ImageDataPort>(IMAGE_DATA);
+  private readonly msg = inject(MessageService);
 
   private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -91,11 +118,10 @@ export class WorkOrderDetailComponent implements OnInit {
 
   protected catatan = '';
 
-  protected readonly drafts = computed(() =>{
-    const draft = this.draftList().filter((d) => parseFloat(d.workOrderId) === parseFloat(this.id));
-    return draft;
-  });
-  
+  protected readonly drafts = computed(() =>
+    this.draftList().filter((d) => parseFloat(d.workOrderId) === parseFloat(this.id)),
+  );
+
   protected readonly latestDraft = computed(() => {
     const list = this.drafts();
     if (!list.length) return null;
@@ -105,13 +131,74 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly isPPTK = computed(() => this.user()?.roles?.includes('pptk'));
   protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin_sistem'));
+  protected readonly isPB = computed(() => this.user()?.roles?.includes('pengurus_barang'));
+  protected readonly isVendor = computed(() => this.user()?.roles?.includes('vendor'));
+  protected readonly isVerifikator = computed(() => this.user()?.roles?.includes('verifikator'));
+  protected readonly isBendahara = computed(() => this.user()?.roles?.includes('bendahara'));
+
+  // ─── Step D: SHS Mapping State ───────────────────────────────────────────
+  private itemKey = 0;
+  protected readonly shsItems = signal<ShsItemLocal[]>([]);
+  protected readonly shsMasterOptions = signal<any[]>([]);
+  protected readonly savingShsMappingLoading = signal(false);
+
+  protected readonly hasItemExceedingShs = computed(() =>
+    this.shsItems().some((i) => i.melebihiShs),
+  );
+  protected readonly shsTotal = computed(() =>
+    this.shsItems().reduce((sum, i) => sum + (i.hargaVendor * (i.jumlah ?? 1)), 0),
+  );
+
+  // ─── Step D: PB Review Dialog ─────────────────────────────────────────────
+  protected readonly pbReviewDialogVisible = signal(false);
+  protected readonly pbReviewApproved = signal(false);
+  protected readonly pbCatatan = signal('');
+  protected readonly pbAlasanPenolakan = signal('');
+  protected readonly pbReviewLoading = signal(false);
+
+  // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────
+  protected readonly invoiceDialogVisible = signal(false);
+  protected readonly invoiceImageId = signal<number | null>(null);
+  protected readonly invoiceImageUrl = signal<string>('');
+  protected readonly invoiceDraftImageId = signal<number | null>(null);
+  protected readonly invoiceDraftUrl = signal<string>('');
+  protected readonly invoiceUploadLoading = signal(false);
+
+  // ─── Step F: Verifikator Review Dialog ────────────────────────────────────
+  protected readonly verifikatorDialogVisible = signal(false);
+  protected readonly verifikatorApproved = signal(false);
+  protected readonly verifikatorCatatan = signal('');
+  protected readonly verifikatorAlasan = signal('');
+  protected readonly verifikatorLoading = signal(false);
+
+  // ─── Step G: PPTK Decision Dialog ─────────────────────────────────────────
+  protected readonly pptkDialogVisible = signal(false);
+  protected readonly pptkApprovedSignal = signal(false);
+  protected readonly pptkKomentar = signal('');
+  protected readonly pptkAlasan = signal('');
+  protected readonly pptkLoading = signal(false);
 
   ngOnInit() {
-    this.store.dispatch(new GetWorkOrderDetail(this.id)); 
-
-    if (!this.user()?.roles[0].includes('driver')) {
+    this.store.dispatch(new GetWorkOrderDetail(this.id));
+    if (!this.user()?.roles[0]?.includes('driver')) {
       this.store.dispatch(new LoadDraftChecklist(this.id));
     }
+    this.loadShsMasterOptions();
+  }
+
+  private loadShsMasterOptions() {
+    if (this.env.previewMode) return;
+    this.http.get<any>(`${this.env.apiBaseUrl}/shs-master?limit=200&isAktif=true`).subscribe({
+      next: (res) => {
+        const items = res?.data?.items ?? res?.data ?? res ?? [];
+        this.shsMasterOptions.set(items.map((s: any) => ({
+          label: `${s.namaItem} (max: ${this.formatRupiah(s.hargaMaksimum)})`,
+          value: s.id,
+          namaItem: s.namaItem,
+          hargaMaksimum: Number(s.hargaMaksimum),
+        })));
+      },
+    });
   }
 
   protected goBack() {
@@ -129,12 +216,18 @@ export class WorkOrderDetailComponent implements OnInit {
         return 'info';
       case 'DRAFT_CHECKLIST':
       case 'PENAWARAN':
-      case 'DIVERIFIKASI':
+      case 'MENUNGGU_INVOICE_VENDOR':
+      case 'MENUNGGU_VERIFIKATOR':
       case 'MENUNGGU_PPTK':
         return 'warn';
+      case 'DIVERIFIKASI':
       case 'DIBAYAR':
       case 'DISETUJUI_PPTK':
         return 'success';
+      case 'DITOLAK_PB':
+      case 'DITOLAK_VERIFIKATOR':
+      case 'DITOLAK_PPTK':
+        return 'danger';
       default:
         return 'secondary';
     }
@@ -154,10 +247,7 @@ export class WorkOrderDetailComponent implements OnInit {
   }
 
   protected evidenceUrl(ev: WorkOrderEvidence): string {
-    if (ev.image?.url) {
-      return ev.image.url;
-    }
-    return evidencePlaceholder(ev.kategori);
+    return ev.image?.url ?? '';
   }
 
   protected evidenceLabel(ev: WorkOrderEvidence): string {
@@ -169,17 +259,18 @@ export class WorkOrderDetailComponent implements OnInit {
     if (!val) return '-';
     return new Date(val).toLocaleString('id-ID', {
       day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+      hour: '2-digit', minute: '2-digit',
     });
   }
 
   protected formatRupiah(n: number | string): string {
     const val = typeof n === 'string' ? parseFloat(n) : n;
     return new Intl.NumberFormat('id-ID', {
-      style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+      style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
     }).format(val || 0);
   }
 
+  // ─── Legacy Draft Actions ─────────────────────────────────────────────────
   protected approve() {
     const draft = this.latestDraft();
     if (!draft) return;
@@ -202,7 +293,7 @@ export class WorkOrderDetailComponent implements OnInit {
     const pnw = this.detail()?.penawaranDetail;
     if (!pnw) return;
     this.http.post(`${this.env.apiBaseUrl}/work-orders/${this.id}/penawaran/${pnw.id}/approve-pb`, {}).subscribe({
-      next: () => this.store.dispatch(new GetWorkOrderDetail(this.id))
+      next: () => this.store.dispatch(new GetWorkOrderDetail(this.id)),
     });
   }
 
@@ -210,25 +301,239 @@ export class WorkOrderDetailComponent implements OnInit {
     const pnw = this.detail()?.penawaranDetail;
     if (!pnw) return;
     this.http.post(`${this.env.apiBaseUrl}/work-orders/${this.id}/penawaran/${pnw.id}/request-revisi-pb`, {
-      catatanRevisi: this.catatan || 'Silakan revisi penawaran Anda.'
+      catatanRevisi: this.catatan || 'Silakan revisi penawaran Anda.',
     }).subscribe({
-      next: () => {
-        this.store.dispatch(new GetWorkOrderDetail(this.id));
-        this.catatan = '';
-      }
+      next: () => { this.store.dispatch(new GetWorkOrderDetail(this.id)); this.catatan = ''; },
     });
   }
 
-  protected approvePPTK() {
-    this.store.dispatch(new ApprovePPTK(this.id)).subscribe(() => {
-      this.catatan = '';
+  // ─── Step D: SHS Mapping (PB) ─────────────────────────────────────────────
+  protected addShsItem() {
+    this.shsItems.update((items) => [
+      ...items,
+      { _key: this.itemKey++, namaItem: '', hargaVendor: 0, hargaStandart: 0, jumlah: 1, melebihiShs: false },
+    ]);
+  }
+
+  protected removeShsItem(key: number) {
+    this.shsItems.update((items) => items.filter((i) => i._key !== key));
+  }
+
+  protected onShsMasterSelect(key: number, shsId: number) {
+    const master = this.shsMasterOptions().find((s) => s.value === shsId);
+    if (!master) return;
+    this.shsItems.update((items) =>
+      items.map((item) => {
+        if (item._key !== key) return item;
+        const melebihiShs = item.hargaVendor > master.hargaMaksimum;
+        return {
+          ...item,
+          shsMasterId: shsId,
+          namaItem: item.namaItem || master.namaItem,
+          hargaStandart: master.hargaMaksimum,
+          hargaShs: master.hargaMaksimum,
+          melebihiShs,
+        };
+      }),
+    );
+  }
+
+  protected updateShsItemField(key: number, field: keyof ShsItemLocal, value: any) {
+    this.shsItems.update((items) =>
+      items.map((item) => {
+        if (item._key !== key) return item;
+        const updated = { ...item, [field]: field === 'hargaVendor' || field === 'jumlah' ? Number(value) : value };
+        // Recheck melebihi SHS jika harga berubah
+        if (field === 'hargaVendor' && item.hargaShs) {
+          updated.melebihiShs = Number(value) > item.hargaShs;
+        }
+        return updated;
+      }),
+    );
+  }
+
+  protected saveShsMapping() {
+    if (this.shsItems().length === 0) {
+      this.msg.add({ severity: 'warn', summary: 'Minimal 1 item SHS diperlukan' });
+      return;
+    }
+    if (this.hasItemExceedingShs()) {
+      this.msg.add({ severity: 'error', summary: 'Ada item melebihi SHS', detail: 'Perbaiki harga item sebelum menyimpan' });
+      return;
+    }
+
+    const payload: ShsItemInput[] = this.shsItems().map(({ _key, hargaShs, melebihiShs, jumlah, ...item }) => item);
+    this.savingShsMappingLoading.set(true);
+    this.store.dispatch(new SaveShsMapping(this.id, payload)).subscribe({
+      next: () => {
+        this.savingShsMappingLoading.set(false);
+        this.msg.add({ severity: 'success', summary: 'SHS mapping tersimpan' });
+      },
+      error: (err: any) => {
+        this.savingShsMappingLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal simpan', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
     });
+  }
+
+  protected openPbReviewDialog(approved: boolean) {
+    this.pbReviewApproved.set(approved);
+    this.pbCatatan.set('');
+    this.pbAlasanPenolakan.set('');
+    this.pbReviewDialogVisible.set(true);
+  }
+
+  protected submitPbReview() {
+    if (!this.pbReviewApproved() && !this.pbAlasanPenolakan().trim()) {
+      this.msg.add({ severity: 'warn', summary: 'Alasan penolakan wajib diisi' });
+      return;
+    }
+    this.pbReviewLoading.set(true);
+    this.store.dispatch(new PbReviewShs(
+      this.id,
+      this.pbReviewApproved(),
+      this.pbCatatan() || undefined,
+      this.pbAlasanPenolakan() || undefined,
+    )).subscribe({
+      next: () => {
+        this.pbReviewLoading.set(false);
+        this.pbReviewDialogVisible.set(false);
+        this.msg.add({ severity: 'success', summary: this.pbReviewApproved() ? 'Draft disetujui' : 'Draft ditolak' });
+      },
+      error: (err: any) => {
+        this.pbReviewLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
+    });
+  }
+
+  // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────
+  protected openInvoiceDialog() {
+    this.invoiceImageId.set(null);
+    this.invoiceImageUrl.set('');
+    this.invoiceDraftImageId.set(null);
+    this.invoiceDraftUrl.set('');
+    this.invoiceDialogVisible.set(true);
+  }
+
+  protected async onInvoiceFileSelected(event: Event, type: 'invoice' | 'draft') {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.invoiceUploadLoading.set(true);
+    this.imageData.upload(file).subscribe({
+      next: (uploaded) => {
+        this.invoiceUploadLoading.set(false);
+        if (type === 'invoice') {
+          this.invoiceImageId.set(Number(uploaded.id));
+          this.invoiceImageUrl.set(uploaded.url ?? '');
+        } else {
+          this.invoiceDraftImageId.set(Number(uploaded.id));
+          this.invoiceDraftUrl.set(uploaded.url ?? '');
+        }
+      },
+      error: () => {
+        this.invoiceUploadLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal upload file' });
+      },
+    });
+    input.value = '';
+  }
+
+  protected submitInvoice() {
+    if (!this.invoiceImageId()) {
+      this.msg.add({ severity: 'warn', summary: 'Invoice wajib diupload' });
+      return;
+    }
+    this.invoiceUploadLoading.set(true);
+    this.store.dispatch(new SubmitInvoice(
+      this.id,
+      this.invoiceImageId()!,
+      this.invoiceDraftImageId() ?? undefined,
+    )).subscribe({
+      next: () => {
+        this.invoiceUploadLoading.set(false);
+        this.invoiceDialogVisible.set(false);
+        this.msg.add({ severity: 'success', summary: 'Invoice berhasil dikirim ke Verifikator' });
+      },
+      error: (err: any) => {
+        this.invoiceUploadLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal kirim invoice', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
+    });
+  }
+
+  // ─── Step F: Verifikator Review ───────────────────────────────────────────
+  protected openVerifikatorDialog(approved: boolean) {
+    this.verifikatorApproved.set(approved);
+    this.verifikatorCatatan.set('');
+    this.verifikatorAlasan.set('');
+    this.verifikatorDialogVisible.set(true);
+  }
+
+  protected submitVerifikatorReview() {
+    if (!this.verifikatorApproved() && !this.verifikatorAlasan().trim()) {
+      this.msg.add({ severity: 'warn', summary: 'Alasan penolakan wajib diisi' });
+      return;
+    }
+    this.verifikatorLoading.set(true);
+    this.store.dispatch(new VerifikatorReview(
+      this.id,
+      this.verifikatorApproved(),
+      this.verifikatorCatatan() || undefined,
+      this.verifikatorAlasan() || undefined,
+    )).subscribe({
+      next: () => {
+        this.verifikatorLoading.set(false);
+        this.verifikatorDialogVisible.set(false);
+        this.msg.add({ severity: 'success', summary: this.verifikatorApproved() ? 'Terverifikasi, menunggu PPTK' : 'Ditolak' });
+      },
+      error: (err: any) => {
+        this.verifikatorLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
+    });
+  }
+
+  // ─── Step G: PPTK Decision ────────────────────────────────────────────────
+  protected openPptkDialog(approved: boolean) {
+    this.pptkApprovedSignal.set(approved);
+    this.pptkKomentar.set('');
+    this.pptkAlasan.set('');
+    this.pptkDialogVisible.set(true);
+  }
+
+  protected submitPptkDecision() {
+    if (!this.pptkApprovedSignal() && !this.pptkAlasan().trim()) {
+      this.msg.add({ severity: 'warn', summary: 'Alasan penolakan wajib diisi' });
+      return;
+    }
+    this.pptkLoading.set(true);
+    this.store.dispatch(new PptkDecision(
+      this.id,
+      this.pptkApprovedSignal(),
+      this.pptkKomentar() || undefined,
+      this.pptkAlasan() || undefined,
+    )).subscribe({
+      next: () => {
+        this.pptkLoading.set(false);
+        this.pptkDialogVisible.set(false);
+        this.msg.add({ severity: 'success', summary: this.pptkApprovedSignal() ? 'Disetujui PPTK' : 'Ditolak PPTK' });
+      },
+      error: (err: any) => {
+        this.pptkLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
+    });
+  }
+
+  // Legacy
+  protected approvePPTK() {
+    this.store.dispatch(new ApprovePPTK(this.id)).subscribe(() => this.catatan = '');
   }
 
   protected rejectPPTK() {
-    this.store.dispatch(new RejectPPTK(this.id, this.catatan || 'Ditolak PPTK.')).subscribe(() => {
-      this.catatan = '';
-    });
+    this.store.dispatch(new RejectPPTK(this.id, this.catatan || 'Ditolak PPTK.')).subscribe(() => this.catatan = '');
   }
 }
-

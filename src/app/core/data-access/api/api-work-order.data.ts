@@ -392,4 +392,37 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
       .post<BackendWorkOrder>(this.url(`/work-orders/${workOrderId}/reject-pptk`), { catatanRevisi: catatan })
       .pipe(map((row) => mapWorkOrder(row)));
   }
+
+  // Step D: PB input SHS mapping
+  saveShsMapping(workOrderId: string, items: import('../ports/work-order-data.port').ShsItemInput[]): Observable<any> {
+    return this.http.post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/shs`), { items });
+  }
+
+  // Step D: PB review approve/reject
+  pbReviewShs(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pb-review`), { approved, catatan, alasanPenolakan })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
+
+  // Step E: Vendor submit invoice
+  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/submit-invoice`), { invoiceImageId, invoiceDraftImageId })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
+
+  // Step F: Verifikator review
+  verifikatorReview(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/verifikator-review`), { approved, catatan, alasanPenolakan })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
+
+  // Step G: PPTK unified approve/reject
+  pptkApprove(workOrderId: string, approved: boolean, komentar?: string, alasan?: string): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pptk-approve`), { approved, komentar, alasan })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
 }

@@ -13,6 +13,11 @@ import {
   AssignVendor,
   ApprovePPTK,
   RejectPPTK,
+  SaveShsMapping,
+  PbReviewShs,
+  SubmitInvoice,
+  VerifikatorReview,
+  PptkDecision,
 } from './work-orders.actions';
 
 export interface WorkOrdersStateModel {
@@ -67,9 +72,7 @@ export class WorkOrdersState {
   load(ctx: StateContext<WorkOrdersStateModel>) {
     if (this.env.previewMode) return;
     return this.data.list().pipe(
-      tap((list) => {
-        ctx.patchState({ list });
-      }),
+      tap((list) => ctx.patchState({ list })),
     );
   }
 
@@ -77,12 +80,9 @@ export class WorkOrdersState {
   getDetail(ctx: StateContext<WorkOrdersStateModel>, action: GetWorkOrderDetail) {
     if (!this.env.previewMode) {
       return this.data.getById(action.workOrderId).pipe(
-        tap((detail) => {
-          ctx.patchState({ detail });
-        }),
+        tap((detail) => ctx.patchState({ detail })),
       );
     }
-
     const detail = ctx.getState().list.find((wo) => wo.id === action.workOrderId) ?? null;
     ctx.patchState({ detail });
     return;
@@ -96,10 +96,7 @@ export class WorkOrdersState {
           const current = ctx.getState();
           ctx.patchState({
             list: current.list.map((wo) => (wo.id === updatedFromApi.id ? updatedFromApi : wo)),
-            detail:
-              current.detail?.id === updatedFromApi.id
-                ? updatedFromApi
-                : current.detail,
+            detail: current.detail?.id === updatedFromApi.id ? updatedFromApi : current.detail,
           });
           ctx.dispatch(new LoadWorkOrders());
         }),
@@ -109,23 +106,12 @@ export class WorkOrdersState {
     const currentDetail = ctx.getState().detail;
     const updatedDetail: WorkOrder | null =
       currentDetail && currentDetail.id === action.workOrderId
-        ? {
-            ...currentDetail,
-            vendorId: action.vendorId,
-            status: 'VENDOR_DITUGASKAN',
-            assignedAt: new Date().toISOString(),
-          }
+        ? { ...currentDetail, vendorId: action.vendorId, status: 'VENDOR_DITUGASKAN', assignedAt: new Date().toISOString() }
         : currentDetail;
-
     ctx.patchState({
       list: ctx.getState().list.map((wo) =>
         wo.id === action.workOrderId
-          ? {
-              ...wo,
-              vendorId: action.vendorId,
-              status: 'VENDOR_DITUGASKAN' as const,
-              assignedAt: new Date().toISOString(),
-            }
+          ? { ...wo, vendorId: action.vendorId, status: 'VENDOR_DITUGASKAN' as const, assignedAt: new Date().toISOString() }
           : wo,
       ),
       detail: updatedDetail,
@@ -133,20 +119,17 @@ export class WorkOrdersState {
     return;
   }
 
+  // Legacy actions kept for backward compat
   @Action(ApprovePPTK)
   approvePPTK(ctx: StateContext<WorkOrdersStateModel>, action: ApprovePPTK) {
     if (!this.env.previewMode) {
       return this.data.approvePPTK(action.workOrderId).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId)))
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
       );
     }
-    
-    // Preview mode state update
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
-      ctx.patchState({
-        detail: { ...currentDetail, status: 'DISETUJUI_PPTK' }
-      });
+      ctx.patchState({ detail: { ...currentDetail, status: 'DISETUJUI_PPTK' } });
     }
     return;
   }
@@ -155,15 +138,88 @@ export class WorkOrdersState {
   rejectPPTK(ctx: StateContext<WorkOrdersStateModel>, action: RejectPPTK) {
     if (!this.env.previewMode) {
       return this.data.rejectPPTK(action.workOrderId, action.catatan).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId)))
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
       );
     }
-    
-    // Preview mode state update
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({ detail: { ...currentDetail, status: 'DITOLAK_PPTK', rejectedReason: action.catatan } });
+    }
+    return;
+  }
+
+  // Step D: PB input SHS mapping
+  @Action(SaveShsMapping)
+  saveShsMapping(ctx: StateContext<WorkOrdersStateModel>, action: SaveShsMapping) {
+    if (!this.env.previewMode) {
+      return this.data.saveShsMapping(action.workOrderId, action.items).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
+      );
+    }
+    return;
+  }
+
+  // Step D: PB review approve/reject
+  @Action(PbReviewShs)
+  pbReviewShs(ctx: StateContext<WorkOrdersStateModel>, action: PbReviewShs) {
+    if (!this.env.previewMode) {
+      return this.data.pbReviewShs(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
+      );
+    }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
       ctx.patchState({
-        detail: { ...currentDetail, status: 'DIVERIFIKASI', rejectedReason: action.catatan }
+        detail: { ...currentDetail, status: action.approved ? 'MENUNGGU_INVOICE_VENDOR' : 'DITOLAK_PB' },
+      });
+    }
+    return;
+  }
+
+  // Step E: Vendor submit invoice
+  @Action(SubmitInvoice)
+  submitInvoice(ctx: StateContext<WorkOrdersStateModel>, action: SubmitInvoice) {
+    if (!this.env.previewMode) {
+      return this.data.submitInvoice(action.workOrderId, action.invoiceImageId, action.invoiceDraftImageId).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
+      );
+    }
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({ detail: { ...currentDetail, status: 'MENUNGGU_VERIFIKATOR' } });
+    }
+    return;
+  }
+
+  // Step F: Verifikator review
+  @Action(VerifikatorReview)
+  verifikatorReview(ctx: StateContext<WorkOrdersStateModel>, action: VerifikatorReview) {
+    if (!this.env.previewMode) {
+      return this.data.verifikatorReview(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
+      );
+    }
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({
+        detail: { ...currentDetail, status: action.approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR' },
+      });
+    }
+    return;
+  }
+
+  // Step G: PPTK decision
+  @Action(PptkDecision)
+  pptkDecision(ctx: StateContext<WorkOrdersStateModel>, action: PptkDecision) {
+    if (!this.env.previewMode) {
+      return this.data.pptkApprove(action.workOrderId, action.approved, action.komentar, action.alasan).pipe(
+        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
+      );
+    }
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({
+        detail: { ...currentDetail, status: action.approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK' },
       });
     }
     return;

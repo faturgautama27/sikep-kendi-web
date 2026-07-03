@@ -46,9 +46,14 @@ const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DRAFT_CHECKLIST: 'Draft Checklist',
   PENAWARAN: 'Penawaran',
   DIVERIFIKASI: 'Diverifikasi',
+  MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice Vendor',
+  MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
   DIBAYAR: 'Dibayar',
+  DITOLAK_PB: 'Ditolak PB',
+  DITOLAK_VERIFIKATOR: 'Ditolak Verifikator',
+  DITOLAK_PPTK: 'Ditolak PPTK',
 };
 
 const PROGRESS_LABEL: Record<WorkOrderProgressStatus, string> = {
@@ -162,10 +167,18 @@ export class WorkOrdersListComponent {
         return 'info';
       case 'DRAFT_CHECKLIST':
       case 'PENAWARAN':
-      case 'DIVERIFIKASI':
+      case 'MENUNGGU_INVOICE_VENDOR':
+      case 'MENUNGGU_VERIFIKATOR':
+      case 'MENUNGGU_PPTK':
         return 'warn';
+      case 'DIVERIFIKASI':
+      case 'DISETUJUI_PPTK':
       case 'DIBAYAR':
         return 'success';
+      case 'DITOLAK_PB':
+      case 'DITOLAK_VERIFIKATOR':
+      case 'DITOLAK_PPTK':
+        return 'danger';
       default:
         return 'secondary';
     }
