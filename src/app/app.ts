@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { PreviewBannerComponent } from '@core/layout/preview-banner/preview-banner.component';
 import { PushService } from '@core/services/push.service';
+import { CapacitorNavigationService } from '@core/services/capacitor-navigation.service';
 import { MessageService } from 'primeng/api';
 import { Toast, ToastModule } from 'primeng/toast';
 
@@ -23,4 +24,11 @@ import { Toast, ToastModule } from 'primeng/toast';
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class App {}
+export class App implements OnInit {
+  private capacitorNav = inject(CapacitorNavigationService);
+
+  ngOnInit(): void {
+    // Initialize Capacitor-specific navigation handlers for mobile
+    this.capacitorNav.initialize();
+  }
+}

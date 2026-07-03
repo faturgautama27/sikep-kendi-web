@@ -12,14 +12,17 @@ import { Store } from '@ngxs/store';
 import { Location } from '@angular/common';
 import { catchError, forkJoin, of } from 'rxjs';
 import { DaruratState } from './state/darurat.state';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { ToastModule } from 'primeng/toast';
 import { FileUploadModule } from 'primeng/fileupload';
+import { TableModule } from 'primeng/table';
 import { FormsModule } from '@angular/forms';
 
 import { PageHeaderComponent } from '@core/layout';
@@ -37,6 +40,8 @@ import {
   GetLaporanDaruratDetail,
 } from './state/darurat.actions';
 import { AuthState } from '@features/login/state/auth.state';
+import { ShsMasterState, LoadShsMaster } from '@features/shs-master/state';
+import { ShsMaster } from '@shared/models/shs-master';
 
 @Component({
   selector: 'app-darurat-detail',
@@ -49,9 +54,12 @@ import { AuthState } from '@features/login/state/auth.state';
     DialogModule,
     TextareaModule,
     InputTextModule,
+    InputNumberModule,
     ToastModule,
     FileUploadModule,
+    TableModule,
     FormsModule,
+    ReactiveFormsModule,
     PageHeaderComponent,
   ],
   templateUrl: './darurat-detail.component.html',
@@ -64,11 +72,11 @@ export class DaruratDetailComponent implements OnInit {
   protected readonly env = inject(APP_ENV);
   private readonly location = inject(Location);
   private readonly store = inject(Store);
-
-  // Instead of signals, we will use an observable converted to signal, but for simplicity let's use dataPort to fetch the single item.
-  // We can just use an observable with async pipe in HTML or a simple signal here.
+  private readonly fb = inject(FormBuilder);
 
   protected readonly laporan = this.store.selectSignal(DaruratState.detail);
+  protected readonly shsMasterList = this.store.selectSignal(ShsMasterState.list);
+  protected readonly statusTimeline = computed(() => this.laporan()?.statusTimeline || []);
 
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly isDriver = computed(() => this.user()?.roles?.includes('pengemudi'));
@@ -88,6 +96,14 @@ export class DaruratDetailComponent implements OnInit {
   protected verifikasiKomentar = '';
 
   protected shsDialogVisible = false;
+  protected shsItems = signal<Array<{
+    shsMasterId?: number;
+    namaItem: string;
+    jumlah: number;
+    hargaSatuan: number;
+    keterangan?: string;
+  }>>([]);
+  protected shsSubmitting = signal(false);
 
   protected pembayaranDialogVisible = false;
   protected pembayaranFileIds = signal<{ id: string; url: string }[]>([]);
@@ -156,16 +172,109 @@ export class DaruratDetailComponent implements OnInit {
   }
 
   protected openSHS() {
+    this.shsItems.set([]);
     this.shsDialogVisible = true;
+  }
+
+  protected addShsItem() {
+    const currentItems = this.shsItems();
+    this.shsItems.set([
+      ...currentItems,
+      {
+        namaItem: '',
+        jumlah: 1,
+        hargaSatuan: 0,
+      },
+    ]);
+  }
+
+  protected removeShsItem(index: number) {
+    const currentItems = this.shsItems();
+    this.shsItems.set(currentItems.filter((_, i) => i !== index));
+  }
+
+  protected onShsNameChange(idx: number, event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.updateShsItem(idx, 'namaItem', value);
+  }
+
+  protected onShsQuantityChange(idx: number, event: Event) {
+    const value = +(event.target as HTMLInputElement).value;
+    this.updateShsItem(idx, 'jumlah', value);
+  }
+
+  protected onShsPriceChange(idx: number, event: Event) {
+    const value = +(event.target as HTMLInputElement).value;
+    this.updateShsItem(idx, 'hargaSatuan', value);
+  }
+
+  protected onShsKeteranganChange(idx: number, event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.updateShsItem(idx, 'keterangan', value);
+  }
+
+  protected selectShsMasterFromEvent(event: Event, index: number) {
+    const value = parseInt((event.target as HTMLSelectElement).value);
+    const master = this.shsMasterList().find(s => s.id === value);
+    if (master) {
+      this.selectShsMaster(master, index);
+    }
+  }
+
+  protected selectShsMaster(item: ShsMaster, index: number) {
+    const currentItems = [...this.shsItems()];
+    currentItems[index] = {
+      ...currentItems[index],
+      shsMasterId: item.id,
+      namaItem: item.namaItem,
+      hargaSatuan: Number(item.hargaMaksimum), // ensure it's a number
+    };
+    this.shsItems.set(currentItems);
+  }
+
+  protected updateShsItem(index: number, key: string, value: any) {
+    const currentItems = [...this.shsItems()];
+    // Ensure numeric fields are actually numbers
+    if ((key === 'jumlah' || key === 'hargaSatuan') && typeof value === 'string') {
+      value = parseInt(value, 10);
+    }
+    currentItems[index] = { ...currentItems[index], [key]: value };
+    this.shsItems.set(currentItems);
   }
 
   protected submitSHS() {
     const id = this.laporan()?.id;
     if (!id) return;
-    const items: any[] = []; // In a real scenario, this would come from a form
-    this.store.dispatch(new InputShsDarurat(id, items)).subscribe(() => {
-      this.shsDialogVisible = false;
-      this.msg.add({ severity: 'success', summary: 'SHS Berhasil Diinput' });
+    
+    const items = this.shsItems();
+    if (items.length === 0) {
+      this.msg.add({ severity: 'error', summary: 'Validasi', detail: 'Tambah minimal 1 item SHS' });
+      return;
+    }
+
+    // Validate all items have required fields
+    for (const item of items) {
+      if (!item.namaItem || item.jumlah < 1 || item.hargaSatuan < 1) {
+        this.msg.add({ 
+          severity: 'error', 
+          summary: 'Validasi', 
+          detail: 'Semua item harus memiliki nama, jumlah, dan harga' 
+        });
+        return;
+      }
+    }
+
+    this.shsSubmitting.set(true);
+    this.store.dispatch(new InputShsDarurat(id, items)).subscribe({
+      next: () => {
+        this.shsSubmitting.set(false);
+        this.shsDialogVisible = false;
+        this.msg.add({ severity: 'success', summary: 'SHS Berhasil Diinput' });
+      },
+      error: () => {
+        this.shsSubmitting.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Terjadi kesalahan saat menyimpan SHS' });
+      },
     });
   }
 
@@ -224,6 +333,14 @@ export class DaruratDetailComponent implements OnInit {
     this.location.back();
   }
 
+  protected formatRupiah(n: number): string {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(n);
+  }
+
   protected getStatusProps(status?: string): any {
     switch (status) {
       case 'MENUNGGU_VERIFIKASI_PB':
@@ -256,5 +373,7 @@ export class DaruratDetailComponent implements OnInit {
     if (id) {
       this.store.dispatch(new GetLaporanDaruratDetail(id));
     }
+    // Load SHS Master list for the dialog
+    this.store.dispatch(new LoadShsMaster());
   }
 }

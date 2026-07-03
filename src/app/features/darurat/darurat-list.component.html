@@ -167,7 +167,7 @@
               {{ truncate(row.deskripsiDarurat, 60) }}
             </td>
             <td class="text-right font-medium text-slate-800">
-              {{ formatRupiah(row.totalPengeluaran || 0) }}
+              {{ formatRupiah(row.totalPengeluaran || row.totalReimbursement || 0) }}
             </td>
             <td>
               @let st = getStatusProps(row.status);
