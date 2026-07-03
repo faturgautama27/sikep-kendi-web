@@ -74,11 +74,9 @@ export class DaruratDetailComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
 
-  // Instead of signals, we will use an observable converted to signal, but for simplicity let's use dataPort to fetch the single item.
-  // We can just use an observable with async pipe in HTML or a simple signal here.
-
   protected readonly laporan = this.store.selectSignal(DaruratState.detail);
   protected readonly shsMasterList = this.store.selectSignal(ShsMasterState.list);
+  protected readonly statusTimeline = computed(() => this.laporan()?.statusTimeline || []);
 
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly isDriver = computed(() => this.user()?.roles?.includes('pengemudi'));

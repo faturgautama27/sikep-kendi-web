@@ -189,21 +189,57 @@
       </div>
     </div>
 
-    <!-- Timeline Progress (Simplified) -->
+    <!-- Timeline Progress -->
     <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h3 class="mb-4 text-lg font-semibold text-slate-800">Timeline Progress</h3>
-      <div class="flex flex-col gap-4 text-sm text-slate-600">
-        <!-- In a real app, this should loop through historiMaintenance. For now we just show current status as the latest milestone -->
-        <div class="flex gap-4 items-start">
-          <div class="flex flex-col items-center mt-1">
-            <div class="h-3 w-3 rounded-full bg-blue-500"></div>
-          </div>
-          <div class="flex flex-col">
-            <span class="font-bold text-slate-800">Status Saat Ini: {{ getStatusProps(row.status).label }}</span>
-            <span class="text-xs text-slate-400">Pembaruan sistem terakhir</span>
-          </div>
+      
+      @if (statusTimeline().length > 0) {
+        <div class="flex flex-col gap-0">
+          @for (event of statusTimeline(); track $index; let idx = $index) {
+            <div class="flex gap-4 pb-8 relative">
+              <!-- Timeline dot and line -->
+              <div class="flex flex-col items-center flex-shrink-0">
+                <!-- Dot -->
+                <div class="h-3 w-3 rounded-full bg-primary-500 ring-4 ring-primary-100 relative z-10"></div>
+                <!-- Line to next (except last) -->
+                @if (idx < statusTimeline().length - 1) {
+                  <div class="w-0.5 h-20 bg-slate-200 mt-2"></div>
+                }
+              </div>
+
+              <!-- Event content -->
+              <div class="flex flex-col gap-1 pt-1 flex-1">
+                <div class="flex gap-2 items-start justify-between">
+                  <div>
+                    <p class="font-semibold text-slate-800">{{ event.label }}</p>
+                    <p class="text-xs text-slate-500">
+                      {{ event.timestamp | date: 'dd MMM yyyy, HH:mm' }}
+                    </p>
+                  </div>
+                  <p-tag [value]="event.status" [severity]="getStatusProps(event.status).severity" />
+                </div>
+                
+                @if (event.actor) {
+                  <p class="text-sm text-slate-600">
+                    <span class="text-slate-500">Oleh:</span> {{ event.actor.fullName }}
+                  </p>
+                }
+                
+                @if (event.notes) {
+                  <p class="text-sm text-slate-600 italic border-l-2 border-slate-300 pl-3 mt-2">
+                    "{{ event.notes }}"
+                  </p>
+                }
+              </div>
+            </div>
+          }
         </div>
-      </div>
+      } @else {
+        <div class="text-center py-6 text-slate-400">
+          <i class="pi pi-inbox text-2xl block mb-2"></i>
+          <p class="text-sm">Belum ada status transitions</p>
+        </div>
+      }
     </div>
 
     <!-- Foto Bukti -->

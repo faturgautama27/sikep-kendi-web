@@ -50,6 +50,13 @@ export interface LaporanDarurat {
   historiMaintenance?: any;
   shsItems?: any[];
   buktiDarurat?: any;
+  statusTimeline?: Array<{
+    status: string;
+    label: string;
+    timestamp: string | Date;
+    actor?: { id: number; fullName: string };
+    notes?: string;
+  }>;
 
   // relations
   kendaraan?: Vehicle;
