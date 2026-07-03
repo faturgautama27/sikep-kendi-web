@@ -123,7 +123,9 @@
       </div>
       <div class="hidden flex-col items-start leading-none lg:flex">
         <span class="text-[12px] font-semibold text-slate-700">{{ userName() }}</span>
-        <span class="mt-0.5 text-[10px] text-slate-400">{{ userRole() | titlecase }}</span>
+        <span class="mt-0.5 text-[10px] text-slate-400">{{
+          userRole() === 'pptk' ? 'PPTK' : (userRole() | titlecase)
+        }}</span>
       </div>
       <i class="pi pi-chevron-down hidden text-[9px] text-slate-400 lg:block"></i>
     </button>
@@ -139,7 +141,9 @@
           </div>
           <div class="min-w-0">
             <p class="truncate text-xs font-bold text-slate-800">{{ userName() }}</p>
-            <p class="text-[10px] text-slate-400">{{ userRole() }}</p>
+            <p class="text-[10px] text-slate-400">
+              {{ userRole() === 'pptk' ? 'PPTK' : userRole() }}
+            </p>
           </div>
         </div>
 
@@ -162,14 +166,17 @@
               Notifikasi
             </a>
           </li>
-          <li>
-            <a
-              routerLink="/admin"
-              class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-primary-50 hover:text-primary-700"
-            >
-              <i class="pi pi-cog text-[12px] w-4 text-center text-slate-400"></i>Admin Panel
-            </a>
-          </li>
+          @if (userRole() === 'admin_sistem') {
+            <li>
+              <a
+                routerLink="/admin"
+                class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-primary-50 hover:text-primary-700"
+              >
+                <i class="pi pi-cog text-[12px] w-4 text-center text-slate-400"></i>Admin Panel
+              </a>
+            </li>
+          }
+
           <li class="border-t border-slate-100 mt-0.5 pt-0.5">
             <a
               routerLink="/login"
