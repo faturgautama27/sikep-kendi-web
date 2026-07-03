@@ -1,10 +1,10 @@
 <div class="flex flex-col gap-5 pb-8">
-  <div class="mb-5 max-w-7xl mx-auto">
+  <div class="mb-5 max-w-7xl">
     <app-page-header
       title="Laporan Biaya Perbaikan"
       subtitle="Rekapitulasi biaya pemeliharaan dan perbaikan darurat kendaraan."
     >
-      <div page-header-action class="flex gap-2">
+      <!-- <div page-header-action class="flex gap-2">
         <p-button
           icon="pi pi-file-excel"
           label="Export Excel"
@@ -13,7 +13,7 @@
           (onClick)="exportExcel()"
           [disabled]="!biaya()"
         />
-      </div>
+      </div> -->
     </app-page-header>
   </div>
 
@@ -80,14 +80,14 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.createdAt | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ item.tanggal | date: 'dd/MM/yyyy' }}</td>
           <td class="font-semibold text-slate-800">
-            {{ item.kendaraan?.nomorPolisi || item.vehiclePlate }}
+            {{ item.kendaraan }}
           </td>
-          <td>{{ item.pengemudi?.fullName || item.driverName }}</td>
+          <td>{{ item.pengemudi }}</td>
           <td>{{ item.deskripsiDarurat || item.deskripsi }}</td>
           <td class="text-right font-mono font-medium text-primary-700">
-            {{ formatRupiah(item.totalReimbursement || item.total) }}
+            {{ formatRupiah(item.biaya || item.total) }}
           </td>
         </tr>
       </ng-template>

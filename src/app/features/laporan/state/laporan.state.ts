@@ -27,7 +27,10 @@ export class LaporanState {
       return;
     }
     return this.data.getLaporanBiaya(action.filter).pipe(
-      tap((raw) => ctx.patchState({ biaya: raw })),
+      tap((raw) => {
+        console.log("raw =>", raw);
+        ctx.patchState({ biaya: raw });
+      }),
     );
   }
 }

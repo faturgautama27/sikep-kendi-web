@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { Location } from '@angular/common';
+import { catchError, forkJoin, of } from 'rxjs';
 import { DaruratState } from './state/darurat.state';
 
 import { ButtonModule } from 'primeng/button';
@@ -18,11 +19,13 @@ import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
+import { FileUploadModule } from 'primeng/fileupload';
 import { FormsModule } from '@angular/forms';
 
 import { PageHeaderComponent } from '@core/layout';
 import { MessageService } from 'primeng/api';
 import { DARURAT_DATA } from '@core/data-access/ports/darurat-data.port';
+import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { LaporanDarurat } from '@shared/models';
 import {
@@ -47,6 +50,7 @@ import { AuthState } from '@features/login/state/auth.state';
     TextareaModule,
     InputTextModule,
     ToastModule,
+    FileUploadModule,
     FormsModule,
     PageHeaderComponent,
   ],
@@ -56,6 +60,7 @@ import { AuthState } from '@features/login/state/auth.state';
 export class DaruratDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly dataPort = inject(DARURAT_DATA);
+  private readonly imageData = inject(IMAGE_DATA);
   protected readonly env = inject(APP_ENV);
   private readonly location = inject(Location);
   private readonly store = inject(Store);
@@ -86,6 +91,7 @@ export class DaruratDetailComponent implements OnInit {
 
   protected pembayaranDialogVisible = false;
   protected pembayaranFileIds = signal<{ id: string; url: string }[]>([]);
+  protected pembayaranUploading = signal(false);
 
   protected get isWaitingVerifikasiPB() {
     return this.laporan()?.status === 'MENUNGGU_VERIFIKASI_PB';
@@ -168,14 +174,49 @@ export class DaruratDetailComponent implements OnInit {
     this.pembayaranDialogVisible = true;
   }
 
+  protected onUploadBukti(event: { files: File[] }, uploader: any) {
+    const files: File[] = event.files;
+    if (!files.length) return;
+    this.pembayaranUploading.set(true);
+    forkJoin(files.map(f => this.imageData.upload(f))).pipe(
+      catchError(() => {
+        this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload bukti pembayaran' });
+        return of([]);
+      })
+    ).subscribe(images => {
+      this.pembayaranUploading.set(false);
+      const newItems = (images as { id: string; url?: string }[]).map(img => ({
+        id: String(img.id),
+        url: img.url ?? '',
+      }));
+      this.pembayaranFileIds.set([...this.pembayaranFileIds(), ...newItems]);
+      uploader.clear();
+    });
+  }
+
+  protected removeBuktiFoto(index: number) {
+    const arr = [...this.pembayaranFileIds()];
+    arr.splice(index, 1);
+    this.pembayaranFileIds.set(arr);
+  }
+
   protected submitPembayaran() {
     const id = this.laporan()?.id;
     if (!id) return;
+    if (this.pembayaranFileIds().length === 0) {
+      this.msg.add({ severity: 'error', summary: 'Validasi', detail: 'Upload minimal 1 bukti pembayaran' });
+      return;
+    }
     this.store
       .dispatch(new UploadBuktiPembayaranDarurat(id, Number(this.pembayaranFileIds()[0]?.id)))
-      .subscribe(() => {
-        this.pembayaranDialogVisible = false;
-        this.msg.add({ severity: 'success', summary: 'Bukti Pembayaran Diupload' });
+      .subscribe({
+        next: () => {
+          this.pembayaranDialogVisible = false;
+          this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Bukti pembayaran berhasil diupload' });
+        },
+        error: () => {
+          this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Terjadi kesalahan saat menyimpan' });
+        },
       });
   }
 

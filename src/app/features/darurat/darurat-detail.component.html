@@ -307,8 +307,6 @@
   </ng-template>
 </p-dialog>
 
-
-
 <!-- Dialog Input SHS -->
 <p-dialog
   header="Input SHS Master"
@@ -341,10 +339,57 @@
   [style]="{ width: '90vw', maxWidth: '500px' }"
 >
   <div class="flex flex-col gap-4 pt-2">
-    <p class="text-sm text-slate-500">Unggah bukti transfer atau pembayaran untuk laporan darurat ini.</p>
-    <div class="p-4 border border-dashed border-slate-300 rounded text-center text-slate-500">
-      Area upload bukti bayar
-    </div>
+    <p class="text-sm text-slate-500">
+      Unggah bukti transfer atau pembayaran (maks. 1 file). Format: JPG, PNG, PDF.
+    </p>
+
+    <!-- Preview gambar yang sudah diupload -->
+    @if (pembayaranFileIds().length > 0) {
+      <div class="flex flex-wrap gap-3">
+        @for (img of pembayaranFileIds(); track img.id; let idx = $index) {
+          <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-slate-50 w-32 h-32 shadow-sm">
+            <img [src]="img.url" alt="Bukti Pembayaran" class="w-full h-full object-cover" />
+            <button
+              type="button"
+              (click)="removeBuktiFoto(idx)"
+              class="absolute top-1.5 right-1.5 h-7 w-7 rounded-full bg-red-500/90 text-white flex items-center justify-center shadow"
+            >
+              <i class="pi pi-times text-xs"></i>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- File uploader (hanya tampil jika belum ada file) -->
+    @if (pembayaranFileIds().length === 0) {
+      <p-fileupload
+        #fuBukti
+        mode="advanced"
+        [multiple]="false"
+        accept="image/*,.pdf"
+        chooseLabel="Pilih File"
+        uploadLabel="Upload"
+        cancelLabel="Batal"
+        [customUpload]="true"
+        [disabled]="pembayaranUploading()"
+        (uploadHandler)="onUploadBukti($event, fuBukti)"
+      >
+        <ng-template pTemplate="empty">
+          <div class="py-4 text-center text-slate-400 text-sm">
+            <i class="pi pi-cloud-upload text-2xl block mb-1 text-slate-300"></i>
+            Seret file ke sini atau klik <b>Pilih File</b>
+          </div>
+        </ng-template>
+      </p-fileupload>
+    }
+
+    @if (pembayaranUploading()) {
+      <div class="flex items-center gap-2 text-slate-500 text-sm">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Mengupload...</span>
+      </div>
+    }
   </div>
   <ng-template pTemplate="footer">
     <p-button
@@ -353,6 +398,12 @@
       [outlined]="true"
       (onClick)="pembayaranDialogVisible = false"
     />
-    <p-button label="Submit Bukti" severity="success" (onClick)="submitPembayaran()" />
+    <p-button
+      label="Submit Bukti"
+      icon="pi pi-check"
+      severity="success"
+      [disabled]="pembayaranFileIds().length === 0 || pembayaranUploading()"
+      (onClick)="submitPembayaran()"
+    />
   </ng-template>
 </p-dialog>
