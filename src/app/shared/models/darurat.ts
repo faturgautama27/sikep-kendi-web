@@ -45,11 +45,20 @@ export interface LaporanDarurat {
   catatanVerifikator?: string | null;
   catatanPptk?: string | null;
   alasanPenolakanPptk?: string | null;
+  pembayaranAt?: string | null;
   createdAt: string;
   updatedAt: string;
   historiMaintenance?: any;
   shsItems?: any[];
   buktiDarurat?: any;
+  pembayaran?: {
+    id: number;
+    buktiTransfer?: {
+      id: number;
+      image?: any;
+      url?: string;
+    };
+  };
   statusTimeline?: Array<{
     status: string;
     label: string;
@@ -63,5 +72,6 @@ export interface LaporanDarurat {
   pengemudi?: User;
   verifikasiOleh?: User;
   approveReimburseOleh?: User;
+  bendahara?: User;
   fotos?: LaporanDaruratFoto[];
 }
