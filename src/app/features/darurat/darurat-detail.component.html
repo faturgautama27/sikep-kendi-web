@@ -78,7 +78,7 @@
         <div>
           <h3 class="mb-2 text-lg font-semibold text-slate-800">Estimasi / Pengeluaran</h3>
           <div class="text-2xl font-bold text-primary-600">
-            Rp {{ row.totalPengeluaran | number: '1.0-0' : 'id-ID' }}
+            Rp {{ (row.totalPengeluaran || row.totalReimbursement) | number: '1.0-0' : 'id-ID' }}
           </div>
         </div>
 
@@ -312,14 +312,130 @@
   header="Input SHS Master"
   [(visible)]="shsDialogVisible"
   [modal]="true"
-  [style]="{ width: '90vw', maxWidth: '600px' }"
+  [style]="{ width: '90vw', maxWidth: '800px' }"
 >
   <div class="flex flex-col gap-4 pt-2">
-    <p class="text-sm text-slate-500">Pilih komponen SHS untuk darurat ini.</p>
-    <div class="p-4 border border-slate-200 rounded text-center text-slate-500">
-      (Form SHS detail)
-    </div>
+    <p class="text-sm text-slate-500">Tambah komponen SHS untuk darurat ini. Pilih dari master SHS atau input manual.</p>
+
+    <!-- Table of selected SHS items -->
+    @if (shsItems().length > 0) {
+      <div class="border border-slate-200 rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-4 py-2 text-left font-medium text-slate-700">Item</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-700">Jumlah</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-700">Harga Satuan</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-700">Total</th>
+              <th class="px-4 py-2 text-center font-medium text-slate-700">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of shsItems(); track $index; let idx = $index) {
+              <tr class="border-t border-slate-200 hover:bg-slate-50">
+                <td class="px-4 py-2">
+                  <div class="flex flex-col gap-1">
+                    <input
+                      type="text"
+                      class="px-2 py-1 border border-slate-200 rounded text-sm"
+                      [value]="item.namaItem"
+                      (change)="onShsNameChange(idx, $event)"
+                      placeholder="Nama item"
+                    />
+                    <p class="text-xs text-slate-400">atau pilih:</p>
+                    <select
+                      class="px-2 py-1 border border-slate-200 rounded text-sm"
+                      (change)="selectShsMasterFromEvent($event, idx)"
+                    >
+                      <option value="">-- Pilih dari master --</option>
+                      @for (master of shsMasterList(); track master.id) {
+                        @if (master.isAktif) {
+                          <option [value]="master.id">{{ master.namaItem }} ({{ master.satuan }})</option>
+                        }
+                      }
+                    </select>
+                  </div>
+                </td>
+                <td class="px-4 py-2">
+                  <input
+                    type="number"
+                    min="1"
+                    class="w-16 px-2 py-1 border border-slate-200 rounded text-sm"
+                    [value]="item.jumlah"
+                    (change)="onShsQuantityChange(idx, $event)"
+                  />
+                </td>
+                <td class="px-4 py-2">
+                  <input
+                    type="number"
+                    min="1"
+                    class="w-24 px-2 py-1 border border-slate-200 rounded text-sm"
+                    [value]="item.hargaSatuan"
+                    (change)="onShsPriceChange(idx, $event)"
+                  />
+                </td>
+                <td class="px-4 py-2 text-right font-medium">
+                  {{ formatRupiah(item.jumlah * item.hargaSatuan) }}
+                </td>
+                <td class="px-4 py-2 text-center">
+                  <button
+                    type="button"
+                    (click)="removeShsItem(idx)"
+                    class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                  >
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </td>
+              </tr>
+              @if (item.keterangan) {
+                <tr class="border-t border-slate-200 bg-slate-50">
+                  <td colspan="5" class="px-4 py-2">
+                    <div class="flex flex-col gap-1">
+                      <label class="text-xs text-slate-500">Keterangan</label>
+                      <input
+                        type="text"
+                        class="px-2 py-1 border border-slate-200 rounded text-sm"
+                        [value]="item.keterangan"
+                        (change)="onShsKeteranganChange(idx, $event)"
+                        placeholder="Keterangan tambahan"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+          <tfoot class="bg-slate-50 border-t-2 border-slate-200">
+            <tr>
+              <td colspan="3" class="px-4 py-2 text-right font-semibold text-slate-800">Total Pengeluaran:</td>
+              <td class="px-4 py-2 font-bold text-lg text-primary-600">
+                {{ formatRupiah(shsItems().reduce((sum, item) => sum + (item.jumlah * item.hargaSatuan), 0)) }}
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+
+    <!-- Add item button -->
+    <p-button
+      label="+ Tambah Item"
+      icon="pi pi-plus"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="addShsItem()"
+      styleClass="w-full"
+    />
+
+    @if (shsItems().length === 0) {
+      <div class="p-4 text-center text-slate-500 border border-dashed border-slate-300 rounded">
+        <i class="pi pi-inbox text-2xl block mb-2 text-slate-400"></i>
+        <p class="text-sm">Belum ada item SHS. Klik "Tambah Item" untuk memulai.</p>
+      </div>
+    }
   </div>
+
   <ng-template pTemplate="footer">
     <p-button
       label="Batal"
@@ -327,7 +443,14 @@
       [outlined]="true"
       (onClick)="shsDialogVisible = false"
     />
-    <p-button label="Simpan SHS" severity="help" (onClick)="submitSHS()" />
+    <p-button
+      label="Simpan SHS"
+      severity="help"
+      icon="pi pi-check"
+      [loading]="shsSubmitting()"
+      [disabled]="shsItems().length === 0 || shsSubmitting()"
+      (onClick)="submitSHS()"
+    />
   </ng-template>
 </p-dialog>
 
