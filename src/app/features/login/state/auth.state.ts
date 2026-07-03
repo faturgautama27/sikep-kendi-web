@@ -21,6 +21,7 @@ const VALID_ROLES: RoleName[] = [
   'verifikator',
   'bendahara',
   'admin_sistem',
+  'pptk'
 ];
 
 /**

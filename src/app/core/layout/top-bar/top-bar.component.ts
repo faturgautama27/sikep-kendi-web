@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './top-bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopBarComponent {
+export class TopBarComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -46,6 +46,10 @@ export class TopBarComponent {
     { title: 'Checklist harian B 5566 CD belum diisi', severity: 'critical' as const, time: 'Kemarin' },
     { title: 'Laporan darurat DRT-2026-021 menunggu verifikasi', severity: 'info' as const, time: '2 hari lalu' },
   ];
+
+  ngOnInit(): void {
+    console.log("userData =>", this.userData.user.roles)
+  }
 
   protected toggleUserPopover(popover: Popover, event: MouseEvent): void {
     popover.toggle(event);
