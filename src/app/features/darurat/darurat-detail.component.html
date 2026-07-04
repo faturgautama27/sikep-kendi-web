@@ -217,7 +217,7 @@
                     </p>
                   </div>
                   @if(!isDriver()) {
-                    <p-tag [value]="event.status" [severity]="getStatusProps(event.status).severity" />
+                    <p-tag [value]="event.label" [severity]="getStatusProps(event.status).severity" />
                   }
                 </div>
                 
