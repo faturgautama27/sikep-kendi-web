@@ -21,10 +21,18 @@ import { APP_ENV } from '@core/data-access/app-env.token';
 import { LoadDarurat } from './state/darurat.actions';
 
 const STATUS_OPTIONS = [
-  { label: 'Menunggu Verifikasi', value: 'MENUNGGU_VERIFIKASI' },
-  { label: 'Terverifikasi', value: 'TERVERIFIKASI' },
-  { label: 'Ditolak', value: 'DITOLAK' },
-  { label: 'Reimburse Approved', value: 'REIMBURSE_APPROVED' },
+  { label: 'Menunggu Verifikasi PB', value: 'MENUNGGU_VERIFIKASI_PB' },
+  { label: 'Disetujui PB', value: 'DISETUJUI_PB' },
+  { label: 'Ditolak PB', value: 'DITOLAK_PB' },
+  { label: 'Menunggu Reimbursement', value: 'MENUNGGU_REIMBURSEMENT' },
+  { label: 'Reimbursement Diajukan', value: 'REIMBURSEMENT_DIAJUKAN' },
+  { label: 'Menunggu SHS PB', value: 'MENUNGGU_SHS_PB' },
+  { label: 'SHS Dikerjakan', value: 'SHS_DIKERJAKAN' },
+  { label: 'Menunggu PPTK', value: 'MENUNGGU_PPTK' },
+  { label: 'Disetujui PPTK', value: 'DISETUJUI_PPTK' },
+  { label: 'Dibayar', value: 'DIBAYAR' },
+  { label: 'Ditolak Verifikator', value: 'DITOLAK_VERIFIKATOR' },
+  { label: 'Ditolak PPTK', value: 'DITOLAK_PPTK' },
 ];
 
 @Component({
@@ -92,10 +100,18 @@ export class DaruratListComponent implements OnInit {
 
   protected readonly statsByStatus = computed(() => {
     const counts: Record<string, number> = {
-      MENUNGGU_VERIFIKASI: 0,
-      TERVERIFIKASI: 0,
-      DITOLAK: 0,
-      REIMBURSE_APPROVED: 0,
+      MENUNGGU_VERIFIKASI_PB: 0,
+      DISETUJUI_PB: 0,
+      DITOLAK_PB: 0,
+      MENUNGGU_REIMBURSEMENT: 0,
+      REIMBURSEMENT_DIAJUKAN: 0,
+      MENUNGGU_SHS_PB: 0,
+      SHS_DIKERJAKAN: 0,
+      MENUNGGU_PPTK: 0,
+      DISETUJUI_PPTK: 0,
+      DIBAYAR: 0,
+      DITOLAK_VERIFIKATOR: 0,
+      DITOLAK_PPTK: 0,
     };
     for (const p of this.filteredList()) {
       if (counts[p.status] !== undefined) {
@@ -133,14 +149,30 @@ export class DaruratListComponent implements OnInit {
 
   protected getStatusProps(status: string): any {
     switch (status) {
-      case 'MENUNGGU_VERIFIKASI':
-        return { label: 'Menunggu Verifikasi', severity: 'warn' };
-      case 'TERVERIFIKASI':
-        return { label: 'Terverifikasi', severity: 'info' };
-      case 'DITOLAK':
-        return { label: 'Ditolak', severity: 'danger' };
-      case 'REIMBURSE_APPROVED':
-        return { label: 'Reimburse Approved', severity: 'success' };
+      case 'MENUNGGU_VERIFIKASI_PB':
+        return { label: 'Menunggu Verifikasi PB', severity: 'warn' };
+      case 'DISETUJUI_PB':
+        return { label: 'Disetujui PB', severity: 'info' };
+      case 'DITOLAK_PB':
+        return { label: 'Ditolak PB', severity: 'danger' };
+      case 'MENUNGGU_REIMBURSEMENT':
+        return { label: 'Menunggu Reimbursement', severity: 'warn' };
+      case 'REIMBURSEMENT_DIAJUKAN':
+        return { label: 'Reimbursement Diajukan', severity: 'info' };
+      case 'MENUNGGU_SHS_PB':
+        return { label: 'Menunggu SHS PB', severity: 'warn' };
+      case 'SHS_DIKERJAKAN':
+        return { label: 'SHS Dikerjakan', severity: 'info' };
+      case 'MENUNGGU_PPTK':
+        return { label: 'Menunggu PPTK', severity: 'warn' };
+      case 'DISETUJUI_PPTK':
+        return { label: 'Disetujui PPTK', severity: 'success' };
+      case 'DIBAYAR':
+        return { label: 'Dibayar', severity: 'success' };
+      case 'DITOLAK_VERIFIKATOR':
+        return { label: 'Ditolak Verifikator', severity: 'danger' };
+      case 'DITOLAK_PPTK':
+        return { label: 'Ditolak PPTK', severity: 'danger' };
       default:
         return { label: status, severity: 'secondary' };
     }

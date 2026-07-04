@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { forkJoin, of } from 'rxjs';
@@ -77,6 +77,17 @@ export class VendorDraftChecklistComponent implements OnInit {
 
   // Per-item foto upload state
   protected readonly itemFotos = signal<ItemFotoState[]>([]);
+
+  // Row expansion state
+  protected readonly expandedRows = signal<any[]>([]);
+
+  // Photo modal state
+  protected readonly photoModalVisible = signal(false);
+  protected readonly selectedPhotoUrl = signal<string>('');
+
+  // Photo gallery modal state
+  protected readonly photoGalleryVisible = signal(false);
+  protected readonly selectedItemFotos = signal<any[]>([]);
 
   constructor() {
     // Seed editItems setiap kali activeDraft berubah (misal setelah LoadDraftChecklist selesai)
@@ -234,5 +245,16 @@ export class VendorDraftChecklistComponent implements OnInit {
 
   protected formatCurrency(n: number): string {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
+  }
+
+  protected toggleRowExpand(event: Event, item: any): void {
+    event.preventDefault();
+    this.selectedItemFotos.set(item.fotos || []);
+    this.photoGalleryVisible.set(true);
+  }
+
+  protected openPhotoModal(photoUrl: string): void {
+    this.selectedPhotoUrl.set(photoUrl);
+    this.photoModalVisible.set(true);
   }
 }

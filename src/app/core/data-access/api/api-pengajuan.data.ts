@@ -64,7 +64,6 @@ export class ApiPengajuanData implements PengajuanDataPort {
     const jenisRaw = (raw['jenis'] as string | undefined) ?? (raw['jenisPengajuan'] as string | undefined);
 
     const odometer = raw['kendaraan'] ? Number(raw['kendaraan']['odometerSaatIni']) : 0;
-    console.log(odometer);
 
     return {
       id,

@@ -54,6 +54,7 @@
                 [ngModel]="selectedStatuses()"
                 (ngModelChange)="selectedStatuses.set($event)"
                 styleClass="w-full"
+                appendTo="body"
               ></p-multiSelect>
             </div>
             <p-button
@@ -110,6 +111,7 @@
           [ngModel]="selectedStatuses()"
           (ngModelChange)="selectedStatuses.set($event)"
           styleClass="w-full"
+          appendTo="body"
         ></p-multiSelect>
       </div>
 
@@ -136,6 +138,7 @@
         [showCurrentPageReport]="true"
         responsiveLayout="scroll"
         styleClass="text-sm"
+        paginatorDropdownAppendTo="body"
       >
         <ng-template #header>
           <tr>
@@ -143,8 +146,8 @@
             <th class="w-32">Pengemudi</th>
             <th>Deskripsi Kejadian</th>
             <th class="w-40 text-right">Pengeluaran</th>
-            <th class="w-48">Status</th>
-            <th class="w-32">Tanggal</th>
+            <th class="w-[240px]">Status</th>
+            <th class="w-36">Tanggal</th>
             <th class="w-24 text-right">Aksi</th>
           </tr>
         </ng-template>
