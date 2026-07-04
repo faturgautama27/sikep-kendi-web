@@ -48,7 +48,6 @@ export class TopBarComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    console.log("userData =>", this.userData.user.roles)
   }
 
   protected toggleUserPopover(popover: Popover, event: MouseEvent): void {

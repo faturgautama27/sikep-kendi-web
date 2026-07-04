@@ -28,7 +28,6 @@ export class LaporanState {
     }
     return this.data.getLaporanBiaya(action.filter).pipe(
       tap((raw) => {
-        console.log("raw =>", raw);
         ctx.patchState({ biaya: raw });
       }),
     );

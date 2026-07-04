@@ -53,10 +53,6 @@ export class LaporanListComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchData();
-
-    setTimeout(() => {
-      console.log("list =>", this.biaya());
-    }, 5000);
   }
 
   protected fetchData(): void {
@@ -70,8 +66,6 @@ export class LaporanListComponent implements OnInit {
       endDate = new Date().toISOString().split('T')[0];
     }
     this.store.dispatch(new LoadLaporanBiaya({ startDate, endDate }));
-
-    console.log("biaya =>", this.biaya());
   }
 
   protected exportPdf(): void {
@@ -88,6 +82,6 @@ export class LaporanListComponent implements OnInit {
   protected formatRupiah(n: number): string {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency', currency: 'IDR', maximumFractionDigits: 0
-    }).format(n);
+    }).format(n ? n : 0);
   }
 }

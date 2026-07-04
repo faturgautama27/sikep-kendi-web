@@ -86,7 +86,7 @@
       }
 
       <!-- ══ STEP D: PB Input SHS Mapping ══ -->
-      @if (wo.status === 'PENAWARAN' && isPB()) {
+      @if (wo.status === 'PENAWARAN' && (isPB() || isAdmin())) {
         <p-card header="Step D — Mapping SHS oleh Pengurus Barang">
           <div class="flex flex-col gap-4">
             <p class="text-sm text-slate-600">
