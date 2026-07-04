@@ -198,3 +198,7 @@ body {
 .p-timeline-event-opposite {
   display: none !important;
 }
+
+.tag-mobile-status {
+  font-size: 10px !important;
+}
