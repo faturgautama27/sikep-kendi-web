@@ -69,9 +69,9 @@ export class WorkOrdersState {
   }
 
   @Action(LoadWorkOrders)
-  load(ctx: StateContext<WorkOrdersStateModel>) {
+  load(ctx: StateContext<WorkOrdersStateModel>, action: LoadWorkOrders) {
     if (this.env.previewMode) return;
-    return this.data.list().pipe(
+    return this.data.list(action.filter).pipe(
       tap((list) => ctx.patchState({ list })),
     );
   }

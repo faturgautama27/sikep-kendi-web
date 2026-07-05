@@ -12,6 +12,8 @@ export interface PengajuanFilter {
   jenis?: PengajuanJenis;
   vehicleId?: string;
   pengemudiId?: string;
+  from?: string;
+  to?: string;
 }
 
 export type PengajuanCreateInput = Omit<

@@ -35,6 +35,9 @@ export class ApiDaruratData implements DaruratDataPort {
       if (query.limit) params = params.set('limit', query.limit);
       if (query.cursor) params = params.set('cursor', query.cursor);
       if (query.pengemudiId) params = params.set('pengemudiId', query.pengemudiId);
+      if (query.startDate) params = params.set('startDate', query.startDate);
+      if (query.endDate) params = params.set('endDate', query.endDate);
+      if (query.kendaraanId) params = params.set('kendaraanId', query.kendaraanId);
     }
     return this.http.get<any>(this.url('/darurat'), { params }).pipe(
       map(res => this.unwrapList(res))

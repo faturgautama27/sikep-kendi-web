@@ -421,6 +421,8 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
     let params = new HttpParams();
     if (filter?.status) params = params.set('status', filter.status);
     if (filter?.vendorId) params = params.set('vendorId', filter.vendorId);
+    if (filter?.from) params = params.set('from', filter.from);
+    if (filter?.to) params = params.set('to', filter.to);
     return this.http
       .get<BackendWorkOrder[] | ApiListResponse<BackendWorkOrder>>(this.url('/work-orders'), { params })
       .pipe(

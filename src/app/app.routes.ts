@@ -12,67 +12,94 @@ export const routes: Routes = [
   },
   {
     path: '403',
-    loadComponent: () => import('@features/errors/forbidden.component').then((m) => m.ForbiddenComponent),
+    loadComponent: () =>
+      import('@features/errors/forbidden.component').then((m) => m.ForbiddenComponent),
   },
 
   // ── Driver app shell (standalone, no sidebar) ────────────────────────────
   {
     path: 'driver',
-    loadComponent: () => import('@features/driver-app/driver-shell.component').then(m => m.DriverShellComponent),
+    loadComponent: () =>
+      import('@features/driver-app/driver-shell.component').then((m) => m.DriverShellComponent),
     canActivate: [authGuard],
     children: [
       {
         path: '',
         pathMatch: 'full',
-        loadComponent: () => import('@features/driver-app/driver-home.component').then(m => m.DriverHomeComponent),
+        loadComponent: () =>
+          import('@features/driver-app/driver-home.component').then((m) => m.DriverHomeComponent),
       },
       {
         path: 'notifications',
-        loadComponent: () => import('@features/driver-app/driver-notifications.component').then(m => m.DriverNotificationsComponent),
+        loadComponent: () =>
+          import('@features/driver-app/driver-notifications.component').then(
+            (m) => m.DriverNotificationsComponent,
+          ),
       },
       {
         path: 'pengajuan/new',
-        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then(m => m.PengajuanFormComponent),
-        data: { title: 'Buat Pengajuan'},
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-form.component').then(
+            (m) => m.PengajuanFormComponent,
+          ),
+        data: { title: 'Buat Pengajuan' },
       },
       {
         path: 'pengajuan/:id/edit',
-        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then(m => m.PengajuanFormComponent),
-        data: { title: 'Edit Pengajuan'},
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-form.component').then(
+            (m) => m.PengajuanFormComponent,
+          ),
+        data: { title: 'Edit Pengajuan' },
       },
       {
         path: 'darurat',
-        loadComponent: () => import('@features/darurat/darurat-list.component').then(m => m.DaruratListComponent),
+        loadComponent: () =>
+          import('@features/darurat/darurat-list.component').then((m) => m.DaruratListComponent),
         data: { title: 'Riwayat Laporan Darurat' },
       },
       {
         path: 'darurat/new',
-        loadComponent: () => import('@features/darurat/darurat-form.component').then(m => m.DaruratFormComponent),
-        data: { title: 'Lapor Darurat'},
+        loadComponent: () =>
+          import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
+        data: { title: 'Lapor Darurat' },
       },
       {
         path: 'darurat/:id/edit',
-        loadComponent: () => import('@features/darurat/darurat-form.component').then(m => m.DaruratFormComponent),
-        data: { title: 'Edit Laporan Darurat'},
+        loadComponent: () =>
+          import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
+        data: { title: 'Edit Laporan Darurat' },
       },
       {
         path: 'darurat/:id/reimbursement',
-        loadComponent: () => import('@features/darurat/darurat-reimbursement-form.component').then(m => m.DaruratReimbursementFormComponent),
-        data: { title: 'Ajukan Reimbursement'},
+        loadComponent: () =>
+          import('@features/darurat/darurat-reimbursement-form.component').then(
+            (m) => m.DaruratReimbursementFormComponent,
+          ),
+        data: { title: 'Ajukan Reimbursement' },
       },
       {
         path: 'darurat/:id',
-        loadComponent: () => import('@features/darurat/darurat-detail.component').then(m => m.DaruratDetailComponent),
-        data: { title: 'Detail Laporan Darurat'},
+        loadComponent: () =>
+          import('@features/darurat/darurat-detail.component').then(
+            (m) => m.DaruratDetailComponent,
+          ),
+        data: { title: 'Detail Laporan Darurat' },
       },
       {
         path: 'riwayat',
-        loadComponent: () => import('@features/pengajuan/pengajuan-list.component').then(m => m.PengajuanListComponent),
-        data: { title: 'Riwayat Pengajuan'},
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-list.component').then(
+            (m) => m.PengajuanListComponent,
+          ),
+        data: { title: 'Riwayat Pengajuan' },
       },
       {
         path: 'riwayat/:id',
-        loadComponent: () => import('@features/pengajuan/pengajuan-detail.component').then((m) => m.PengajuanDetailComponent),
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-detail.component').then(
+            (m) => m.PengajuanDetailComponent,
+          ),
         data: { title: 'Detail Pengajuan' },
       },
     ],
@@ -86,137 +113,188 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('@features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+        loadComponent: () =>
+          import('@features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
         data: { title: 'Dashboard' },
       },
       {
         path: 'vehicles',
-        loadComponent: () => import('@features/vehicles/vehicles-list.component').then((m) => m.VehiclesListComponent),
+        loadComponent: () =>
+          import('@features/vehicles/vehicles-list.component').then((m) => m.VehiclesListComponent),
         canActivate: [permissionGuard],
         data: { title: 'Kendaraan', requiredPermissions: ['kendaraan.read'] },
       },
       {
         path: 'vehicles/new',
-        loadComponent: () => import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
+        loadComponent: () =>
+          import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
         canActivate: [permissionGuard],
         data: { title: 'Tambah Kendaraan', requiredPermissions: ['kendaraan.create'] },
       },
       {
         path: 'vehicles/:id/edit',
-        loadComponent: () => import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
+        loadComponent: () =>
+          import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
         canActivate: [permissionGuard],
         data: { title: 'Edit Kendaraan', requiredPermissions: ['kendaraan.create'] },
       },
       {
         path: 'vehicles/:id',
-        loadComponent: () => import('@features/vehicles/vehicle-detail.component').then((m) => m.VehicleDetailComponent),
+        loadComponent: () =>
+          import('@features/vehicles/vehicle-detail.component').then(
+            (m) => m.VehicleDetailComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Detail Kendaraan', requiredPermissions: ['kendaraan.read'] },
       },
       {
         path: 'pengajuan/new',
-        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then((m) => m.PengajuanFormComponent),
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-form.component').then(
+            (m) => m.PengajuanFormComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Buat Pengajuan', requiredPermissions: ['pengajuan.create'] },
       },
       {
         path: 'pengajuan/:id/edit',
-        loadComponent: () => import('@features/pengajuan/pengajuan-form.component').then((m) => m.PengajuanFormComponent),
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-form.component').then(
+            (m) => m.PengajuanFormComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Edit Pengajuan', requiredPermissions: ['pengajuan.create'] },
       },
       {
         path: 'pengajuan/:id',
-        loadComponent: () => import('@features/pengajuan/pengajuan-detail.component').then((m) => m.PengajuanDetailComponent),
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-detail.component').then(
+            (m) => m.PengajuanDetailComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Detail Pengajuan', requiredPermissions: ['pengajuan.read'] },
       },
       {
         path: 'pengajuan',
-        loadComponent: () => import('@features/pengajuan/pengajuan-list.component').then((m) => m.PengajuanListComponent),
+        loadComponent: () =>
+          import('@features/pengajuan/pengajuan-list.component').then(
+            (m) => m.PengajuanListComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Pengajuan Pemeliharaan', requiredPermissions: ['pengajuan.read'] },
       },
       {
         path: 'work-orders',
-        loadComponent: () => import('@features/work-orders/work-orders-list.component').then((m) => m.WorkOrdersListComponent),
+        loadComponent: () =>
+          import('@features/work-orders/work-orders-list.component').then(
+            (m) => m.WorkOrdersListComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Work Order', requiredPermissions: ['work_order.read'] },
       },
       {
-        path: 'laporan/biaya-perbaikan',
-        loadComponent: () => import('@features/laporan/laporan-list.component').then((m) => m.LaporanListComponent),
+        path: 'laporan/report-builder',
+        loadComponent: () =>
+          import('@features/laporan/laporan-list.component').then((m) => m.LaporanListComponent),
         canActivate: [permissionGuard],
         data: { title: 'Laporan Biaya Perbaikan', requiredPermissions: ['laporan.read'] },
       },
       {
         path: 'work-orders/:id',
-        loadComponent: () => import('@features/work-orders/work-order-detail.component').then((m) => m.WorkOrderDetailComponent),
+        loadComponent: () =>
+          import('@features/work-orders/work-order-detail.component').then(
+            (m) => m.WorkOrderDetailComponent,
+          ),
         data: { title: 'Detail Work Order', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'work-orders/:id/verifikasi',
-        loadComponent: () => import('@features/work-orders/verifikasi-work-order.component').then((m) => m.VerifikasiWorkOrderComponent),
+        loadComponent: () =>
+          import('@features/work-orders/verifikasi-work-order.component').then(
+            (m) => m.VerifikasiWorkOrderComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Verifikasi Harga', requiredPermissions: ['verifikasi.shs'] },
       },
       {
         path: 'work-orders/:id/pembayaran',
-        loadComponent: () => import('@features/work-orders/pembayaran-work-order.component').then((m) => m.PembayaranWorkOrderComponent),
+        loadComponent: () =>
+          import('@features/work-orders/pembayaran-work-order.component').then(
+            (m) => m.PembayaranWorkOrderComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Proses Pembayaran', requiredPermissions: ['pembayaran.proses'] },
       },
       {
         path: 'work-orders/:id/spk',
-        loadComponent: () => import('@features/work-orders/print/spk-print.component').then((m) => m.SpkPrintComponent),
+        loadComponent: () =>
+          import('@features/work-orders/print/spk-print.component').then(
+            (m) => m.SpkPrintComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Cetak SPK', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'work-orders/:id/bast',
-        loadComponent: () => import('@features/work-orders/print/bast-print.component').then((m) => m.BastPrintComponent),
+        loadComponent: () =>
+          import('@features/work-orders/print/bast-print.component').then(
+            (m) => m.BastPrintComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Cetak BAST', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'darurat',
-        loadComponent: () => import('@features/darurat/darurat-list.component').then((m) => m.DaruratListComponent),
+        loadComponent: () =>
+          import('@features/darurat/darurat-list.component').then((m) => m.DaruratListComponent),
         canActivate: [permissionGuard],
         data: { title: 'Laporan Darurat', requiredPermissions: ['darurat.read'] },
       },
       {
         path: 'darurat/new',
-        loadComponent: () => import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
+        loadComponent: () =>
+          import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
         canActivate: [permissionGuard],
         data: { title: 'Buat Laporan Darurat', requiredPermissions: ['darurat.create'] },
       },
       {
         path: 'darurat/:id/edit',
-        loadComponent: () => import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
+        loadComponent: () =>
+          import('@features/darurat/darurat-form.component').then((m) => m.DaruratFormComponent),
         canActivate: [permissionGuard],
         data: { title: 'Edit Laporan Darurat', requiredPermissions: ['darurat.create'] },
       },
       {
         path: 'darurat/:id',
-        loadComponent: () => import('@features/darurat/darurat-detail.component').then((m) => m.DaruratDetailComponent),
+        loadComponent: () =>
+          import('@features/darurat/darurat-detail.component').then(
+            (m) => m.DaruratDetailComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Detail Laporan Darurat', requiredPermissions: ['darurat.read'] },
       },
       {
         path: 'audit',
-        loadComponent: () => import('@features/audit/audit-list.component').then((m) => m.AuditListComponent),
+        loadComponent: () =>
+          import('@features/audit/audit-list.component').then((m) => m.AuditListComponent),
         canActivate: [permissionGuard],
         data: { title: 'Audit Trail', requiredPermissions: ['audit_log.read'] },
       },
       {
         path: 'vendor/dashboard',
-        loadComponent: () => import('@features/vendor/vendor-dashboard.component').then((m) => m.VendorDashboardComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-dashboard.component').then(
+            (m) => m.VendorDashboardComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Portal Vendor Dashboard', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'vendor/work-orders',
-        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-work-orders.component').then(
+            (m) => m.VendorWorkOrdersComponent,
+          ),
         canActivate: [permissionGuard],
         data: {
           title: 'Portal Vendor Notifikasi WO',
@@ -226,7 +304,10 @@ export const routes: Routes = [
       },
       {
         path: 'vendor/draft-checklists',
-        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-work-orders.component').then(
+            (m) => m.VendorWorkOrdersComponent,
+          ),
         canActivate: [permissionGuard],
         data: {
           title: 'Portal Vendor Draft Checklist',
@@ -236,7 +317,10 @@ export const routes: Routes = [
       },
       {
         path: 'vendor/penawaran-invoice',
-        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-work-orders.component').then(
+            (m) => m.VendorWorkOrdersComponent,
+          ),
         canActivate: [permissionGuard],
         data: {
           title: 'Portal Vendor Penawaran & Invoice',
@@ -246,7 +330,10 @@ export const routes: Routes = [
       },
       {
         path: 'vendor/riwayat',
-        loadComponent: () => import('@features/vendor/vendor-work-orders.component').then((m) => m.VendorWorkOrdersComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-work-orders.component').then(
+            (m) => m.VendorWorkOrdersComponent,
+          ),
         canActivate: [permissionGuard],
         data: {
           title: 'Portal Vendor Riwayat',
@@ -256,70 +343,106 @@ export const routes: Routes = [
       },
       {
         path: 'vendor/work-orders/:id/draft',
-        loadComponent: () => import('@features/vendor/vendor-draft-checklist.component').then((m) => m.VendorDraftChecklistComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-draft-checklist.component').then(
+            (m) => m.VendorDraftChecklistComponent,
+          ),
         canActivate: [permissionGuard],
-        data: { title: 'Portal Vendor Draft Checklist', requiredPermissions: ['draft_checklist.create'] },
+        data: {
+          title: 'Portal Vendor Draft Checklist',
+          requiredPermissions: ['draft_checklist.create'],
+        },
       },
       {
         path: 'vendor/work-orders/:id/penawaran',
-        loadComponent: () => import('@features/vendor/vendor-penawaran.component').then((m) => m.VendorPenawaranComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-penawaran.component').then(
+            (m) => m.VendorPenawaranComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Portal Vendor Penawaran', requiredPermissions: ['penawaran.create'] },
       },
       {
         path: 'vendor/history',
-        loadComponent: () => import('@features/vendor/vendor-history.component').then((m) => m.VendorHistoryComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-history.component').then((m) => m.VendorHistoryComponent),
         canActivate: [permissionGuard],
         data: { title: 'Riwayat WO Vendor', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'vendor/notifications',
-        loadComponent: () => import('@features/vendor/vendor-notifications.component').then((m) => m.VendorNotificationsComponent),
+        loadComponent: () =>
+          import('@features/vendor/vendor-notifications.component').then(
+            (m) => m.VendorNotificationsComponent,
+          ),
         canActivate: [permissionGuard],
         data: { title: 'Notifikasi Vendor', requiredPermissions: ['work_order.read'] },
       },
       {
         path: 'admin',
-        loadComponent: () => import('@features/admin/admin.component').then((m) => m.AdminComponent),
+        loadComponent: () =>
+          import('@features/admin/admin.component').then((m) => m.AdminComponent),
         canActivate: [permissionGuard],
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'users' },
           {
             path: 'users',
-            loadComponent: () => import('@features/admin/users-list/users-list.component').then((m) => m.UsersListComponent),
+            loadComponent: () =>
+              import('@features/admin/users-list/users-list.component').then(
+                (m) => m.UsersListComponent,
+              ),
           },
           {
             path: 'roles',
-            loadComponent: () => import('@features/admin/roles-list/roles-list.component').then((m) => m.RolesListComponent),
+            loadComponent: () =>
+              import('@features/admin/roles-list/roles-list.component').then(
+                (m) => m.RolesListComponent,
+              ),
           },
           {
             path: 'vendors',
-            loadComponent: () => import('@features/admin/vendor-management/vendor-management.component').then((m) => m.VendorManagementComponent),
+            loadComponent: () =>
+              import('@features/admin/vendor-management/vendor-management.component').then(
+                (m) => m.VendorManagementComponent,
+              ),
           },
           {
             path: 'early-warning',
-            loadComponent: () => import('@features/admin/early-warning-config/early-warning-config.component').then((m) => m.EarlyWarningConfigComponent),
+            loadComponent: () =>
+              import('@features/admin/early-warning-config/early-warning-config.component').then(
+                (m) => m.EarlyWarningConfigComponent,
+              ),
           },
           {
             path: 'shs-master',
-            loadComponent: () => import('@features/shs-master/shs-master-list.component').then((m) => m.ShsMasterListComponent),
+            loadComponent: () =>
+              import('@features/shs-master/shs-master-list.component').then(
+                (m) => m.ShsMasterListComponent,
+              ),
           },
         ],
         data: { title: 'Admin', requiredPermissions: ['user.manage'] },
       },
       {
         path: 'profile',
-        loadComponent: () => import('@features/profile/profile.component').then((m) => m.ProfileComponent),
+        loadComponent: () =>
+          import('@features/profile/profile.component').then((m) => m.ProfileComponent),
         data: { title: 'Profil' },
       },
       {
         path: 'profile/notification-preferences',
-        loadComponent: () => import('@features/profile/notification-preferences/notification-preferences.component').then((m) => m.NotificationPreferencesComponent),
+        loadComponent: () =>
+          import('@features/profile/notification-preferences/notification-preferences.component').then(
+            (m) => m.NotificationPreferencesComponent,
+          ),
         data: { title: 'Pengaturan Notifikasi' },
       },
       {
         path: 'notifications',
-        loadComponent: () => import('@features/notifications/notifications-list.component').then((m) => m.NotificationsListComponent),
+        loadComponent: () =>
+          import('@features/notifications/notifications-list.component').then(
+            (m) => m.NotificationsListComponent,
+          ),
         data: { title: 'Notifications' },
       },
     ],
@@ -328,6 +451,7 @@ export const routes: Routes = [
   // ── 404 catch-all ─────────────────────────────────────────────────────────
   {
     path: '**',
-    loadComponent: () => import('@features/errors/not-found.component').then((m) => m.NotFoundComponent),
+    loadComponent: () =>
+      import('@features/errors/not-found.component').then((m) => m.NotFoundComponent),
   },
 ];

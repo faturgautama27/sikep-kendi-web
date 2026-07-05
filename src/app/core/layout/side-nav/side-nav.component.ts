@@ -56,15 +56,15 @@ export class SideNavComponent {
           permission: 'work_order.read',
         },
         {
-          label: 'Laporan Darurat',
+          label: 'Lapor Darurat',
           icon: 'pi pi-exclamation-triangle',
           route: '/darurat',
           permission: 'darurat.read',
         },
         {
-          label: 'Laporan Biaya Perbaikan',
+          label: 'Laporan',
           icon: 'pi pi-chart-pie',
-          route: '/laporan/biaya-perbaikan',
+          route: '/laporan/report-builder',
           permission: 'laporan.read',
         },
         { label: 'Audit Log', icon: 'pi pi-shield', route: '/audit', permission: 'audit_log.read' },

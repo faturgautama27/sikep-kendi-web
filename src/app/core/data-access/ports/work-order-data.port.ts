@@ -8,6 +8,8 @@ import type {
 export interface WorkOrderFilter {
   status?: WorkOrderStatus;
   vendorId?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface ShsItemInput {

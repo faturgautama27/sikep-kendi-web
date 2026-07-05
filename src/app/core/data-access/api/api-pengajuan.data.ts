@@ -126,6 +126,8 @@ export class ApiPengajuanData implements PengajuanDataPort {
     if (filter?.jenis) params = params.set('jenisPengajuan', filter.jenis.toUpperCase());
     if (filter?.vehicleId) params = params.set('kendaraanId', filter.vehicleId);
     if (filter?.pengemudiId) params = params.set('pengemudiId', filter.pengemudiId);
+    if (filter?.from) params = params.set('from', filter.from);
+    if (filter?.to) params = params.set('to', filter.to);
     return this.http
       .get<Pengajuan[] | { data?: ApiPengajuanRow[] } | ApiEnvelope<ApiPengajuanRow[]>>(this.url('/pengajuan'), {
         params,

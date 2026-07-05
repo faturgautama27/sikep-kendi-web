@@ -7,6 +7,9 @@ export interface DaruratFilter {
   pengemudiId?: string;
   limit?: number;
   cursor?: number;
+  startDate?: string;
+  endDate?: string;
+  kendaraanId?: string;
 }
 
 export type DaruratCreateInput = Pick<

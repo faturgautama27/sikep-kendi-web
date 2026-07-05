@@ -3,6 +3,7 @@ import type { ShsItemInput } from '@core/data-access/ports/work-order-data.port'
 export class LoadWorkOrders {
   static readonly type = '[WorkOrders] Load List';
   readonly type = LoadWorkOrders.type;
+  constructor(public readonly filter?: { from?: string; to?: string; vehicleId?: string; vendorId?: string }) {}
 }
 
 export class GetWorkOrderDetail {
