@@ -45,32 +45,46 @@ export class AppShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.pushService.init();
-    const permissions = this.store.selectSnapshot(AuthState.permissions);
-    const has = (permission: string): boolean =>
-      permissions.includes('*') || permissions.includes(permission);
+    const roles = this.store.selectSnapshot(AuthState.roles);
+    const hasRole = (...r: string[]): boolean => r.some((role) => roles.includes(role as any));
 
     const actions: object[] = [
       new LoadNotifications(),
       new LoadNotificationPreferences(),
     ];
 
-    if (has('kendaraan.read')) {
+    // Kendaraan, dashboard summary — pengurus_barang & pengemudi & admin
+    if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi')) {
       actions.push(new LoadDashboardSummary());
       actions.push(new LoadTopDeviationVehicles());
       actions.push(new LoadVehicles());
     }
-    
-    if (has('penawaran.read')) {
+
+    // Vendor performance — pihak yang terlibat keuangan / penawaran
+    if (hasRole('admin_sistem', 'vendor', 'bendahara')) {
       actions.push(new LoadVendorPerformance());
     }
 
-    if (has('pengajuan.read')) actions.push(new LoadPengajuan());
-    if (has('work_order.read')) actions.push(new LoadWorkOrders());
-    if (has('darurat.read')) actions.push(new LoadDarurat());
-    if (has('audit_log.read')) actions.push(new LoadAuditLogs());
-
-    if (actions.length > 0) {
-      this.store.dispatch(actions);
+    // Pengajuan — pengemudi mengajukan, pengurus_barang & pptk mereview
+    if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi', 'pptk')) {
+      actions.push(new LoadPengajuan());
     }
+
+    // Work order — semua pihak yang terlibat alur WO
+    if (hasRole('admin_sistem', 'pengurus_barang', 'vendor', 'verifikator', 'bendahara', 'pptk')) {
+      actions.push(new LoadWorkOrders());
+    }
+
+    // Darurat — pengemudi melapor, pengurus_barang & pptk & verifikator mereview
+    if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi', 'verifikator', 'pptk')) {
+      actions.push(new LoadDarurat());
+    }
+
+    // Audit log — admin sistem saja
+    if (hasRole('admin_sistem')) {
+      actions.push(new LoadAuditLogs());
+    }
+
+    this.store.dispatch(actions);
   }
 }

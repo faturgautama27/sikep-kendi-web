@@ -7,6 +7,7 @@ import { Store } from '@ngxs/store';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DividerModule } from 'primeng/divider';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,13 +21,20 @@ import { DraftChecklistState, LoadDraftChecklist } from '@features/draft-checkli
 import { CreatePenawaran, LoadPenawaran, PenawaranState, RequestRevisiPenawaran, SubmitPenawaran, SubmitRevisiPenawaran, UploadInvoice } from '@features/penawaran/state';
 import type { PenawaranRecord } from '@features/penawaran/state';
 import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
-import { catchError, of, throwError } from 'rxjs';
+import { WorkOrdersState, GetWorkOrderDetail, SubmitInvoice } from '@features/work-orders/state';
+import { catchError, of, throwError, forkJoin } from 'rxjs';
 
 type PenawaranStatus = 'DRAFT' | 'DIKIRIM' | 'DIVERIFIKASI' | 'REVISI';
 
+interface UploadedPhoto {
+  id: number;
+  previewUrl: string;
+  name: string;
+}
+
 @Component({
   selector: 'app-vendor-penawaran', standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, InputNumberModule, TextareaModule, InputTextModule, TableModule, TagModule, ToastModule, FileUploadModule],
+  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DatePickerModule, ConfirmDialogModule, DividerModule, InputNumberModule, TextareaModule, InputTextModule, TableModule, TagModule, ToastModule, FileUploadModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './vendor-penawaran.component.html', changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -67,6 +75,24 @@ export class VendorPenawaranComponent implements OnInit {
     return !p || p.status === 'DRAFT' || p.status === 'REVISI';
   });
 
+  // ── WO Detail for Step E detection ────────────────────────────────────────
+  private readonly woDetail = this.store.selectSignal(WorkOrdersState.detail);
+  protected readonly isStepE = computed(() =>
+    this.woDetail()?.status === 'MENUNGGU_INVOICE_VENDOR' &&
+    String(this.woDetail()?.id) === String(this.workOrderId)
+  );
+  protected readonly shsItemsReadonly = computed(() => this.woDetail()?.verifikasiHarga?.shsItems ?? []);
+
+  // ── Step E: Upload signals ─────────────────────────────────────────────────
+  protected readonly stepEInvoiceImageId = signal<number | null>(null);
+  protected readonly stepEInvoicePreview = signal<string>('');
+  protected readonly stepEDraftImageId = signal<number | null>(null);
+  protected readonly stepEDraftPreview = signal<string>('');
+  protected readonly fotoInProgress = signal<UploadedPhoto[]>([]);
+  protected readonly fotoAfterWork = signal<UploadedPhoto[]>([]);
+  protected readonly stepEUploading = signal(false);
+  protected readonly stepESubmitting = signal(false);
+
   protected readonly form = this.fb.group({
     totalBiaya: [0, [Validators.required, Validators.min(1)]],
     catatanPerubahan: [''],
@@ -104,6 +130,7 @@ export class VendorPenawaranComponent implements OnInit {
   ngOnInit() {
     this.store.dispatch(new LoadDraftChecklist(this.workOrderId));
     this.store.dispatch(new LoadPenawaran(this.workOrderId));
+    this.store.dispatch(new GetWorkOrderDetail(this.workOrderId));
   }
 
   protected readonly needsCatatan = this.totalBiayaChanged;
@@ -213,6 +240,102 @@ export class VendorPenawaranComponent implements OnInit {
             this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Penawaran terkirim ke Verifikator.' });
           }
         });
+      },
+    });
+  }
+
+  // ── Step E: Upload handlers ────────────────────────────────────────────────
+  protected onStepEFileSelected(event: Event, type: 'invoice' | 'draft'): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.stepEUploading.set(true);
+    this.imageData.upload(file).subscribe({
+      next: (res: any) => {
+        this.stepEUploading.set(false);
+        const previewUrl = URL.createObjectURL(file);
+        if (type === 'invoice') {
+          this.stepEInvoiceImageId.set(Number(res.id));
+          this.stepEInvoicePreview.set(previewUrl);
+        } else {
+          this.stepEDraftImageId.set(Number(res.id));
+          this.stepEDraftPreview.set(previewUrl);
+        }
+      },
+      error: () => {
+        this.stepEUploading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal upload file' });
+      },
+    });
+    input.value = '';
+  }
+
+  protected onDokumentasiSelected(event: Event, kategori: 'in_progress' | 'after_work'): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (!files.length) return;
+    this.stepEUploading.set(true);
+    let pending = files.length;
+    files.forEach((file) => {
+      this.imageData.upload(file).subscribe({
+        next: (res: any) => {
+          const photo: UploadedPhoto = { id: Number(res.id), previewUrl: URL.createObjectURL(file), name: file.name };
+          if (kategori === 'in_progress') {
+            this.fotoInProgress.update(arr => [...arr, photo]);
+          } else {
+            this.fotoAfterWork.update(arr => [...arr, photo]);
+          }
+          pending--;
+          if (pending === 0) this.stepEUploading.set(false);
+        },
+        error: () => {
+          pending--;
+          if (pending === 0) this.stepEUploading.set(false);
+          this.msg.add({ severity: 'error', summary: 'Gagal upload foto' });
+        },
+      });
+    });
+    input.value = '';
+  }
+
+  protected removePhoto(kategori: 'in_progress' | 'after_work', index: number): void {
+    if (kategori === 'in_progress') {
+      this.fotoInProgress.update(arr => arr.filter((_, i) => i !== index));
+    } else {
+      this.fotoAfterWork.update(arr => arr.filter((_, i) => i !== index));
+    }
+  }
+
+  protected submitStepE(): void {
+    if (!this.stepEInvoiceImageId()) {
+      this.msg.add({ severity: 'warn', summary: 'Invoice wajib diupload' });
+      return;
+    }
+    if (!this.fotoAfterWork().length) {
+      this.msg.add({ severity: 'warn', summary: 'Minimal 1 foto setelah perbaikan wajib diupload' });
+      return;
+    }
+    const allDokIds = [...this.fotoInProgress().map(p => p.id), ...this.fotoAfterWork().map(p => p.id)];
+    const allDokKategori = [...this.fotoInProgress().map(() => 'IN_PROGRESS'), ...this.fotoAfterWork().map(() => 'SETELAH_PERBAIKAN')];
+
+    this.stepESubmitting.set(true);
+    this.store.dispatch(new SubmitInvoice(
+      this.workOrderId,
+      this.stepEInvoiceImageId()!,
+      this.stepEDraftImageId() ?? undefined,
+      allDokIds,
+      allDokKategori,
+    )).subscribe({
+      next: () => {
+        this.stepESubmitting.set(false);
+        this.msg.add({ severity: 'success', summary: 'Invoice & dokumentasi berhasil dikirim ke Verifikator' });
+        this.stepEInvoiceImageId.set(null); this.stepEInvoicePreview.set('');
+        this.stepEDraftImageId.set(null); this.stepEDraftPreview.set('');
+        this.fotoInProgress.set([]); this.fotoAfterWork.set([]);
+      },
+      error: (err: any) => {
+        this.stepESubmitting.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal kirim', detail: err?.error?.message ?? 'Terjadi kesalahan' });
       },
     });
   }

@@ -196,7 +196,7 @@
       @if (statusTimeline().length > 0) {
         <div class="flex flex-col gap-0">
           @for (event of statusTimeline(); track $index; let idx = $index) {
-            <div class="flex gap-4 pb-8 relative">
+            <div class="flex gap-4 pb-2 relative">
               <!-- Timeline dot and line -->
               <div class="flex flex-col items-center flex-shrink-0">
                 <!-- Dot -->
@@ -208,7 +208,7 @@
               </div>
 
               <!-- Event content -->
-              <div class="flex flex-col gap-1 pt-1 flex-1">
+              <div class="flex flex-col gap-1 pt-0 flex-1">
                 <div class="flex gap-2 items-start justify-between">
                   <div>
                     <p class="font-semibold text-slate-800">{{ event.label }}</p>

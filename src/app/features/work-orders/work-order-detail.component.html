@@ -1,376 +1,650 @@
 <p-toast />
 
 @if (detail(); as wo) {
-<div class="flex flex-col gap-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-    <div class="flex items-center gap-4">
-      <p-button icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()"></p-button>
-      <div>
-        <h1 class="text-2xl font-bold text-slate-800">Work Order {{ wo.nomor }}</h1>
-        <p class="text-sm text-slate-500">Dibuat pada {{ formatDateTime(wo.assignedAt) }}</p>
+  <div class="flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div class="flex items-center gap-4">
+        <p-button icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()"></p-button>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">Work Order {{ wo.nomor }}</h1>
+          <p class="text-sm text-slate-500">Dibuat pada {{ formatDateTime(wo.assignedAt) }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        @if (wo.status !== 'DIBUAT') {
+          <a [routerLink]="['/work-orders', wo.id, 'spk']" target="_blank">
+            <p-button
+              icon="pi pi-print"
+              label="Cetak SPK"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+            ></p-button>
+          </a>
+          <a [routerLink]="['/work-orders', wo.id, 'bast']" target="_blank">
+            <p-button
+              icon="pi pi-print"
+              label="Cetak BAST"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+            ></p-button>
+          </a>
+        }
+        <p-tag [value]="statusLabel(wo.status)" [severity]="statusSeverity(wo.status)"></p-tag>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      @if (wo.status !== 'DIBUAT') {
-        <a [routerLink]="['/work-orders', wo.id, 'spk']" target="_blank">
-          <p-button icon="pi pi-print" label="Cetak SPK" severity="secondary" [outlined]="true" size="small"></p-button>
-        </a>
-        <a [routerLink]="['/work-orders', wo.id, 'bast']" target="_blank">
-          <p-button icon="pi pi-print" label="Cetak BAST" severity="secondary" [outlined]="true" size="small"></p-button>
-        </a>
-      }
-      <p-tag [value]="statusLabel(wo.status)" [severity]="statusSeverity(wo.status)"></p-tag>
-    </div>
-  </div>
 
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-    <!-- Kolom Kiri: Informasi -->
-    <div class="flex flex-col gap-6 lg:col-span-2">
-      <p-card header="Informasi Utama">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <span class="block text-xs font-medium text-slate-500">Nomor Pengajuan</span>
-            <span class="block text-sm font-semibold text-slate-800">{{ wo.pengajuanNomor }}</span>
-          </div>
-          <div>
-            <span class="block text-xs font-medium text-slate-500">Kendaraan</span>
-            <span class="block text-sm font-semibold text-slate-800">{{ wo.vehiclePlate }}</span>
-          </div>
-          <div class="col-span-2">
-            <span class="block text-xs font-medium text-slate-500">Vendor Ditugaskan</span>
-            <span class="block text-sm font-semibold text-slate-800">{{ wo.vendorNama }}</span>
-          </div>
-        </div>
-      </p-card>
-
-      <!-- Draft Checklist -->
-      @if (latestDraft(); as draft) {
-        <p-card header="Detail Draft Checklist">
-          <p-table [value]="draft.items" [stripedRows]="true">
-            <ng-template #header>
-              <tr>
-                <th>Sparepart / Jasa</th><th>Kerusakan</th><th>Tindakan</th>
-                <th class="text-right">Harga</th>
-              </tr>
-            </ng-template>
-            <ng-template #body let-item>
-              <tr>
-                <td class="font-medium text-slate-800">{{ item.namaSparepart || '-' }}</td>
-                <td>{{ item.namaKerusakan || '-' }}</td>
-                <td>{{ item.tindakanPerbaikan || '-' }}</td>
-                <td class="text-right font-medium text-primary-700">{{ formatRupiah(item.hargaItem) }}</td>
-              </tr>
-            </ng-template>
-            <ng-template #footer>
-              <tr>
-                <td colspan="3" class="text-right font-bold">Total</td>
-                <td class="text-right font-bold text-primary-700">{{ formatRupiah(draft.totalHarga) }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-          <!-- Legacy approve/reject for draft checklist -->
-          @if (wo.status === 'DRAFT_CHECKLIST' || draft.status === 'DIKIRIM') {
-            <div class="mt-4 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4">
-              <h3 class="text-sm font-semibold text-primary-900">Review Draft Checklist</h3>
-              <div class="flex items-end gap-3">
-                <div class="flex-1">
-                  <input pInputText class="w-full" [(ngModel)]="catatan" placeholder="Catatan jika menolak..." />
-                </div>
-                <p-button label="Tolak" icon="pi pi-times" severity="danger" (onClick)="reject()"></p-button>
-                <p-button label="Setujui" icon="pi pi-check" (onClick)="approve()"></p-button>
-              </div>
+    <div class="grid grid-cols-1 gap-6">
+      <!-- Kolom Kiri: Informasi -->
+      <div class="flex flex-col gap-6">
+        <p-card header="Informasi Utama">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <span class="block text-xs font-medium text-slate-500">Nomor Pengajuan</span>
+              <span class="block text-sm font-semibold text-slate-800">
+                {{ wo.pengajuanNomor }}
+              </span>
             </div>
-          }
+            <div>
+              <span class="block text-xs font-medium text-slate-500"
+                >Kendaraan (Merk - Model - Plat)</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">
+                {{ wo.pengajuan?.kendaraan?.merk || '-' }} -
+                {{ wo.pengajuan?.kendaraan?.model || '-' }} -
+                {{ wo.pengajuan?.kendaraan?.nomorPolisi || wo.vehiclePlate || '-' }}
+              </span>
+            </div>
+            <div>
+              <span class="block text-xs font-medium text-slate-500">Odometer Saat Ini</span>
+              <span class="block text-sm font-semibold text-slate-800">
+                {{ (wo.pengajuan?.kendaraan?.odometerSaatIni | number) ?? '-' }}
+              </span>
+            </div>
+            <div>
+              <span class="block text-xs font-medium text-slate-500">Diajukan Oleh</span>
+              <span class="block text-sm font-semibold text-slate-800">
+                {{ wo.pengajuan?.pengemudi?.fullName || '-' }}
+              </span>
+            </div>
+            <div>
+              <span class="block text-xs font-medium text-slate-500">Tanggal Pengajuan</span>
+              <span class="block text-sm font-semibold text-slate-800">
+                {{ wo.pengajuan?.createdAt ? formatDateTime(wo.pengajuan.createdAt) : '-' }}
+              </span>
+            </div>
+            <div>
+              <span class="block text-xs font-medium text-slate-500">Vendor Ditugaskan</span>
+              <span class="block text-sm font-semibold text-slate-800">{{ wo.vendorNama }}</span>
+            </div>
+          </div>
         </p-card>
-      }
 
-      <!-- ══ STEP D: PB Input SHS Mapping ══ -->
-      @if (wo.status === 'PENAWARAN' && (isPB() || isAdmin())) {
-        <p-card header="Step D — Mapping SHS oleh Pengurus Barang">
-          <div class="flex flex-col gap-4">
-            <p class="text-sm text-slate-600">
-              Review draft checklist dari vendor lalu mapping setiap item ke SHS Master.
-              Harga tidak boleh melebihi SHS maksimum.
-            </p>
+        <!-- Kolom Kanan: Timeline -->
+        <div class="flex flex-col gap-6">
+          <p-card header="Timeline Progres">
+            @if (wo.progressUpdates.length === 0) {
+              <p class="text-sm text-slate-500">Belum ada update progres.</p>
+            }
+            @if (wo.progressUpdates.length > 0) {
+              <p-timeline [value]="wo.progressUpdates" align="left">
+                <ng-template #marker let-event>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-white shadow"
+                  >
+                    <i [class]="progressIcon(event.status)" class="text-sm"></i>
+                  </span>
+                </ng-template>
+                <ng-template #content let-event>
+                  <div class="flex flex-col gap-0.5 pb-3">
+                    <span class="text-sm font-semibold text-primary-900">{{
+                      event.notes || progressLabel(event.status)
+                    }}</span>
+                    <span class="text-xs text-slate-500"
+                      >{{ formatDateTime(event.occurredAt) }} · {{ event.actorName }}</span
+                    >
+                  </div>
+                </ng-template>
+              </p-timeline>
+            }
+          </p-card>
+        </div>
 
-            <!-- Draft vendor preview -->
-            @if (latestDraft()?.items?.length) {
-              <div class="rounded-lg bg-slate-50 border p-3">
-                <p class="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Draft Vendor</p>
-                <table class="w-full text-xs">
-                  <thead><tr class="text-slate-500"><th class="text-left pb-1">Item</th><th class="text-right pb-1">Harga Vendor</th></tr></thead>
+        <!-- Draft Checklist -->
+        @if (latestDraft(); as draft) {
+          <p-card header="Detail Draft Checklist">
+            <p-table [value]="draft.items" [stripedRows]="true">
+              <ng-template #header>
+                <tr>
+                  <th>Sparepart / Jasa</th>
+                  <th>Kerusakan</th>
+                  <th>Tindakan</th>
+                  <th class="text-right">Harga</th>
+                  <th class="w-36">Lampiran</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-item>
+                <tr>
+                  <td class="font-medium text-slate-800">{{ item.namaSparepart || '-' }}</td>
+                  <td>{{ item.namaKerusakan || '-' }}</td>
+                  <td>{{ item.tindakanPerbaikan || '-' }}</td>
+                  <td class="text-right font-medium text-primary-700">
+                    {{ formatRupiah(item.hargaItem) }}
+                  </td>
+                  <td>
+                    @if (item.fotos?.length) {
+                      <div class="flex flex-col gap-1">
+                        @for (foto of item.fotos; track foto.imageId; let idx = $index) {
+                          <button
+                            type="button"
+                            class="w-fit text-left text-xs font-medium text-primary-700 underline underline-offset-2"
+                            (click)="openDraftAttachment(foto.imageId, foto.url)"
+                          >
+                            File {{ idx + 1 }}
+                          </button>
+                        }
+                      </div>
+                    } @else {
+                      <span class="text-xs text-slate-400">-</span>
+                    }
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template #footer>
+                <tr>
+                  <td colspan="4" class="text-right font-bold">Total</td>
+                  <td class="text-right font-bold text-primary-700">
+                    {{ formatRupiah(draft.totalHarga) }}
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+            <!-- Legacy approve/reject for draft checklist -->
+            @if (wo.status === 'DRAFT_CHECKLIST' || draft.status === 'DIKIRIM') {
+              <div
+                class="mt-4 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4"
+              >
+                <h3 class="text-sm font-semibold text-primary-900">Review Draft Checklist</h3>
+                <div class="flex items-end gap-3">
+                  <div class="flex-1">
+                    <input
+                      pInputText
+                      class="w-full"
+                      [(ngModel)]="catatan"
+                      placeholder="Catatan jika menolak..."
+                    />
+                  </div>
+                  <p-button
+                    label="Tolak"
+                    icon="pi pi-times"
+                    severity="danger"
+                    (onClick)="reject()"
+                  ></p-button>
+                  <p-button label="Setujui" icon="pi pi-check" (onClick)="approve()"></p-button>
+                </div>
+              </div>
+            }
+          </p-card>
+        }
+
+        <!-- ══ STEP D: PB Input SHS Mapping ══ -->
+        @if (wo.status === 'PENAWARAN' && (isPB() || isAdmin())) {
+          <p-card header="Mapping SHS oleh Pengurus Barang">
+            <div class="flex flex-col gap-5">
+              <div
+                class="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 p-4"
+              >
+                <p class="text-sm font-semibold text-blue-900">Review & Mapping SHS</p>
+                <p class="mt-1 text-xs text-blue-800">
+                  Cocokkan item vendor ke SHS Master. Harga vendor tidak boleh lebih besar dari SHS
+                  maksimum.
+                </p>
+              </div>
+
+              @if (latestDraft()?.items?.length) {
+                <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div class="mb-3 flex items-center justify-between">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Ringkasan Draft Vendor
+                    </p>
+                    <p class="text-xs font-semibold text-slate-600">
+                      {{ latestDraft()!.items.length }} item
+                    </p>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-xs">
+                      <thead>
+                        <tr class="border-b border-slate-200 text-slate-500">
+                          <th class="pb-2 text-left font-semibold">Item</th>
+                          <th class="pb-2 text-right font-semibold">Harga Vendor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (item of latestDraft()!.items; track $index) {
+                          <tr class="border-b border-slate-100 last:border-b-0">
+                            <td class="py-2">
+                              {{ item.namaSparepart || item.namaKerusakan || 'Item tanpa nama' }}
+                            </td>
+                            <td class="py-2 text-right font-semibold text-slate-700">
+                              {{ formatRupiah(item.hargaItem) }}
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+
+              <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full table-fixed border-collapse bg-white text-sm">
+                  <colgroup>
+                    <col class="w-[28%]" />
+                    <col class="w-[15%]" />
+                    <col class="w-[34%]" />
+                    <col class="w-[11%]" />
+                    <col class="w-[8%]" />
+                    <col class="w-[4%]" />
+                  </colgroup>
+                  <thead>
+                    <tr class="bg-slate-100 text-xs uppercase text-slate-500">
+                      <th class="p-3 text-left">Nama Item</th>
+                      <th class="p-3 text-right">Harga Vendor</th>
+                      <th class="p-3 text-left">SHS Referensi</th>
+                      <th class="p-3 text-right">SHS Maks</th>
+                      <th class="p-3 text-center">Status</th>
+                      <th class="p-3"></th>
+                    </tr>
+                  </thead>
                   <tbody>
-                    @for (item of latestDraft()!.items; track $index) {
-                      <tr><td>{{ item.namaSparepart || item.namaKerusakan }}</td><td class="text-right">{{ formatRupiah(item.hargaItem) }}</td></tr>
+                    @for (item of shsItems(); track item._key) {
+                      <tr class="border-t border-slate-100 align-top">
+                        <td class="p-2">
+                          <input
+                            pInputText
+                            class="w-full"
+                            [value]="item.namaItem"
+                            (change)="
+                              updateShsItemField(item._key, 'namaItem', $any($event.target).value)
+                            "
+                            placeholder="Nama item..."
+                          />
+                        </td>
+                        <td class="p-2">
+                          <p-inputnumber
+                            styleClass="w-full"
+                            inputStyleClass="w-full text-right"
+                            [ngModel]="item.hargaVendor"
+                            (ngModelChange)="updateShsItemField(item._key, 'hargaVendor', $event)"
+                            mode="decimal"
+                            placeholder="0"
+                          ></p-inputnumber>
+                        </td>
+                        <td class="p-2">
+                          <p-select
+                            class="w-full"
+                            [options]="shsMasterOptions()"
+                            optionLabel="label"
+                            optionValue="value"
+                            [filter]="true"
+                            filterBy="label"
+                            [showClear]="true"
+                            [ngModel]="item.shsMasterId"
+                            (ngModelChange)="onShsMasterSelect(item._key, $event)"
+                            placeholder="Pilih SHS referensi"
+                            appendTo="body"
+                          ></p-select>
+                        </td>
+                        <td class="p-3 text-right text-base font-semibold text-slate-600">
+                          {{ item.hargaShs ? formatRupiah(item.hargaShs) : '—' }}
+                        </td>
+                        <td class="p-3 text-center">
+                          @if (item.melebihiShs) {
+                            <p-tag value="Melebihi" severity="danger"></p-tag>
+                          } @else if (item.shsMasterId) {
+                            <p-tag value="OK" severity="success"></p-tag>
+                          } @else {
+                            <span class="text-xs text-slate-400">-</span>
+                          }
+                        </td>
+                        <td class="p-2 text-right">
+                          <p-button
+                            icon="pi pi-trash"
+                            [text]="true"
+                            severity="danger"
+                            size="small"
+                            (onClick)="removeShsItem(item._key)"
+                          ></p-button>
+                        </td>
+                      </tr>
                     }
                   </tbody>
                 </table>
               </div>
-            }
 
-            <!-- SHS Mapping Table -->
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm border-collapse">
-                <thead>
-                  <tr class="bg-slate-100 text-xs text-slate-500 uppercase">
-                    <th class="p-2 text-left">Nama Item</th>
-                    <th class="p-2 text-right w-32">Harga Vendor</th>
-                    <th class="p-2 text-left w-56">SHS Referensi</th>
-                    <th class="p-2 text-right w-32">SHS Maks</th>
-                    <th class="p-2 text-center w-20">Status</th>
-                    <th class="p-2 w-10"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (item of shsItems(); track item._key) {
-                    <tr class="border-b border-slate-100">
-                      <td class="p-1">
-                        <input pInputText class="w-full text-sm" [value]="item.namaItem"
-                          (change)="updateShsItemField(item._key, 'namaItem', $any($event.target).value)"
-                          placeholder="Nama item..." />
-                      </td>
-                      <td class="p-1">
-                        <input type="number" pInputText class="w-full text-right text-sm" [value]="item.hargaVendor"
-                          (change)="updateShsItemField(item._key, 'hargaVendor', $any($event.target).value)"
-                          placeholder="0" />
-                      </td>
-                      <td class="p-1">
-                        <select class="w-full border border-slate-300 rounded px-2 py-1 text-xs"
-                          (change)="onShsMasterSelect(item._key, +$any($event.target).value)">
-                          <option value="">-- Pilih SHS --</option>
-                          @for (opt of shsMasterOptions(); track opt.value) {
-                            <option [value]="opt.value" [selected]="item.shsMasterId === opt.value">{{ opt.label }}</option>
-                          }
-                        </select>
-                      </td>
-                      <td class="p-1 text-right text-xs text-slate-500">
-                        {{ item.hargaShs ? formatRupiah(item.hargaShs) : '—' }}
-                      </td>
-                      <td class="p-1 text-center">
-                        @if (item.melebihiShs) {
-                          <span class="text-xs font-bold text-red-600">⚠️ Melebihi</span>
-                        } @else if (item.shsMasterId) {
-                          <span class="text-xs text-green-600">✓ OK</span>
-                        } @else {
-                          <span class="text-xs text-slate-400">—</span>
-                        }
-                      </td>
-                      <td class="p-1">
-                        <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
-                          (onClick)="removeShsItem(item._key)"></p-button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
+              @if (shsItems().length === 0) {
+                <div
+                  class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center"
+                >
+                  <p class="text-sm italic text-slate-500">
+                    Belum ada item mapping SHS. Klik "Tambah Item" untuk mulai.
+                  </p>
+                </div>
+              }
 
-            @if (shsItems().length === 0) {
-              <p class="text-sm text-slate-400 italic text-center py-2">Belum ada item. Klik "Tambah Item" untuk mulai.</p>
-            }
+              @if (shsItems().length > 0) {
+                <div
+                  class="rounded-lg bg-primary-50 px-4 py-3 text-right text-sm font-semibold text-primary-800"
+                >
+                  Total Mapping: {{ formatRupiah(shsTotal()) }}
+                </div>
+              }
 
-            <!-- Total -->
-            @if (shsItems().length > 0) {
-              <div class="text-right font-semibold text-sm text-primary-700">
-                Total: {{ formatRupiah(shsTotal()) }}
-              </div>
-            }
+              @if (hasItemExceedingShs()) {
+                <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <p class="text-sm text-red-700">
+                    Ada item yang melebihi SHS maksimum. Perbaiki harga sebelum approve.
+                  </p>
+                </div>
+              }
 
-            @if (hasItemExceedingShs()) {
-              <div class="rounded-lg bg-red-50 border border-red-200 p-3">
-                <p class="text-sm text-red-700">⚠️ Ada item yang melebihi SHS maksimum. Perbaiki harga sebelum approve.</p>
-              </div>
-            }
-
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-2 justify-between">
-              <p-button label="+ Tambah Item" icon="pi pi-plus" severity="secondary" [outlined]="true"
-                (onClick)="addShsItem()"></p-button>
-              <div class="flex gap-2">
-                <p-button label="Simpan SHS" icon="pi pi-save" severity="secondary" [outlined]="true"
-                  [loading]="savingShsMappingLoading()"
-                  [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
-                  (onClick)="saveShsMapping()"></p-button>
-                <p-button label="Tolak Draft" icon="pi pi-times" severity="danger" [outlined]="true"
-                  (onClick)="openPbReviewDialog(false)"></p-button>
-                <p-button label="Approve Draft" icon="pi pi-check" severity="success"
-                  [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
-                  (onClick)="openPbReviewDialog(true)"></p-button>
+              <div
+                class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3"
+              >
+                <p-button
+                  label="Tambah Item"
+                  icon="pi pi-plus"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="addShsItem()"
+                ></p-button>
+                <div class="flex flex-wrap gap-2">
+                  <p-button
+                    label="Simpan SHS"
+                    icon="pi pi-save"
+                    severity="secondary"
+                    [outlined]="true"
+                    [loading]="savingShsMappingLoading()"
+                    [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
+                    (onClick)="saveShsMapping()"
+                  ></p-button>
+                  <p-button
+                    label="Tolak Draft"
+                    icon="pi pi-times"
+                    severity="danger"
+                    [outlined]="true"
+                    (onClick)="openPbReviewDialog(false)"
+                  ></p-button>
+                  <p-button
+                    label="Approve Draft"
+                    icon="pi pi-check"
+                    severity="success"
+                    [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
+                    (onClick)="openPbReviewDialog(true)"
+                  ></p-button>
+                </div>
               </div>
             </div>
-          </div>
-        </p-card>
-      }
+          </p-card>
+        }
 
-      <!-- ══ STEP E: Vendor Submit Invoice ══ -->
-      @if (wo.status === 'MENUNGGU_INVOICE_VENDOR' && isVendor()) {
-        <p-card header="Step E — Upload Invoice Pekerjaan Selesai">
-          <div class="flex flex-col gap-3">
-            <div class="rounded-lg bg-blue-50 border border-blue-200 p-3">
-              <p class="text-sm font-semibold text-blue-900">Pekerjaan Telah Disetujui PB</p>
-              <p class="text-xs text-blue-700 mt-1">
-                Lakukan pekerjaan sesuai SPK. Setelah selesai, upload invoice dan kirim ke Verifikator.
-              </p>
-            </div>
-            <p-button label="Upload Invoice & Tandai Selesai" icon="pi pi-upload"
-              (onClick)="openInvoiceDialog()"></p-button>
-          </div>
-        </p-card>
-      }
-
-      <!-- ══ STEP F: Verifikator Review ══ -->
-      @if (wo.status === 'MENUNGGU_VERIFIKATOR' && isVerifikator()) {
-        <p-card header="Step F — Verifikasi Invoice & Dokumen">
-          <div class="flex flex-col gap-4">
-            <p class="text-sm text-slate-600">Review invoice final, draft checklist, SPK, dan Berita Acara.</p>
-
-            <!-- SHS Items from PB -->
-            @if (wo.verifikasiHarga?.shsItems?.length) {
-              <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Item SHS (oleh PB)</p>
-                <p-table [value]="wo.verifikasiHarga!.shsItems">
-                  <ng-template #header>
-                    <tr><th>Item</th><th class="text-right">Harga Vendor</th><th class="text-right">SHS Maks</th><th class="text-right">Selisih</th></tr>
-                  </ng-template>
-                  <ng-template #body let-s>
-                    <tr>
-                      <td>{{ s.namaItem }}</td>
-                      <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
-                      <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
-                      <td class="text-right" [class.text-red-600]="s.selisih > 0">{{ formatRupiah(s.selisih) }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
+        <!-- ══ STEP E: Vendor Submit Invoice ══ -->
+        @if (
+          wo.status === 'MENUNGGU_INVOICE_VENDOR' &&
+          !isVendor() &&
+          wo.verifikasiHarga?.shsItems?.length
+        ) {
+          <p-card header="SHS Disetujui Pengurus Barang">
+            <div class="flex flex-col gap-3">
+              <div
+                class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+              >
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Referensi SHS
+                </p>
+                <p-tag value="Read Only" severity="secondary"></p-tag>
               </div>
-            }
-
-            <div class="flex gap-2 mt-2">
-              <p-button label="Tolak" icon="pi pi-times" severity="danger" [outlined]="true"
-                (onClick)="openVerifikatorDialog(false)"></p-button>
-              <p-button label="Setujui → Kirim ke PPTK" icon="pi pi-check" severity="success"
-                (onClick)="openVerifikatorDialog(true)"></p-button>
-            </div>
-          </div>
-        </p-card>
-      }
-
-      <!-- ══ STEP G: PPTK Decision ══ -->
-      @if (wo.status === 'MENUNGGU_PPTK' && (isPPTK() || isAdmin())) {
-        <p-card header="Step G — Persetujuan PPTK">
-          <div class="flex flex-col gap-3">
-            <p class="text-sm text-slate-600">Review detail pekerjaan dan nominal. Berikan persetujuan akhir sebelum pembayaran.</p>
-            @if (wo.verifikasiHarga?.shsItems?.length) {
-              <p-table [value]="wo.verifikasiHarga!.shsItems">
+              <p-table [value]="wo.verifikasiHarga!.shsItems" [stripedRows]="true">
                 <ng-template #header>
-                  <tr><th>Item</th><th class="text-right">Harga</th><th class="text-right">SHS Maks</th></tr>
+                  <tr>
+                    <th>Item</th>
+                    <th class="text-right">Harga Vendor</th>
+                    <th class="text-right">SHS Maks</th>
+                    <th class="text-right">Selisih</th>
+                  </tr>
                 </ng-template>
                 <ng-template #body let-s>
                   <tr>
                     <td>{{ s.namaItem }}</td>
                     <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
                     <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
+                    <td class="text-right" [class.text-red-600]="s.selisih > 0">
+                      {{ formatRupiah(s.selisih) }}
+                    </td>
                   </tr>
                 </ng-template>
               </p-table>
-            }
-            <div class="flex gap-2 mt-2">
-              <p-button label="Tolak" icon="pi pi-times" severity="danger" [outlined]="true"
-                (onClick)="openPptkDialog(false)"></p-button>
-              <p-button label="Setujui → Kirim ke Bendahara" icon="pi pi-check" severity="success"
-                (onClick)="openPptkDialog(true)"></p-button>
             </div>
-          </div>
-        </p-card>
-      }
-
-      <!-- ══ STEP H: Bendahara ══ -->
-      @if (wo.status === 'DISETUJUI_PPTK' && permissions().includes('pembayaran.proses')) {
-        <div class="flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
-          <div class="flex-1">
-            <p class="text-sm font-semibold text-indigo-900">Proses Pembayaran ke Vendor</p>
-            <p class="text-xs text-indigo-700">WO disetujui PPTK. Upload bukti transfer dan tandai DIBAYAR.</p>
-          </div>
-          <a [routerLink]="['/work-orders', wo.id, 'pembayaran']">
-            <p-button label="Buka Pembayaran" icon="pi pi-credit-card" iconPos="right" severity="info"></p-button>
-          </a>
-        </div>
-      }
-
-      <!-- Rejection notices -->
-      @if (wo.status === 'DITOLAK_PB') {
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p class="font-semibold text-red-700">Draft Ditolak Pengurus Barang</p>
-          <p class="text-sm text-red-600 mt-1">Silakan revisi draft checklist dan kirim ulang.</p>
-        </div>
-      }
-      @if (wo.status === 'DITOLAK_VERIFIKATOR') {
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p class="font-semibold text-red-700">Ditolak Verifikator</p>
-          <p class="text-sm text-red-600 mt-1">Silakan hubungi Pengurus Barang atau Verifikator.</p>
-        </div>
-      }
-      @if (wo.status === 'DITOLAK_PPTK') {
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p class="font-semibold text-red-700">Ditolak PPTK</p>
-          <p class="text-sm text-red-600 mt-1">Silakan hubungi Verifikator atau Pengurus Barang.</p>
-        </div>
-      }
-
-      <!-- Evidence -->
-      @if (wo.evidence.length > 0) {
-        <p-card header="Dokumentasi">
-          <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-            @for (ev of wo.evidence; track ev.id) {
-              <figure class="flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
-                <p-image [src]="evidenceUrl(ev)" [preview]="true" [alt]="evidenceLabel(ev)"
-                  imageClass="aspect-[3/2] w-full object-cover"></p-image>
-                <figcaption class="px-2 pb-2 pt-1 text-xs text-slate-600">
-                  <span class="block font-semibold text-primary-700">{{ evidenceLabel(ev) }}</span>
-                  <span class="text-[10px] text-slate-500">{{ formatDateTime(ev.uploadedAt) }}</span>
-                </figcaption>
-              </figure>
-            }
-          </div>
-        </p-card>
-      }
-    </div>
-
-    <!-- Kolom Kanan: Timeline -->
-    <div class="flex flex-col gap-6 lg:col-span-1">
-      <p-card header="Timeline Progres">
-        @if (wo.progressUpdates.length === 0) {
-          <p class="text-sm text-slate-500">Belum ada update progres.</p>
+          </p-card>
         }
-        @if (wo.progressUpdates.length > 0) {
-          <p-timeline [value]="wo.progressUpdates" align="left">
-            <ng-template #marker let-event>
-              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-700 text-white shadow">
-                <i [class]="progressIcon(event.status)" class="text-sm"></i>
-              </span>
-            </ng-template>
-            <ng-template #content let-event>
-              <div class="flex flex-col gap-0.5 pb-3">
-                <span class="text-sm font-semibold text-primary-900">{{ progressLabel(event.status) }}</span>
-                <span class="text-xs text-slate-500">{{ formatDateTime(event.occurredAt) }} · {{ event.actorName }}</span>
-                @if (event.notes) {
-                  <p class="mt-1 text-sm text-slate-700">{{ event.notes }}</p>
-                }
+
+        @if (wo.status === 'MENUNGGU_INVOICE_VENDOR' && isVendor()) {
+          <div
+            class="flex items-center gap-4 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4"
+          >
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white shadow"
+            >
+              <i class="pi pi-receipt"></i>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-bold text-green-900">
+                Pekerjaan Disetujui — Upload Invoice & Dokumentasi
+              </p>
+              <p class="mt-0.5 text-xs text-green-700">
+                Lakukan pekerjaan, lalu upload invoice + foto dokumentasi di halaman Penawaran &
+                Invoice.
+              </p>
+            </div>
+            <a [routerLink]="['/vendor/work-orders', wo.id, 'penawaran']">
+              <p-button
+                label="Buka Halaman Invoice"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                severity="success"
+                size="small"
+              ></p-button>
+            </a>
+          </div>
+        }
+
+        <!-- ══ STEP F: Verifikator Review ══ -->
+        @if (wo.status === 'MENUNGGU_VERIFIKATOR' && isVerifikator()) {
+          <p-card header="Step F — Verifikasi Invoice & Dokumen">
+            <div class="flex flex-col gap-4">
+              <p class="text-sm text-slate-600">
+                Review invoice final, draft checklist, SPK, dan Berita Acara.
+              </p>
+
+              <!-- SHS Items from PB -->
+              @if (wo.verifikasiHarga?.shsItems?.length) {
+                <div>
+                  <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                    Item SHS (oleh PB)
+                  </p>
+                  <p-table [value]="wo.verifikasiHarga!.shsItems">
+                    <ng-template #header>
+                      <tr>
+                        <th>Item</th>
+                        <th class="text-right">Harga Vendor</th>
+                        <th class="text-right">SHS Maks</th>
+                        <th class="text-right">Selisih</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template #body let-s>
+                      <tr>
+                        <td>{{ s.namaItem }}</td>
+                        <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
+                        <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
+                        <td class="text-right" [class.text-red-600]="s.selisih > 0">
+                          {{ formatRupiah(s.selisih) }}
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              }
+
+              <div class="flex gap-2 mt-2">
+                <p-button
+                  label="Tolak"
+                  icon="pi pi-times"
+                  severity="danger"
+                  [outlined]="true"
+                  (onClick)="openVerifikatorDialog(false)"
+                ></p-button>
+                <p-button
+                  label="Setujui → Kirim ke PPTK"
+                  icon="pi pi-check"
+                  severity="success"
+                  (onClick)="openVerifikatorDialog(true)"
+                ></p-button>
               </div>
-            </ng-template>
-          </p-timeline>
+            </div>
+          </p-card>
         }
-      </p-card>
+
+        <!-- ══ STEP G: PPTK Decision ══ -->
+        @if (wo.status === 'MENUNGGU_PPTK' && (isPPTK() || isAdmin())) {
+          <p-card header="Step G — Persetujuan PPTK">
+            <div class="flex flex-col gap-3">
+              <p class="text-sm text-slate-600">
+                Review detail pekerjaan dan nominal. Berikan persetujuan akhir sebelum pembayaran.
+              </p>
+              @if (wo.verifikasiHarga?.shsItems?.length) {
+                <p-table [value]="wo.verifikasiHarga!.shsItems">
+                  <ng-template #header>
+                    <tr>
+                      <th>Item</th>
+                      <th class="text-right">Harga</th>
+                      <th class="text-right">SHS Maks</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template #body let-s>
+                    <tr>
+                      <td>{{ s.namaItem }}</td>
+                      <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
+                      <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              }
+              <div class="flex gap-2 mt-2">
+                <p-button
+                  label="Tolak"
+                  icon="pi pi-times"
+                  severity="danger"
+                  [outlined]="true"
+                  (onClick)="openPptkDialog(false)"
+                ></p-button>
+                <p-button
+                  label="Setujui → Kirim ke Bendahara"
+                  icon="pi pi-check"
+                  severity="success"
+                  (onClick)="openPptkDialog(true)"
+                ></p-button>
+              </div>
+            </div>
+          </p-card>
+        }
+
+        <!-- ══ STEP H: Bendahara ══ -->
+        @if (wo.status === 'DISETUJUI_PPTK' && permissions().includes('pembayaran.proses')) {
+          <div class="flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-indigo-900">Proses Pembayaran ke Vendor</p>
+              <p class="text-xs text-indigo-700">
+                WO disetujui PPTK. Upload bukti transfer dan tandai DIBAYAR.
+              </p>
+            </div>
+            <a [routerLink]="['/work-orders', wo.id, 'pembayaran']">
+              <p-button
+                label="Buka Pembayaran"
+                icon="pi pi-credit-card"
+                iconPos="right"
+                severity="info"
+              ></p-button>
+            </a>
+          </div>
+        }
+
+        <!-- Rejection notices -->
+        @if (wo.status === 'DITOLAK_PB') {
+          <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p class="font-semibold text-red-700">Draft Ditolak Pengurus Barang</p>
+            <p class="text-sm text-red-600 mt-1">Silakan revisi draft checklist dan kirim ulang.</p>
+          </div>
+        }
+        @if (wo.status === 'DITOLAK_VERIFIKATOR') {
+          <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p class="font-semibold text-red-700">Ditolak Verifikator</p>
+            <p class="text-sm text-red-600 mt-1">
+              Silakan hubungi Pengurus Barang atau Verifikator.
+            </p>
+          </div>
+        }
+        @if (wo.status === 'DITOLAK_PPTK') {
+          <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+            <p class="font-semibold text-red-700">Ditolak PPTK</p>
+            <p class="text-sm text-red-600 mt-1">
+              Silakan hubungi Verifikator atau Pengurus Barang.
+            </p>
+          </div>
+        }
+
+        <!-- Evidence -->
+        @if (wo.evidence.length > 0) {
+          <p-card header="Dokumentasi">
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+              @for (ev of wo.evidence; track ev.id) {
+                <figure
+                  class="flex flex-col gap-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+                >
+                  <p-image
+                    [src]="evidenceUrl(ev)"
+                    [preview]="true"
+                    [alt]="evidenceLabel(ev)"
+                    imageClass="aspect-[3/2] w-full object-cover"
+                  ></p-image>
+                  <figcaption class="px-2 pb-2 pt-1 text-xs text-slate-600">
+                    <span class="block font-semibold text-primary-700">{{
+                      evidenceLabel(ev)
+                    }}</span>
+                    <span class="text-[10px] text-slate-500">{{
+                      formatDateTime(ev.uploadedAt)
+                    }}</span>
+                  </figcaption>
+                </figure>
+              }
+            </div>
+          </p-card>
+        }
+      </div>
     </div>
   </div>
-</div>
 }
 
 <!-- ══ Dialog: PB Review (Approve/Reject) ══ -->
 <p-dialog
   [header]="pbReviewApproved() ? 'Konfirmasi Approve Draft' : 'Konfirmasi Tolak Draft'"
-  [visible]="pbReviewDialogVisible()" (visibleChange)="pbReviewDialogVisible.set($event)"
-  [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+  [visible]="pbReviewDialogVisible()"
+  (visibleChange)="pbReviewDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
   <div class="flex flex-col gap-3 pt-2">
     @if (!pbReviewApproved()) {
       <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
@@ -378,45 +652,76 @@
       </div>
     } @else {
       <div class="rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700">
-        Draft disetujui. Vendor akan mendapat notifikasi untuk melakukan pekerjaan dan upload invoice.
+        Draft disetujui. Vendor akan mendapat notifikasi untuk melakukan pekerjaan dan upload
+        invoice.
       </div>
     }
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Catatan (opsional)</label>
-      <textarea pTextarea rows="2" [ngModel]="pbCatatan()" (ngModelChange)="pbCatatan.set($event)"
-        placeholder="Catatan untuk vendor..."></textarea>
+      <textarea
+        pTextarea
+        rows="2"
+        [ngModel]="pbCatatan()"
+        (ngModelChange)="pbCatatan.set($event)"
+        placeholder="Catatan untuk vendor..."
+      ></textarea>
     </div>
     @if (!pbReviewApproved()) {
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-red-700">Alasan Penolakan <span class="text-red-500">*</span></label>
-        <textarea pTextarea rows="2" [ngModel]="pbAlasanPenolakan()" (ngModelChange)="pbAlasanPenolakan.set($event)"
-          placeholder="Jelaskan alasan penolakan..."></textarea>
+        <label class="text-sm font-medium text-red-700"
+          >Alasan Penolakan <span class="text-red-500">*</span></label
+        >
+        <textarea
+          pTextarea
+          rows="2"
+          [ngModel]="pbAlasanPenolakan()"
+          (ngModelChange)="pbAlasanPenolakan.set($event)"
+          placeholder="Jelaskan alasan penolakan..."
+        ></textarea>
       </div>
     }
   </div>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="pbReviewDialogVisible.set(false)"></p-button>
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="pbReviewDialogVisible.set(false)"
+    ></p-button>
     <p-button
       [label]="pbReviewApproved() ? 'Ya, Approve' : 'Ya, Tolak'"
       [severity]="pbReviewApproved() ? 'success' : 'danger'"
       [loading]="pbReviewLoading()"
-      (onClick)="submitPbReview()"></p-button>
+      (onClick)="submitPbReview()"
+    ></p-button>
   </ng-template>
 </p-dialog>
 
 <!-- ══ Dialog: Vendor Submit Invoice (Step E) ══ -->
-<p-dialog header="Upload Invoice Pekerjaan Selesai"
-  [visible]="invoiceDialogVisible()" (visibleChange)="invoiceDialogVisible.set($event)"
-  [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+<p-dialog
+  header="Upload Invoice Pekerjaan Selesai"
+  [visible]="invoiceDialogVisible()"
+  (visibleChange)="invoiceDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '520px' }"
+  [draggable]="false"
+>
   <div class="flex flex-col gap-4 pt-2">
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium">Invoice Final <span class="text-red-500">*</span></label>
-      <label class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 py-5 cursor-pointer hover:bg-blue-50 transition">
+      <label
+        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 py-5 cursor-pointer hover:bg-blue-50 transition"
+      >
         <i class="pi pi-upload text-2xl text-blue-400"></i>
         <span class="text-sm text-blue-600 font-medium">Klik untuk upload invoice</span>
         <span class="text-xs text-slate-400">JPG, PNG, PDF</span>
-        <input type="file" accept="image/*,application/pdf" class="hidden" [disabled]="invoiceUploadLoading()"
-          (change)="onInvoiceFileSelected($event, 'invoice')" />
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          class="hidden"
+          [disabled]="invoiceUploadLoading()"
+          (change)="onInvoiceFileSelected($event, 'invoice')"
+        />
       </label>
       @if (invoiceImageId()) {
         <div class="flex items-center gap-2 text-green-600 text-sm">
@@ -428,80 +733,144 @@
       }
     </div>
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium">Draft Final TTD/Cap <span class="text-slate-400 font-normal">(opsional)</span></label>
-      <label class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 py-4 cursor-pointer hover:bg-slate-100 transition">
+      <label class="text-sm font-medium"
+        >Draft Final TTD/Cap <span class="text-slate-400 font-normal">(opsional)</span></label
+      >
+      <label
+        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 py-4 cursor-pointer hover:bg-slate-100 transition"
+      >
         <i class="pi pi-file text-xl text-slate-400"></i>
         <span class="text-sm text-slate-500">Upload draft yang sudah TTD/cap bengkel</span>
-        <input type="file" accept="image/*,application/pdf" class="hidden" [disabled]="invoiceUploadLoading()"
-          (change)="onInvoiceFileSelected($event, 'draft')" />
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          class="hidden"
+          [disabled]="invoiceUploadLoading()"
+          (change)="onInvoiceFileSelected($event, 'draft')"
+        />
       </label>
       @if (invoiceDraftImageId()) {
-        <p class="text-green-600 text-sm flex items-center gap-1"><i class="pi pi-check-circle"></i> Draft terupload</p>
+        <p class="text-green-600 text-sm flex items-center gap-1">
+          <i class="pi pi-check-circle"></i> Draft terupload
+        </p>
       }
     </div>
   </div>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="invoiceDialogVisible.set(false)"></p-button>
-    <p-button label="Kirim ke Verifikator" icon="pi pi-send"
-      [loading]="invoiceUploadLoading()" [disabled]="!invoiceImageId()"
-      (onClick)="submitInvoice()"></p-button>
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="invoiceDialogVisible.set(false)"
+    ></p-button>
+    <p-button
+      label="Kirim ke Verifikator"
+      icon="pi pi-send"
+      [loading]="invoiceUploadLoading()"
+      [disabled]="!invoiceImageId()"
+      (onClick)="submitInvoice()"
+    ></p-button>
   </ng-template>
 </p-dialog>
 
 <!-- ══ Dialog: Verifikator Review (Step F) ══ -->
 <p-dialog
   [header]="verifikatorApproved() ? 'Setujui & Kirim ke PPTK' : 'Tolak Invoice'"
-  [visible]="verifikatorDialogVisible()" (visibleChange)="verifikatorDialogVisible.set($event)"
-  [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+  [visible]="verifikatorDialogVisible()"
+  (visibleChange)="verifikatorDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
   <div class="flex flex-col gap-3 pt-2">
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Catatan (opsional)</label>
-      <textarea pTextarea rows="2" [ngModel]="verifikatorCatatan()" (ngModelChange)="verifikatorCatatan.set($event)"
-        placeholder="Catatan verifikasi..."></textarea>
+      <textarea
+        pTextarea
+        rows="2"
+        [ngModel]="verifikatorCatatan()"
+        (ngModelChange)="verifikatorCatatan.set($event)"
+        placeholder="Catatan verifikasi..."
+      ></textarea>
     </div>
     @if (!verifikatorApproved()) {
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-red-700">Alasan Penolakan <span class="text-red-500">*</span></label>
-        <textarea pTextarea rows="2" [ngModel]="verifikatorAlasan()" (ngModelChange)="verifikatorAlasan.set($event)"
-          placeholder="Jelaskan alasan penolakan..."></textarea>
+        <label class="text-sm font-medium text-red-700"
+          >Alasan Penolakan <span class="text-red-500">*</span></label
+        >
+        <textarea
+          pTextarea
+          rows="2"
+          [ngModel]="verifikatorAlasan()"
+          (ngModelChange)="verifikatorAlasan.set($event)"
+          placeholder="Jelaskan alasan penolakan..."
+        ></textarea>
       </div>
     }
   </div>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="verifikatorDialogVisible.set(false)"></p-button>
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="verifikatorDialogVisible.set(false)"
+    ></p-button>
     <p-button
       [label]="verifikatorApproved() ? 'Setujui' : 'Tolak'"
       [severity]="verifikatorApproved() ? 'success' : 'danger'"
       [loading]="verifikatorLoading()"
-      (onClick)="submitVerifikatorReview()"></p-button>
+      (onClick)="submitVerifikatorReview()"
+    ></p-button>
   </ng-template>
 </p-dialog>
 
 <!-- ══ Dialog: PPTK Decision (Step G) ══ -->
 <p-dialog
   [header]="pptkApprovedSignal() ? 'Setujui WO — Kirim ke Bendahara' : 'Tolak WO'"
-  [visible]="pptkDialogVisible()" (visibleChange)="pptkDialogVisible.set($event)"
-  [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+  [visible]="pptkDialogVisible()"
+  (visibleChange)="pptkDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
   <div class="flex flex-col gap-3 pt-2">
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Komentar (opsional)</label>
-      <textarea pTextarea rows="2" [ngModel]="pptkKomentar()" (ngModelChange)="pptkKomentar.set($event)"
-        placeholder="Komentar PPTK..."></textarea>
+      <textarea
+        pTextarea
+        rows="2"
+        [ngModel]="pptkKomentar()"
+        (ngModelChange)="pptkKomentar.set($event)"
+        placeholder="Komentar PPTK..."
+      ></textarea>
     </div>
     @if (!pptkApprovedSignal()) {
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-red-700">Alasan Penolakan <span class="text-red-500">*</span></label>
-        <textarea pTextarea rows="2" [ngModel]="pptkAlasan()" (ngModelChange)="pptkAlasan.set($event)"
-          placeholder="Jelaskan alasan penolakan..."></textarea>
+        <label class="text-sm font-medium text-red-700"
+          >Alasan Penolakan <span class="text-red-500">*</span></label
+        >
+        <textarea
+          pTextarea
+          rows="2"
+          [ngModel]="pptkAlasan()"
+          (ngModelChange)="pptkAlasan.set($event)"
+          placeholder="Jelaskan alasan penolakan..."
+        ></textarea>
       </div>
     }
   </div>
   <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="pptkDialogVisible.set(false)"></p-button>
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="pptkDialogVisible.set(false)"
+    ></p-button>
     <p-button
       [label]="pptkApprovedSignal() ? 'Setujui' : 'Tolak'"
       [severity]="pptkApprovedSignal() ? 'success' : 'danger'"
       [loading]="pptkLoading()"
-      (onClick)="submitPptkDecision()"></p-button>
+      (onClick)="submitPptkDecision()"
+    ></p-button>
   </ng-template>
 </p-dialog>

@@ -105,11 +105,23 @@ interface BackendVendor {
 interface BackendKendaraan {
   id: number;
   nomorPolisi: string;
+  merk?: string;
+  model?: string;
+  odometerSaatIni?: number;
+}
+
+interface BackendPengemudi {
+  id: number;
+  fullName?: string;
+  username?: string;
 }
 
 interface BackendPengajuan {
   id: number;
   kendaraanId: number;
+  createdAt?: string;
+  odometerSaatPengajuan?: number;
+  pengemudi?: BackendPengemudi;
   kendaraan: BackendKendaraan;
 }
 
@@ -120,12 +132,26 @@ interface BackendWorkOrder {
   vendorId: number | null;
   status: string;
   createdAt: string;
+  updatedAt?: string;
   pengajuan: BackendPengajuan;
   vendor?: BackendVendor | null;
   draftChecklists?: BackendDraftChecklist[];
   penawaran?: BackendPenawaran[];
   verifikasiHarga?: BackendVerifikasiHarga | null;
   pembayaran?: BackendPembayaran | null;
+  dokumentasi?: any[];
+}
+
+interface ApiListResponse<T> {
+  success?: boolean;
+  data?: {
+    items?: T[];
+  } | T[];
+}
+
+interface ApiDetailResponse<T> {
+  success?: boolean;
+  data?: T;
 }
 
 function asNumber(value: number | string | null | undefined): number {
@@ -201,7 +227,17 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
       ]
     : [];
 
-  return [...fromDraft, ...fromPembayaran];
+  const fromDokumentasi: WorkOrderEvidence[] = (raw.dokumentasi ?? []).map((dok: any) => ({
+    id: `dok-${dok.id}`,
+    workOrderId: String(raw.id),
+    kategori: dok.kategori === 'IN_PROGRESS' ? 'sparepart_sebelum' : 'pasca_perbaikan',
+    imageId: String(dok.imageId),
+    image: emptyImage(dok.imageId, dok.image?.signedUrl, dok.kategori === 'IN_PROGRESS' ? 'In Progress' : 'Setelah Perbaikan'),
+    uploadedAt: dok.createdAt,
+    uploadedBy: String(raw.vendorId ?? 0),
+  }));
+
+  return [...fromDraft, ...fromPembayaran, ...fromDokumentasi];
 }
 
 function mapStatus(raw: BackendWorkOrder): WorkOrderStatus {
@@ -209,62 +245,75 @@ function mapStatus(raw: BackendWorkOrder): WorkOrderStatus {
 }
 
 function mapProgress(raw: BackendWorkOrder): WorkOrderProgress[] {
-  const events: WorkOrderProgress[] = [
-    {
-      id: `wo-${raw.id}-assigned`,
-      workOrderId: String(raw.id),
-      status: 'received',
-      occurredAt: raw.createdAt,
-      actorId: String(raw.vendorId ?? 0),
-      actorName: raw.vendor?.namaVendor ?? 'Vendor belum ditentukan',
-      notes: 'Work order dibuat dan ditugaskan ke vendor.',
-    },
-  ];
+  const events: WorkOrderProgress[] = [];
+  const vendorName = raw.vendor?.namaVendor ?? 'Vendor';
 
-  if (raw.draftChecklists?.length) {
+  events.push({
+    id: `wo-${raw.id}-created`,
+    workOrderId: String(raw.id),
+    status: 'received',
+    occurredAt: raw.createdAt,
+    actorId: String(raw.vendorId ?? 0),
+    actorName: vendorName,
+    notes: 'Work order dibuat',
+  });
+
+  const latestDraft = raw.draftChecklists?.[0];
+  if (latestDraft) {
+    const draftNotesByStatus: Record<string, string> = {
+      DRAFT: 'Draft checklist disimpan vendor',
+      DIKIRIM: 'Draft checklist dikirim ke Pengurus Barang',
+      DISETUJUI: 'Draft checklist disetujui Pengurus Barang',
+      DITOLAK: 'Draft checklist ditolak Pengurus Barang',
+    };
+
     events.push({
-      id: `wo-${raw.id}-draft`,
+      id: `wo-${raw.id}-draft-${latestDraft.id}`,
       workOrderId: String(raw.id),
       status: 'in_progress',
-      occurredAt: raw.draftChecklists[0].updatedAt,
+      occurredAt: latestDraft.updatedAt ?? latestDraft.createdAt,
       actorId: String(raw.vendorId ?? 0),
-      actorName: raw.vendor?.namaVendor ?? 'Vendor',
-      notes: `Draft checklist ${raw.draftChecklists[0].status === 'DISETUJUI' ? 'disetujui oleh Pengurus Barang.' : 'dikirim oleh Vendor.'}`,
+      actorName: vendorName,
+      notes: draftNotesByStatus[latestDraft.status] ?? `Draft checklist status ${latestDraft.status}`,
     });
   }
 
-  if (raw.penawaran?.length) {
-    const pnw = raw.penawaran[0];
-    events.push({
-      id: `wo-${raw.id}-penawaran`,
-      workOrderId: String(raw.id),
-      status: 'in_progress',
-      occurredAt: pnw.updatedAt,
-      actorId: String(raw.vendorId ?? 0),
-      actorName: raw.vendor?.namaVendor ?? 'Vendor',
-      notes: pnw.status === 'DIKIRIM'
-        ? 'Penawaran resmi dikirim ke Verifikator, menunggu persetujuan.'
-        : pnw.status === 'DIVERIFIKASI'
-          ? 'Penawaran telah diverifikasi.'
-          : pnw.status === 'REVISI'
-            ? 'Revisi penawaran diminta oleh Verifikator.'
-            : `Penawaran status ${pnw.status}.`,
-    });
-  }
+  const statusNotesByWoStatus: Partial<Record<WorkOrderStatus, string>> = {
+    DIBUAT: 'Work order dibuat',
+    VENDOR_DITUGASKAN: 'Vendor ditugaskan',
+    DRAFT_CHECKLIST: 'Menunggu review draft checklist',
+    PENAWARAN: 'Masuk tahap penawaran',
+    MENUNGGU_INVOICE_VENDOR: 'Menunggu invoice final dari vendor',
+    MENUNGGU_VERIFIKATOR: 'Invoice vendor menunggu review verifikator',
+    MENUNGGU_PPTK: 'Menunggu persetujuan PPTK',
+    DISETUJUI_PPTK: 'Disetujui PPTK, menunggu pembayaran',
+    DITOLAK_PB: 'Ditolak Pengurus Barang',
+    DITOLAK_VERIFIKATOR: 'Ditolak Verifikator',
+    DITOLAK_PPTK: 'Ditolak PPTK',
+    DIBAYAR: 'Pembayaran selesai',
+    DIVERIFIKASI: 'Diverifikasi',
+  };
 
-  if (raw.verifikasiHarga?.status === 'DISETUJUI' || raw.status === 'DIVERIFIKASI' || raw.status === 'DIBAYAR') {
+  if (statusNotesByWoStatus[raw.status as WorkOrderStatus]) {
     events.push({
-      id: `wo-${raw.id}-verified`,
+      id: `wo-${raw.id}-status-${raw.status.toLowerCase()}`,
       workOrderId: String(raw.id),
-      status: 'completed',
+      status: raw.status === 'DIBAYAR' ? 'completed' : 'in_progress',
       occurredAt:
+        raw.pembayaran?.paidAt ??
         raw.verifikasiHarga?.verifikasiAt ??
-        raw.pembayaran?.createdAt ??
         raw.penawaran?.[0]?.updatedAt ??
+        raw.updatedAt ??
         raw.createdAt,
-      actorId: String(raw.verifikasiHarga?.verifikator?.id ?? 0),
-      actorName: raw.verifikasiHarga?.verifikator?.fullName ?? 'Verifikator',
-      notes: 'Penawaran diverifikasi dan siap diproses lebih lanjut.',
+      actorId:
+        raw.status === 'DIBAYAR'
+          ? String(raw.pembayaran?.bendaharaId ?? 0)
+          : String(raw.verifikasiHarga?.verifikator?.id ?? raw.vendorId ?? 0),
+      actorName:
+        raw.status === 'DIBAYAR'
+          ? (raw.pembayaran?.bendahara?.fullName ?? 'Bendahara')
+          : (raw.verifikasiHarga?.verifikator?.fullName ?? vendorName),
+      notes: statusNotesByWoStatus[raw.status as WorkOrderStatus]!,
     });
   }
 
@@ -338,9 +387,19 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
             hargaStandart: asNumber(s.hargaStandart),
             selisih: asNumber(s.selisih),
             keterangan: s.keterangan ?? '',
+            shsMasterId: s.shsMasterId ?? null,
+            shsMaster: s.shsMaster ?? null,
           })) ?? [],
         }
       : null,
+    pengajuan: {
+      id: raw.pengajuan.id,
+      createdAt: raw.pengajuan.createdAt,
+      odometerSaatPengajuan: raw.pengajuan.odometerSaatPengajuan,
+      pengemudi: raw.pengajuan.pengemudi,
+      kendaraan: raw.pengajuan.kendaraan,
+    },
+    vendor: raw.vendor ?? null,
   };
 }
 
@@ -363,14 +422,23 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
     if (filter?.status) params = params.set('status', filter.status);
     if (filter?.vendorId) params = params.set('vendorId', filter.vendorId);
     return this.http
-      .get<BackendWorkOrder[]>(this.url('/work-orders'), { params })
-      .pipe(map((rows) => rows.map(mapWorkOrder)));
+      .get<BackendWorkOrder[] | ApiListResponse<BackendWorkOrder>>(this.url('/work-orders'), { params })
+      .pipe(
+        map((res) => {
+          const rows = Array.isArray(res)
+            ? res
+            : Array.isArray(res?.data)
+              ? res.data
+              : res?.data?.items ?? [];
+          return rows.map(mapWorkOrder);
+        }),
+      );
   }
 
   getById(id: string): Observable<WorkOrder> {
     return this.http
-      .get<BackendWorkOrder>(this.url(`/work-orders/${id}`))
-      .pipe(map((row) => mapWorkOrder(row)));
+      .get<BackendWorkOrder | ApiDetailResponse<BackendWorkOrder>>(this.url(`/work-orders/${id}`))
+      .pipe(map((res) => mapWorkOrder((res as ApiDetailResponse<BackendWorkOrder>)?.data ?? (res as BackendWorkOrder))));
   }
 
   assignVendor(workOrderId: string, vendorId: string): Observable<WorkOrder> {
@@ -406,9 +474,9 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
   }
 
   // Step E: Vendor submit invoice
-  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number): Observable<WorkOrder> {
+  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number, dokumentasiImageIds?: number[], dokumentasiKategori?: string[]): Observable<WorkOrder> {
     return this.http
-      .post<any>(this.url(`/work-orders/${workOrderId}/submit-invoice`), { invoiceImageId, invoiceDraftImageId })
+      .post<any>(this.url(`/work-orders/${workOrderId}/submit-invoice`), { invoiceImageId, invoiceDraftImageId, dokumentasiImageIds, dokumentasiKategori })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 

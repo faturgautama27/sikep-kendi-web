@@ -29,7 +29,7 @@ export interface WorkOrderDataPort {
   // Step D: PB review (approve/reject)
   pbReviewShs(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder>;
   // Step E: Vendor submit invoice
-  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number): Observable<WorkOrder>;
+  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number, dokumentasiImageIds?: number[], dokumentasiKategori?: string[]): Observable<WorkOrder>;
   // Step F: Verifikator review
   verifikatorReview(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder>;
   // Step G: PPTK approve (updated)

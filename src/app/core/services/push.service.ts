@@ -1,10 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MessageService } from 'primeng/api';
+import { Store } from '@ngxs/store';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { APP_ENV } from '@core/data-access/app-env.token';
+import { LoadNotifications } from '@features/notifications/state';
+import { LoadPengajuan } from '@features/pengajuan/state';
+import { LoadWorkOrders } from '@features/work-orders/state';
+import { LoadDarurat } from '@features/darurat/state';
+import { LoadVehicles } from '@features/vehicles/state';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +18,23 @@ import { APP_ENV } from '@core/data-access/app-env.token';
 export class PushService {
   private readonly http = inject(HttpClient);
   private readonly messageService = inject(MessageService);
+  private readonly store = inject(Store);
   private readonly env = inject(APP_ENV);
+
+  /**
+   * Dispatch LoadNotifications selalu (refresh inbox), lalu dispatch
+   * action domain spesifik berdasarkan entityKind dari payload data.
+   */
+  private dispatchReloadFor(data: Record<string, string> | undefined): void {
+    const actions: object[] = [new LoadNotifications()];
+    switch (data?.['entityKind']) {
+      case 'pengajuan': actions.push(new LoadPengajuan()); break;
+      case 'work_order': actions.push(new LoadWorkOrders()); break;
+      case 'darurat': actions.push(new LoadDarurat()); break;
+      case 'kendaraan': actions.push(new LoadVehicles()); break;
+    }
+    this.store.dispatch(actions);
+  }
 
   async init() {
     if (this.env.isMobile) {
@@ -69,6 +91,9 @@ export class PushService {
           detail: body,
           life: 5000,
         });
+
+        // 3. Refresh state yang relevan berdasarkan entityKind
+        this.dispatchReloadFor(payload.data);
       });
 
       // FALLBACK DEBUG: Tangkap raw message dari Service Worker
@@ -121,6 +146,9 @@ export class PushService {
         detail: notification.body,
         life: 5000,
       });
+
+      // Refresh state yang relevan berdasarkan entityKind
+      this.dispatchReloadFor(notification.data as Record<string, string>);
     });
 
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {

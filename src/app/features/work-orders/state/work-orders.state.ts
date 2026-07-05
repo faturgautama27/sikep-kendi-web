@@ -180,7 +180,7 @@ export class WorkOrdersState {
   @Action(SubmitInvoice)
   submitInvoice(ctx: StateContext<WorkOrdersStateModel>, action: SubmitInvoice) {
     if (!this.env.previewMode) {
-      return this.data.submitInvoice(action.workOrderId, action.invoiceImageId, action.invoiceDraftImageId).pipe(
+      return this.data.submitInvoice(action.workOrderId, action.invoiceImageId, action.invoiceDraftImageId, action.dokumentasiImageIds, action.dokumentasiKategori).pipe(
         tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
       );
     }

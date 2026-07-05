@@ -22,7 +22,7 @@ export interface DraftChecklistItem {
   tindakanPerbaikan?: string;
   hargaItem: number;
   fotoIds?: number[];
-  fotos?: { imageId: number; url?: string }[];
+  fotos?: { imageId: number; url?: string; fileName?: string; mimeType?: string }[];
 }
 
 export interface DraftChecklistRecord {

@@ -40,6 +40,7 @@
         [ngModel]="selectedStatuses()"
         (ngModelChange)="selectedStatuses.set($event)"
         styleClass="w-full"
+        appendTo="body"
       ></p-multiSelect>
     </div>
 
@@ -56,6 +57,7 @@
         [ngModel]="selectedVendor()"
         (ngModelChange)="selectedVendor.set($event)"
         styleClass="w-full"
+        appendTo="body"
       ></p-select>
     </div>
 
@@ -89,8 +91,8 @@
           <th class="w-40">Pengajuan</th>
           <th class="w-28">Kendaraan</th>
           <th>Vendor</th>
-          <th class="w-48">Status</th>
-          <th class="w-32">Assigned</th>
+          <th class="text-center">Status</th>
+          <th class="w-32">Tgl Dibuat</th>
           <th class="w-32">Selesai</th>
           <th class="w-40 text-right">Total Nominal</th>
           <th class="w-16 text-right">Aksi</th>

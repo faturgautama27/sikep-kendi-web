@@ -59,6 +59,8 @@ export class SubmitInvoice {
     public readonly workOrderId: string,
     public readonly invoiceImageId: number,
     public readonly invoiceDraftImageId?: number,
+    public readonly dokumentasiImageIds?: number[],
+    public readonly dokumentasiKategori?: string[],
   ) {}
 }
 

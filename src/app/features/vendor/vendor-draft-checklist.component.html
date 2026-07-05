@@ -5,7 +5,9 @@
   <header class="flex items-start justify-between">
     <div>
       <h1 class="text-2xl font-bold text-primary-900">Draft Checklist</h1>
-      <p class="text-sm text-slate-500">Work Order: <strong>{{ workOrderId }}</strong></p>
+      <p class="text-sm text-slate-500">
+        Work Order: <strong>{{ workOrderId }}</strong>
+      </p>
     </div>
     @if (activeDraft(); as d) {
       <p-tag [value]="d.status" [severity]="statusSeverity(d.status)" class="text-sm" />
@@ -19,21 +21,33 @@
       <div>
         <p class="font-semibold text-red-700">Draft Ditolak</p>
         <p class="text-sm text-red-600 mt-1">{{ activeDraft()?.notesRejection }}</p>
-        <p-button label="Revisi Draft" icon="pi pi-refresh" severity="danger" [outlined]="true" size="small" class="mt-2" (onClick)="reviseDraft()" />
+        <p-button
+          label="Revisi Draft"
+          icon="pi pi-refresh"
+          severity="danger"
+          [outlined]="true"
+          size="small"
+          class="mt-2"
+          (onClick)="reviseDraft()"
+        />
       </div>
     </div>
   }
 
   <!-- Waiting notice -->
   @if (activeDraft()?.status === 'DIKIRIM') {
-    <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 flex items-center gap-2">
+    <div
+      class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 flex items-center gap-2"
+    >
       <i class="pi pi-clock"></i> Draft telah dikirim dan menunggu review Pengurus Barang.
     </div>
   }
 
   <!-- Approved notice -->
   @if (activeDraft()?.status === 'DISETUJUI') {
-    <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+    <div
+      class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2"
+    >
       <i class="pi pi-check-circle"></i> Draft disetujui. Lanjutkan ke tahap Penawaran Final.
     </div>
   }
@@ -42,7 +56,9 @@
   <p-tabs [value]="0">
     <p-tablist>
       <p-tab [value]="0">Item Checklist</p-tab>
-      @if (drafts().length > 1) { <p-tab [value]="1">Riwayat Versi ({{ drafts().length }})</p-tab> }
+      @if (drafts().length > 1) {
+        <p-tab [value]="1">Riwayat Versi ({{ drafts().length }})</p-tab>
+      }
     </p-tablist>
 
     <p-tabpanels>
@@ -50,12 +66,167 @@
       <p-tabpanel [value]="0">
         <div class="flex flex-col gap-4">
           @if (canEdit()) {
-            <div class="flex justify-end">
-              <p-button label="Tambah Item" icon="pi pi-plus" (onClick)="openAddItem()" />
+            <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p class="text-sm font-semibold text-slate-900">Editor Item Checklist</p>
+                  <p class="text-xs text-slate-500">
+                    Isi detail item dan lampiran, lalu simpan ke tabel di bawah.
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+                  >
+                    {{ isEditingRow('new') ? 'Mode Tambah Item' : 'Mode Edit Item' }}
+                  </span>
+                  @if (!isEditingRow('new')) {
+                    <p-button
+                      label="Tambah Item Baru"
+                      icon="pi pi-plus"
+                      size="small"
+                      severity="secondary"
+                      [outlined]="true"
+                      (onClick)="cancelInlineEdit()"
+                    />
+                  }
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >Kerusakan / Komponen</label
+                  >
+                  <input
+                    pInputText
+                    [formControl]="itemForm.controls.namaKerusakan"
+                    placeholder="Contoh: Kebocoran oli mesin pada gasket..."
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >Nama Sparepart</label
+                  >
+                  <input
+                    pInputText
+                    [formControl]="itemForm.controls.namaSparepart"
+                    placeholder="Nama suku cadang"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >Tindakan Perbaikan</label
+                  >
+                  <input
+                    pInputText
+                    [formControl]="itemForm.controls.tindakanPerbaikan"
+                    placeholder="Jelaskan tindakan perbaikan"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >Estimasi Harga</label
+                  >
+                  <p-inputnumber
+                    [formControl]="itemForm.controls.hargaItem"
+                    mode="currency"
+                    currency="IDR"
+                    locale="id-ID"
+                    [min]="0"
+                    placeholder="0"
+                  ></p-inputnumber>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-3 lg:grid-cols-[1fr_auto]">
+                <div>
+                  <label
+                    class="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >Lampiran</label
+                  >
+                  <label
+                    class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center transition hover:border-blue-300 hover:bg-blue-50"
+                  >
+                    <i class="pi pi-paperclip text-xl text-blue-600"></i>
+                    <span class="text-sm font-medium text-slate-700"
+                      >Pilih gambar, PDF, Word, atau Excel</span
+                    >
+                    <span class="text-xs text-slate-500"
+                      >Maksimal {{ maxAttachments }} file per item</span
+                    >
+                    <input
+                      type="file"
+                      [accept]="attachmentAccept"
+                      multiple
+                      class="hidden"
+                      (change)="onAttachmentSelected($event)"
+                    />
+                  </label>
+
+                  @if (itemAttachments().length > 0) {
+                    <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                      @for (attachment of itemAttachments(); track $index; let i = $index) {
+                        <div
+                          class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3"
+                        >
+                          <div
+                            class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-slate-600"
+                          >
+                            @if (attachment.isImage && attachment.previewUrl) {
+                              <img
+                                [src]="attachment.previewUrl"
+                                class="h-full w-full object-cover"
+                              />
+                            } @else {
+                              <i [class]="attachmentIcon(attachment)"></i>
+                            }
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-medium text-slate-700">
+                              {{ attachment.fileName }}
+                            </p>
+                            <p class="text-xs text-slate-500">
+                              {{ attachmentKindLabel(attachment) }}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            class="flex h-7 w-7 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50"
+                            (click)="removeAttachment(i)"
+                          >
+                            <i class="pi pi-times text-xs"></i>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="flex items-end justify-end gap-2">
+                  <p-button
+                    label="Reset"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="cancelInlineEdit()"
+                    [disabled]="uploading()"
+                  ></p-button>
+                  <p-button
+                    [label]="isEditingRow('new') ? 'Tambah Item' : 'Simpan Perubahan'"
+                    icon="pi pi-check"
+                    [loading]="uploading()"
+                    (onClick)="saveItem()"
+                  ></p-button>
+                </div>
+              </div>
             </div>
           }
           <div class="sikep-table-wrap">
-            <p-table [value]="isReadOnly() ? (activeDraft()?.items ?? []) : editItems()" dataKey="_key" [rowHover]="true">
+            <p-table
+              [value]="isReadOnly() ? (activeDraft()?.items ?? []) : editItems()"
+              dataKey="_key"
+              [rowHover]="true"
+            >
               <ng-template #header>
                 <tr>
                   <th class="w-10">No</th>
@@ -63,26 +234,28 @@
                   <th>Sparepart</th>
                   <th>Tindakan</th>
                   <th class="w-36 text-right">Harga (Rp)</th>
-                  <th class="w-20">Foto</th>
-                  @if (canEdit()) { <th class="w-24 text-right">Aksi</th> }
+                  <th class="w-28">Lampiran</th>
+                  @if (canEdit()) {
+                    <th class="w-28 text-right">Aksi</th>
+                  }
                 </tr>
               </ng-template>
               <ng-template #body let-item let-i="rowIndex">
                 <tr>
                   <td>{{ i + 1 }}</td>
-                  <td>{{ item.namaKerusakan }}</td>
+                  <td>{{ item.namaKerusakan || '—' }}</td>
                   <td>{{ item.namaSparepart || '—' }}</td>
-                  <td class="whitespace-pre-line text-xs">{{ item.tindakanPerbaikan }}</td>
+                  <td class="whitespace-pre-line text-xs">{{ item.tindakanPerbaikan || '—' }}</td>
                   <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
                   <td>
-                    @if (item.fotos && item.fotos.length > 0) {
-                      <p-button 
-                        [label]="item.fotos.length + ' foto'" 
-                        icon="pi pi-camera" 
-                        size="small" 
-                        [text]="true" 
+                    @if (attachmentCount(item) > 0) {
+                      <p-button
+                        [label]="attachmentCount(item) + ' file'"
+                        icon="pi pi-paperclip"
+                        size="small"
+                        [text]="true"
                         severity="info"
-                        (onClick)="toggleRowExpand($event, item)" 
+                        (onClick)="openAttachmentGallery(item)"
                       />
                     } @else {
                       <span class="text-xs text-slate-400">—</span>
@@ -91,8 +264,20 @@
                   @if (canEdit()) {
                     <td class="text-right">
                       <div class="flex justify-end gap-1">
-                        <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (onClick)="openEditItem(i)" />
-                        <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="removeItem(i)" />
+                        <p-button
+                          icon="pi pi-pencil"
+                          [text]="true"
+                          [severity]="isEditingRow(item._key) ? 'info' : 'secondary'"
+                          size="small"
+                          (onClick)="openEditItem(i)"
+                        ></p-button>
+                        <p-button
+                          icon="pi pi-trash"
+                          [text]="true"
+                          severity="danger"
+                          size="small"
+                          (onClick)="removeItem(i)"
+                        ></p-button>
                       </div>
                     </td>
                   }
@@ -101,19 +286,40 @@
               <ng-template #footer>
                 <tr class="bg-slate-50 font-semibold">
                   <td [colSpan]="canEdit() ? 5 : 5" class="text-right">Total Estimasi:</td>
-                  <td class="text-right text-primary-700">{{ formatCurrency(isReadOnly() ? (activeDraft()?.totalHarga ?? 0) : totalHarga()) }}</td>
-                  @if (canEdit()) { <td></td> }
+                  <td class="text-right text-primary-700">
+                    {{
+                      formatCurrency(isReadOnly() ? (activeDraft()?.totalHarga ?? 0) : totalHarga())
+                    }}
+                  </td>
+                  @if (canEdit()) {
+                    <td></td>
+                  }
                 </tr>
               </ng-template>
               <ng-template #emptymessage>
-                <tr><td [colSpan]="canEdit() ? 7 : 6" class="text-center text-slate-400 py-6">Belum ada item. Klik "Tambah Item" untuk memulai.</td></tr>
+                <tr>
+                  <td [colSpan]="canEdit() ? 7 : 6" class="text-center text-slate-400 py-6">
+                    Belum ada item. Isi form inline di bagian atas tabel untuk menambahkan checklist
+                    pertama.
+                  </td>
+                </tr>
               </ng-template>
             </p-table>
           </div>
           @if (canEdit()) {
             <div class="flex justify-end gap-2">
-              <p-button label="Simpan Draft" icon="pi pi-save" severity="secondary" [outlined]="true" (onClick)="simpanDraft()" />
-              <p-button label="Kirim ke Pengurus Barang" icon="pi pi-send" (onClick)="kirimDraft()" />
+              <p-button
+                label="Simpan Draft"
+                icon="pi pi-save"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="simpanDraft()"
+              />
+              <p-button
+                label="Kirim ke Pengurus Barang"
+                icon="pi pi-send"
+                (onClick)="kirimDraft()"
+              />
             </div>
           }
         </div>
@@ -136,11 +342,13 @@
             <ng-template #body let-d>
               <tr>
                 <td>v{{ d.versi }}</td>
-                <td class="text-center"><p-tag [value]="d.status" [severity]="statusSeverity(d.status)" /></td>
+                <td class="text-center">
+                  <p-tag [value]="d.status" [severity]="statusSeverity(d.status)" />
+                </td>
                 <td class="text-right">{{ formatCurrency(d.totalHarga) }}</td>
                 <td>{{ d.items.length }} item</td>
                 <td class="text-xs text-red-500">{{ d.notesRejection || '—' }}</td>
-                <td class="text-xs text-slate-400">{{ d.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+                <td class="text-xs text-slate-400">{{ formatDateTime(d.createdAt) }}</td>
               </tr>
             </ng-template>
           </p-table>
@@ -150,107 +358,64 @@
   </p-tabs>
 </section>
 
-<!-- Add/Edit Item Dialog -->
-<p-dialog header="Item Checklist" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '560px' }" [draggable]="false">
-  <form [formGroup]="itemForm" class="flex flex-col gap-4 pt-2">
-
-    <!-- Upload Foto Checklist (utama) -->
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium">
-        Foto Checklist
-        <span class="text-slate-400 font-normal">(maks. 5 foto)</span>
-      </label>
-      <label
-        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 py-5 cursor-pointer hover:bg-blue-50 transition"
-      >
-        <i class="pi pi-camera text-2xl text-blue-400"></i>
-        <span class="text-sm text-blue-600 font-medium">Klik untuk pilih foto</span>
-        <span class="text-xs text-slate-400">JPG, PNG – maks. 5 file</span>
-        <input type="file" accept="image/*" multiple class="hidden" (change)="onFotoSelected($event)" />
-      </label>
-      
-      @if (itemFotos().length > 0) {
-        <div class="grid grid-cols-4 gap-2 mt-1">
-          @for (foto of itemFotos(); track $index; let i = $index) {
-            <div class="relative rounded-lg overflow-hidden border border-slate-200 aspect-square bg-slate-100">
-              <img [src]="foto.previewUrl" class="w-full h-full object-cover" />
-              <button
-                type="button"
-                (click)="removeFoto(i)"
-                class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] shadow"
-              >✕</button>
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <div class="h-px bg-slate-100"></div>
-
-    <!-- Nama Kerusakan (opsional) -->
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-slate-700">
-        Nama Kerusakan / Komponen
-        <span class="text-slate-400 font-normal">(opsional)</span>
-      </label>
-      <textarea pTextarea formControlName="namaKerusakan" rows="2" [maxLength]="200" placeholder="Contoh: Kebocoran oli mesin pada gasket..."></textarea>
-    </div>
-
-    <!-- Nama Sparepart (opsional) -->
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-slate-700">
-        Nama Sparepart
-        <span class="text-slate-400 font-normal">(opsional)</span>
-      </label>
-      <input pInputText formControlName="namaSparepart" placeholder="Nama suku cadang yang digunakan" />
-    </div>
-
-    <!-- Tindakan Perbaikan (opsional) -->
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-slate-700">
-        Tindakan Perbaikan
-        <span class="text-slate-400 font-normal">(opsional)</span>
-      </label>
-      <textarea pTextarea formControlName="tindakanPerbaikan" rows="2" [maxLength]="500" placeholder="Contoh: Ganti gasket mesin dan tambah oli 4 liter..."></textarea>
-    </div>
-
-    <!-- Estimasi Harga (opsional) -->
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-slate-700">
-        Estimasi Harga (Rp)
-        <span class="text-slate-400 font-normal">(opsional)</span>
-      </label>
-      <p-inputnumber formControlName="hargaItem" mode="currency" currency="IDR" locale="id-ID" [min]="0" class="w-full" placeholder="0" />
-    </div>
-
-  </form>
-  <ng-template #footer>
-    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" [disabled]="uploading()" />
-    <p-button
-      [label]="uploading() ? 'Mengupload...' : (editingIndex() !== null ? 'Simpan Perubahan' : 'Tambah Item')"
-      icon="pi pi-check"
-      [loading]="uploading()"
-      (onClick)="saveItem()"
-    />
-  </ng-template>
-</p-dialog>
-<!-- Photo Gallery Modal -->
-<p-dialog header="Galeri Foto Checklist" [visible]="photoGalleryVisible()" (visibleChange)="photoGalleryVisible.set($event)" [modal]="true" [style]="{ width: '90vw', maxWidth: '1200px' }" [draggable]="false">
-  @if (selectedItemFotos().length > 0) {
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-      @for (foto of selectedItemFotos(); track foto.imageId) {
-        <div class="rounded-lg overflow-hidden border border-slate-200 aspect-square bg-slate-100 hover:shadow-lg transition cursor-pointer" (click)="openPhotoModal(foto.url)">
-          <img [src]="foto.url" [alt]="'Foto ' + foto.imageId" class="w-full h-full object-cover" />
-        </div>
+<p-dialog
+  header="Lampiran Item Checklist"
+  [visible]="attachmentGalleryVisible()"
+  (visibleChange)="attachmentGalleryVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  [draggable]="false"
+>
+  @if (selectedItemAttachments().length > 0) {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (attachment of selectedItemAttachments(); track attachment.id ?? attachment.fileName) {
+        <button
+          type="button"
+          class="flex h-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+          (click)="openAttachment(attachment)"
+        >
+          <div
+            class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-slate-100"
+          >
+            @if (attachment.isImage && attachment.previewUrl) {
+              <img
+                [src]="attachment.previewUrl"
+                [alt]="attachment.fileName"
+                class="h-full w-full object-cover"
+              />
+            } @else {
+              <div class="flex flex-col items-center gap-2 text-slate-500">
+                <i [class]="attachmentIcon(attachment) + ' text-3xl'"></i>
+                <span class="text-xs font-medium uppercase tracking-wide">{{
+                  attachmentKindLabel(attachment)
+                }}</span>
+              </div>
+            }
+          </div>
+          <div>
+            <p class="line-clamp-2 text-sm font-semibold text-slate-800">
+              {{ attachment.fileName }}
+            </p>
+            <p class="mt-1 text-xs text-slate-500">Klik untuk membuka lampiran</p>
+          </div>
+        </button>
       }
     </div>
   } @else {
-    <p class="text-center text-slate-400">Tidak ada foto.</p>
+    <p class="text-center text-slate-400">Tidak ada lampiran.</p>
   }
 </p-dialog>
 
 <!-- Full Screen Photo Modal -->
-<p-dialog header="Foto Fullscreen" [visible]="photoModalVisible()" (visibleChange)="photoModalVisible.set($event)" [modal]="true" [style]="{ width: '95vw', maxWidth: '1000px', height: '90vh' }" [draggable]="false" [maximizable]="true">
+<p-dialog
+  header="Foto Fullscreen"
+  [visible]="photoModalVisible()"
+  (visibleChange)="photoModalVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '95vw', maxWidth: '1000px', height: '90vh' }"
+  [draggable]="false"
+  [maximizable]="true"
+>
   <div class="flex items-center justify-center w-full h-full bg-slate-900 rounded-lg overflow-auto">
     <img [src]="selectedPhotoUrl()" class="w-auto h-auto max-w-full max-h-full object-contain" />
   </div>

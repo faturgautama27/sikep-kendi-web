@@ -85,13 +85,6 @@ export class SideNavComponent {
           label: 'Dashboard',
           icon: 'pi pi-chart-line',
           route: '/vendor/dashboard',
-          permission: 'work_order.read',
-        },
-        {
-          label: 'Notifikasi WO',
-          icon: 'pi pi-bell',
-          route: '/vendor/work-orders',
-          permission: 'work_order.read',
         },
         {
           label: 'Draft Checklist',
@@ -110,12 +103,6 @@ export class SideNavComponent {
           icon: 'pi pi-history',
           route: '/vendor/history',
           permission: 'penawaran.read',
-        },
-        {
-          label: 'Notifikasi',
-          icon: 'pi pi-bell',
-          route: '/vendor/notifications',
-          permission: 'work_order.read',
         },
       ],
     },
@@ -141,7 +128,10 @@ export class SideNavComponent {
       })
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) => this.canShow(this.requiredPermissionsFor(item), perms)),
+        items: group.items.filter((item) => {
+          // if (item.route === '/dashboard' && userRole?.includes('vendor')) return false;
+          return this.canShow(this.requiredPermissionsFor(item), perms);
+        }),
       }))
       .filter((group) => group.items.length > 0);
   });

@@ -1,11 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -20,7 +18,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-
 import {
   WorkOrdersState,
   GetWorkOrderDetail,
@@ -178,6 +175,33 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly pptkAlasan = signal('');
   protected readonly pptkLoading = signal(false);
 
+  private readonly hydrateShsItemsEffect = effect(() => {
+    const serverItems = this.detail()?.verifikasiHarga?.shsItems ?? [];
+    if (!serverItems.length) {
+      this.shsItems.set([]);
+      this.itemKey = 0;
+      return;
+    }
+
+    this.itemKey = 0;
+    const mapped: ShsItemLocal[] = serverItems.map((item) => {
+      const hargaVendor = Number(item.hargaVendor) || 0;
+      const hargaStandart = Number(item.hargaStandart) || 0;
+      return {
+        _key: this.itemKey++,
+        namaItem: item.namaItem ?? '',
+        hargaVendor,
+        hargaStandart,
+        jumlah: 1,
+        shsMasterId: item.shsMasterId ?? undefined,
+        hargaShs: hargaStandart || undefined,
+        melebihiShs: hargaVendor > hargaStandart && hargaStandart > 0,
+      };
+    });
+
+    this.shsItems.set(mapped);
+  });
+
   ngOnInit() {
     this.store.dispatch(new GetWorkOrderDetail(this.id));
     if (!this.user()?.roles[0]?.includes('driver')) {
@@ -255,6 +279,33 @@ export class WorkOrderDetailComponent implements OnInit {
     return ev.image?.caption ? `${base} - ${ev.image.caption}` : base;
   }
 
+  protected openDraftAttachment(imageId: number, fallbackUrl?: string): void {
+    if (!imageId) {
+      if (fallbackUrl) {
+        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+      }
+      return;
+    }
+
+    this.http.get<any>(`${this.env.apiBaseUrl}/images/${imageId}/url`).subscribe({
+      next: (res) => {
+        const freshUrl = res?.signedUrl ?? res?.url ?? fallbackUrl;
+        if (!freshUrl) {
+          this.msg.add({ severity: 'warn', summary: 'Lampiran tidak tersedia.' });
+          return;
+        }
+        window.open(freshUrl, '_blank', 'noopener,noreferrer');
+      },
+      error: () => {
+        if (fallbackUrl) {
+          window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        this.msg.add({ severity: 'error', summary: 'Gagal membuka lampiran.', detail: 'Coba muat ulang halaman lalu buka lagi.' });
+      },
+    });
+  }
+
   protected formatDateTime(val: string): string {
     if (!val) return '-';
     return new Date(val).toLocaleString('id-ID', {
@@ -319,7 +370,23 @@ export class WorkOrderDetailComponent implements OnInit {
     this.shsItems.update((items) => items.filter((i) => i._key !== key));
   }
 
-  protected onShsMasterSelect(key: number, shsId: number) {
+  protected onShsMasterSelect(key: number, shsId: number | null | undefined) {
+    if (!shsId) {
+      this.shsItems.update((items) =>
+        items.map((item) => {
+          if (item._key !== key) return item;
+          return {
+            ...item,
+            shsMasterId: undefined,
+            hargaStandart: 0,
+            hargaShs: undefined,
+            melebihiShs: false,
+          };
+        }),
+      );
+      return;
+    }
+
     const master = this.shsMasterOptions().find((s) => s.value === shsId);
     if (!master) return;
     this.shsItems.update((items) =>
