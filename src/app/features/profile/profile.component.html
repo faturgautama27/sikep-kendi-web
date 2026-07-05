@@ -1,9 +1,7 @@
 <section class="flex flex-col gap-6">
   <header class="flex flex-col gap-1">
     <h1 class="text-2xl font-bold text-primary-900">Profil Pengguna</h1>
-    <p class="text-sm text-slate-500">
-      Informasi akun, kontak, dan akses pengaturan personal.
-    </p>
+    <p class="text-sm text-slate-500">Informasi akun, kontak, dan akses pengaturan personal.</p>
   </header>
 
   <p-card>
@@ -56,7 +54,9 @@
             </div>
           </dl>
         } @else {
-          <p class="text-sm text-slate-500">Data user belum tersedia. Silakan login terlebih dahulu.</p>
+          <p class="text-sm text-slate-500">
+            Data user belum tersedia. Silakan login terlebih dahulu.
+          </p>
         }
       </div>
     </div>
@@ -70,13 +70,89 @@
           [outlined]="true"
           (onClick)="openChangePassword()"
         />
-        <p-button
+        <!-- <p-button
           icon="pi pi-bell"
           label="Pengaturan Notifikasi"
           severity="primary"
           (onClick)="openNotificationPreferences()"
-        />
+        /> -->
       </div>
     </ng-template>
   </p-card>
+
+  <p-dialog
+    header="Ubah Password"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '28rem' }"
+    [visible]="changePasswordVisible()"
+    (visibleChange)="changePasswordVisible.set($event)"
+  >
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Password Lama</label>
+        <p-password
+          [ngModel]="oldPassword()"
+          (ngModelChange)="oldPassword.set($event)"
+          [feedback]="false"
+          [toggleMask]="true"
+          placeholder="Masukkan password lama"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        ></p-password>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Password Baru</label>
+        <p-password
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+          [feedback]="true"
+          [toggleMask]="true"
+          placeholder="Minimal 12 karakter"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        ></p-password>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Konfirmasi Password Baru</label>
+        <p-password
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="confirmPassword.set($event)"
+          [feedback]="false"
+          [toggleMask]="true"
+          placeholder="Ulangi password baru"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        ></p-password>
+      </div>
+
+      <p class="text-[11px] text-slate-500">
+        Password harus minimal 12 karakter, mengandung huruf besar, huruf kecil, angka, dan simbol.
+      </p>
+    </div>
+
+    <ng-template #footer>
+      <div class="flex items-center justify-end gap-2">
+        <p-button
+          label="Batal"
+          severity="secondary"
+          [text]="true"
+          (onClick)="changePasswordVisible.set(false)"
+          [disabled]="submittingPassword()"
+        ></p-button>
+        <p-button
+          label="Simpan"
+          icon="pi pi-check"
+          severity="primary"
+          [loading]="submittingPassword()"
+          (onClick)="submitChangePassword()"
+        ></p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <p-toast position="top-right"></p-toast>
 </section>
