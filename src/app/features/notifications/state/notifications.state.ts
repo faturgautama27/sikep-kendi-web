@@ -1,7 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { tap } from 'rxjs';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
+import { NOTIFICATION_DATA, type NotificationDataPort } from '@core/data-access/ports/notification-data.port';
 import type {
   Notification,
   NotificationPreference,
@@ -38,6 +41,9 @@ const INITIAL: NotificationsStateModel = {
 @State<NotificationsStateModel>({ name: 'notifications', defaults: INITIAL })
 @Injectable()
 export class NotificationsState {
+  private readonly env = inject(APP_ENV);
+  private readonly data = inject<NotificationDataPort>(NOTIFICATION_DATA);
+
   @Selector()
   static inbox(state: NotificationsStateModel): Notification[] {
     return state.inbox;
@@ -74,30 +80,48 @@ export class NotificationsState {
   }
 
   @Action(LoadNotifications)
-  load(_ctx: StateContext<NotificationsStateModel>) {}
+  load(ctx: StateContext<NotificationsStateModel>) {
+    if (this.env.previewMode) return;
+    return this.data.inbox().pipe(
+      tap((inbox) => ctx.patchState({ inbox })),
+    );
+  }
 
   @Action(MarkAsRead)
   markRead(ctx: StateContext<NotificationsStateModel>, action: MarkAsRead) {
+    // Optimistic local update
     ctx.patchState({
       inbox: ctx.getState().inbox.map((n) =>
         n.id === action.id ? { ...n, readAt: new Date().toISOString() } : n,
       ),
     });
+    if (this.env.previewMode) return;
+    return this.data.markAsRead(action.id);
   }
 
   @Action(MarkAllAsRead)
   markAllRead(ctx: StateContext<NotificationsStateModel>) {
     const now = new Date().toISOString();
+    // Optimistic local update
     ctx.patchState({
       inbox: ctx.getState().inbox.map((n) => (n.readAt === null ? { ...n, readAt: now } : n)),
     });
+    if (this.env.previewMode) return;
+    return this.data.markAllAsRead();
   }
 
   @Action(LoadNotificationPreferences)
-  loadPrefs(_ctx: StateContext<NotificationsStateModel>) {}
+  loadPrefs(ctx: StateContext<NotificationsStateModel>) {
+    if (this.env.previewMode) return;
+    return this.data.getPreferences().pipe(
+      tap((preferences) => ctx.patchState({ preferences })),
+    );
+  }
 
   @Action(UpdatePreference)
   updatePref(ctx: StateContext<NotificationsStateModel>, action: UpdatePreference) {
     ctx.patchState({ preferences: action.preferences });
+    if (this.env.previewMode) return;
+    return this.data.updatePreferences(action.preferences);
   }
 }

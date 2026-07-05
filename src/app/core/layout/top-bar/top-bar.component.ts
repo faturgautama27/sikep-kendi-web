@@ -1,12 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
+import { Store } from '@ngxs/store';
 
 import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { CommonModule } from '@angular/common';
+
+import { AuthState } from '@features/login/state';
+import { NotificationsState, MarkAllAsRead } from '@features/notifications/state';
 
 @Component({
   selector: 'app-top-bar',
@@ -15,17 +19,35 @@ import { CommonModule } from '@angular/common';
   templateUrl: './top-bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopBarComponent implements OnInit {
+export class TopBarComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly store = inject(Store);
 
-  protected readonly notificationCount = signal(5);
-  protected readonly userInitials = signal('AD');
+  private readonly user = this.store.selectSignal(AuthState.user);
+  private readonly inbox = this.store.selectSignal(NotificationsState.inbox);
 
-  protected readonly userData = JSON.parse(localStorage.getItem("auth")!);
+  protected readonly notificationCount = this.store.selectSignal(NotificationsState.unreadCount);
 
-  protected readonly userName = signal(this.userData.user.fullName);
-  protected readonly userRole = signal(this.userData.user.roles[0].replace(/_/g, " "));
+  protected readonly notifications = computed(() =>
+    this.inbox()
+      .filter((n) => n.readAt === null)
+      .slice(0, 5),
+  );
+
+  protected readonly userName = computed(() => this.user()?.fullName ?? '—');
+
+  /** Raw role value — used for template comparisons like === 'admin_sistem' */
+  protected readonly userRole = computed(() => this.user()?.roles[0] ?? '');
+
+  protected readonly userInitials = computed(() =>
+    (this.user()?.fullName ?? '')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join(''),
+  );
 
   protected readonly pageTitle = toSignal(
     this.router.events.pipe(
@@ -39,22 +61,27 @@ export class TopBarComponent implements OnInit {
     { initialValue: 'Dashboard' },
   );
 
-  protected readonly notifications = [
-    { title: 'STNK B 1234 ABC akan kadaluarsa', severity: 'warning' as const, time: '2 jam lalu' },
-    { title: 'Pengajuan #PG-0042 menunggu verifikasi', severity: 'info' as const, time: '4 jam lalu' },
-    { title: 'Work Order WO-2026-014 perlu tindak lanjut', severity: 'warning' as const, time: 'Kemarin' },
-    { title: 'Checklist harian B 5566 CD belum diisi', severity: 'critical' as const, time: 'Kemarin' },
-    { title: 'Laporan darurat DRT-2026-021 menunggu verifikasi', severity: 'info' as const, time: '2 hari lalu' },
-  ];
-
-  ngOnInit(): void {
-  }
-
   protected toggleUserPopover(popover: Popover, event: MouseEvent): void {
     popover.toggle(event);
   }
 
   protected toggleNotificationPopover(popover: Popover, event: MouseEvent): void {
     popover.toggle(event);
+  }
+
+  protected markAllAsRead(popover: Popover): void {
+    this.store.dispatch(new MarkAllAsRead());
+    popover.hide();
+  }
+
+  protected timeAgo(createdAt: string): string {
+    const diff = Date.now() - new Date(createdAt).getTime();
+    const minutes = Math.floor(diff / 60_000);
+    if (minutes < 60) return `${minutes} menit lalu`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} jam lalu`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Kemarin';
+    return `${days} hari lalu`;
   }
 }

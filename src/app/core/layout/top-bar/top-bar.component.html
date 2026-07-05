@@ -52,7 +52,7 @@
             }
           </div>
           <a
-            routerLink="/audit"
+            routerLink="/notifications"
             class="rounded-lg px-2.5 py-1 text-[11px] font-semibold text-primary-600 transition hover:bg-primary-50 hover:text-primary-700"
           >
             Lihat semua →
@@ -61,7 +61,7 @@
 
         <!-- Items list -->
         <ul class="max-h-[320px] divide-y divide-slate-50 overflow-y-auto">
-          @for (notif of notifications; track notif.title) {
+          @for (notif of notifications(); track notif.id) {
             <li
               class="group flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-slate-50"
             >
@@ -87,7 +87,7 @@
                 <p class="line-clamp-2 text-[12px] font-semibold leading-snug text-slate-700">
                   {{ notif.title }}
                 </p>
-                <p class="mt-0.5 text-[11px] text-slate-400">{{ notif.time }}</p>
+                <p class="mt-0.5 text-[11px] text-slate-400">{{ timeAgo(notif.createdAt) }}</p>
               </div>
               <!-- Unread dot -->
               <div class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary-500"></div>
@@ -97,12 +97,13 @@
 
         <!-- Footer -->
         <div class="border-t border-slate-100 bg-slate-50/80 px-4 py-2.5 text-center">
-          <a
-            routerLink="/audit"
+          <button
+            type="button"
+            (click)="markAllAsRead(notifPopover)"
             class="text-[11px] font-semibold text-slate-500 transition hover:text-primary-600"
           >
             Tandai semua sudah dibaca
-          </a>
+          </button>
         </div>
       </div>
     </p-popover>

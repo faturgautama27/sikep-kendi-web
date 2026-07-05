@@ -1,0 +1,179 @@
+<div class="flex flex-col gap-5">
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-primary-900">Notifications</h1>
+    <p class="text-sm text-slate-500">
+      Daftar notifikasi sistem untuk akun Anda, dengan filter dan detail per item.
+    </p>
+  </header>
+
+  <div class="sikep-table-wrap flex flex-col gap-4 p-4 shadow-sm md:flex-row md:items-end md:gap-4">
+    <div class="flex flex-1 flex-col gap-1">
+      <label for="notif-search" class="text-xs font-medium text-slate-600">Cari notifikasi</label>
+      <input
+        pInputText
+        id="notif-search"
+        class="w-full"
+        placeholder="Cari judul, pesan, atau referensi"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1 md:w-56">
+      <label for="notif-read" class="text-xs font-medium text-slate-600">Status Baca</label>
+      <p-select
+        inputId="notif-read"
+        [options]="readFilterOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selectedReadFilter()"
+        (ngModelChange)="selectedReadFilter.set($event)"
+        styleClass="w-full"
+        appendTo="body"
+      ></p-select>
+    </div>
+
+    <div class="flex flex-col gap-1 md:w-56">
+      <label for="notif-severity" class="text-xs font-medium text-slate-600">Severity</label>
+      <p-select
+        inputId="notif-severity"
+        [options]="severityOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selectedSeverity()"
+        (ngModelChange)="selectedSeverity.set($event)"
+        styleClass="w-full"
+        appendTo="body"
+      ></p-select>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <p-button
+        label="Tandai Semua Dibaca"
+        icon="pi pi-check"
+        severity="primary"
+        [disabled]="unreadCount() === 0"
+        (onClick)="markAllRead()"
+      ></p-button>
+      <p-button
+        label="Reset"
+        icon="pi pi-filter-slash"
+        severity="secondary"
+        [text]="true"
+        (onClick)="resetFilter()"
+      ></p-button>
+    </div>
+  </div>
+
+  <div class="sikep-table-wrap">
+    <p-table
+      [value]="visibleNotifications()"
+      dataKey="id"
+      [rowHover]="true"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} dari {totalRecords} notifikasi"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template #header>
+        <tr>
+          <th style="width: 3rem"></th>
+          <th style="width: 10rem">Waktu</th>
+          <th style="width: 8rem">Severity</th>
+          <th>Judul</th>
+          <th>Pesan Ringkas</th>
+          <th style="width: 10rem">Status</th>
+          <th style="width: 8rem" class="text-center">Aksi</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-notif let-expanded="expanded">
+        <tr>
+          <td>
+            <p-button
+              type="button"
+              [text]="true"
+              [rounded]="true"
+              [pRowToggler]="notif"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              (onClick)="onToggleDetail(notif)"
+            ></p-button>
+          </td>
+          <td class="text-xs text-slate-500">{{ timeAgo(notif.createdAt) }}</td>
+          <td>
+            <p-tag
+              [value]="severityLabel(notif.severity)"
+              [severity]="severityTagSeverity(notif.severity)"
+              [rounded]="true"
+            ></p-tag>
+          </td>
+          <td class="font-semibold text-slate-800" [class.text-slate-500]="notif.readAt !== null">
+            {{ notif.title }}
+          </td>
+          <td class="text-sm text-slate-600">{{ truncate(notif.message, 80) }}</td>
+          <td>
+            @if (notif.readAt === null) {
+              <p-tag value="Belum Dibaca" severity="info" [rounded]="true"></p-tag>
+            } @else {
+              <p-tag value="Sudah Dibaca" severity="secondary" [rounded]="true"></p-tag>
+            }
+          </td>
+          <td>
+            <div class="flex justify-center">
+              @if (notif.link) {
+                <a
+                  [routerLink]="notif.link"
+                  class="rounded-md bg-primary-50 px-2 py-1 text-xs font-semibold text-primary-700 transition hover:bg-primary-100"
+                >
+                  Buka
+                </a>
+              } @else {
+                <span class="text-xs text-slate-400">-</span>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #expandedrow let-notif>
+        <tr>
+          <td colspan="7" class="bg-slate-50">
+            <div class="grid grid-cols-1 gap-3 px-4 py-4 md:grid-cols-3">
+              <div class="md:col-span-2">
+                <h4 class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Detail Notifikasi
+                </h4>
+                <p class="text-sm leading-relaxed text-slate-700">{{ notif.message }}</p>
+              </div>
+              <div class="space-y-2 text-xs">
+                <p class="text-slate-600">
+                  <span class="font-semibold">Dibuat:</span> {{ formatDateTime(notif.createdAt) }}
+                </p>
+                <p class="text-slate-600">
+                  <span class="font-semibold">Dibaca:</span>
+                  {{ notif.readAt ? formatDateTime(notif.readAt) : '-' }}
+                </p>
+                <p class="text-slate-600">
+                  <span class="font-semibold">Referensi:</span> {{ notif.entityRef ?? '-' }}
+                </p>
+                <p class="text-slate-600">
+                  <span class="font-semibold">Entity:</span> {{ notif.entityKind ?? '-' }}
+                </p>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" class="py-8 text-center text-sm text-slate-500">
+            Tidak ada notifikasi yang cocok dengan filter saat ini.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

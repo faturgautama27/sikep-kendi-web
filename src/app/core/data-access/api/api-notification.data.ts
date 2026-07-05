@@ -1,18 +1,41 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import type {
   Notification,
   NotificationPreference,
   NotificationThresholds,
+  Severity,
+  TriggerKind,
 } from '@shared/models';
 import type { NotificationDataPort } from '../ports/notification-data.port';
 import { APP_ENV } from '../app-env.token';
 
+/** Shape yang dikembalikan backend untuk satu baris notifikasi */
+interface BackendNotification {
+  id: number;
+  recipientId: number;
+  title: string;
+  message: string;
+  severity: string;   // uppercase: INFO | WARNING | CRITICAL
+  isRead: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  entityKind?: string;
+  entityId?: number;
+  entityRef?: string;
+  link?: string;
+}
+
 /**
  * Production HttpClient-based implementation of NotificationDataPort.
  *
- * Stub placeholder Phase 1: ringkas, akan di-implement penuh di Phase 4.
+ * Menyesuaikan response backend yang aktual:
+ * - inbox → GET /notifications/inbox  → { data, nextCursor }
+ * - markAsRead → POST /notifications/:id/read  (id = number)
+ * - markAllAsRead → tidak ada endpoint; no-op (UI sudah update lokal di state)
+ * - preferences / thresholds → belum ada endpoint di backend; return default lokal
  */
 @Injectable({ providedIn: 'root' })
 export class ApiNotificationData implements NotificationDataPort {
@@ -23,39 +46,68 @@ export class ApiNotificationData implements NotificationDataPort {
     return `${this.env.apiBaseUrl}${path}`;
   }
 
+  /** Konversi row backend ke model frontend */
+  private map(raw: BackendNotification): Notification {
+    return {
+      id: String(raw.id),
+      recipientId: String(raw.recipientId),
+      recipientName: '',
+      severity: raw.severity.toLowerCase() as Severity,
+      triggerKind: (raw.entityKind ?? 'deviation_unresponded') as TriggerKind,
+      title: raw.title,
+      message: raw.message,
+      entityKind: raw.entityKind ?? null,
+      entityId: raw.entityId != null ? String(raw.entityId) : null,
+      entityRef: raw.entityRef ?? null,
+      channelStatus: [],
+      createdAt: raw.createdAt,
+      readAt: raw.isRead ? (raw.updatedAt ?? raw.createdAt) : null,
+      escalatedAt: null,
+      link: raw.link ?? null,
+    };
+  }
+
   inbox(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(this.url('/notifications/inbox'));
+    return this.http
+      .get<{ data: BackendNotification[] }>(this.url('/notifications/inbox'))
+      .pipe(map((res) => res.data.map((n) => this.map(n))));
   }
 
   markAsRead(id: string): Observable<Notification> {
-    return this.http.post<Notification>(this.url(`/notifications/${id}/read`), {});
+    const numericId = Number(id);
+    return this.http
+      .post<BackendNotification>(this.url(`/notifications/${numericId}/read`), {})
+      .pipe(map((raw) => this.map(raw)));
   }
 
+  /** Backend belum punya endpoint mark-all; state sudah update lokal */
   markAllAsRead(): Observable<void> {
-    return this.http.post<void>(this.url('/notifications/read-all'), {});
+    return of(void 0);
   }
 
+  /** Belum ada endpoint preferences di backend */
   getPreferences(): Observable<NotificationPreference[]> {
-    return this.http.get<NotificationPreference[]>(this.url('/notifications/preferences'));
+    return of([]);
   }
 
-  updatePreferences(
-    preferences: NotificationPreference[],
-  ): Observable<NotificationPreference[]> {
-    return this.http.put<NotificationPreference[]>(
-      this.url('/notifications/preferences'),
-      preferences,
-    );
+  /** Belum ada endpoint preferences di backend */
+  updatePreferences(preferences: NotificationPreference[]): Observable<NotificationPreference[]> {
+    return of(preferences);
   }
 
+  /** Belum ada endpoint thresholds di backend */
   getThresholds(): Observable<NotificationThresholds> {
-    return this.http.get<NotificationThresholds>(this.url('/notifications/thresholds'));
+    return of({
+      documentExpiringDaysBefore: 30,
+      simExpiringDaysBefore: 30,
+      pengajuanStuckBusinessDays: 3,
+      unreadCriticalEscalationHours: 24,
+      budgetThresholdPercent: 80,
+    });
   }
 
+  /** Belum ada endpoint thresholds di backend */
   updateThresholds(thresholds: NotificationThresholds): Observable<NotificationThresholds> {
-    return this.http.put<NotificationThresholds>(
-      this.url('/notifications/thresholds'),
-      thresholds,
-    );
+    return of(thresholds);
   }
 }

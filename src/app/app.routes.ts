@@ -317,6 +317,11 @@ export const routes: Routes = [
         loadComponent: () => import('@features/profile/notification-preferences/notification-preferences.component').then((m) => m.NotificationPreferencesComponent),
         data: { title: 'Pengaturan Notifikasi' },
       },
+      {
+        path: 'notifications',
+        loadComponent: () => import('@features/notifications/notifications-list.component').then((m) => m.NotificationsListComponent),
+        data: { title: 'Notifications' },
+      },
     ],
   },
 
