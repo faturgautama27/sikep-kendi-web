@@ -2,7 +2,9 @@ import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ShsMaster } from '@shared/models/shs-master';
 
-export type ShsMasterCreateInput = Omit<ShsMaster, 'id' | 'createdAt' | 'updatedAt'>;
+export type ShsMasterCreateInput = Omit<ShsMaster, 'id' | 'createdAt' | 'updatedAt' | 'kodeItem'> & {
+  kodeItem?: string;
+};
 
 export interface ShsMasterDataPort {
   list(): Observable<ShsMaster[]>;

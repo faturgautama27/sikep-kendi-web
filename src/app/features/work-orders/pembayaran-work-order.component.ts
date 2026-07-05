@@ -1,4 +1,13 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,20 +25,16 @@ import { PageHeaderComponent } from '@core/layout';
 import { IMAGE_DATA, type ImageDataPort } from '@core/data-access/ports/image-data.port';
 import { WorkOrdersState, GetWorkOrderDetail } from './state';
 
-import {
-  PembayaranState,
-  ProsesPembayaran,
-  UploadBuktiTransfer,
-} from '@features/pembayaran/state';
+import { PembayaranState, ProsesPembayaran, UploadBuktiTransfer } from '@features/pembayaran/state';
 
 @Component({
   selector: 'app-pembayaran-work-order',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ButtonModule, 
-    InputTextModule, 
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    InputTextModule,
     InputNumberModule,
     CardModule,
     TagModule,
@@ -64,13 +69,13 @@ export class PembayaranWorkOrderComponent implements OnInit, AfterViewInit {
 
   // Form Options
   protected metodeOptions = [
-    { label: 'Transfer Bank', value: 'transfer_bank' },
+    { label: 'CRM', value: 'crm' },
     { label: 'Tunai', value: 'tunai' },
-    { label: 'Cek', value: 'cek' }
+    { label: 'KKPD', value: 'kkpd' },
   ];
 
   // Form
-  protected metodePembayaran = 'transfer_bank';
+  protected metodePembayaran = 'crm';
   protected totalDibayar = 0;
   protected fileUpload: File | null = null;
   protected saving = signal(false);
@@ -81,7 +86,7 @@ export class PembayaranWorkOrderComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      if(this.verifiedTotal()){
+      if (this.verifiedTotal()) {
         this.totalDibayar = this.verifiedTotal();
         this.cdr.detectChanges();
       }
@@ -128,7 +133,7 @@ export class PembayaranWorkOrderComponent implements OnInit, AfterViewInit {
         error: () => {
           this.saving.set(false);
           // TODO: show error toast
-        }
+        },
       });
     } else {
       this.submitData(null);
@@ -136,26 +141,30 @@ export class PembayaranWorkOrderComponent implements OnInit, AfterViewInit {
   }
 
   private submitData(imageId: number | null): void {
-    this.store.dispatch(
-      new ProsesPembayaran(this.workOrderId, {
-        metodePembayaran: this.metodePembayaran,
-        totalDibayar: Number(this.totalDibayar || this.verifiedTotal()),
-        tanggalPembayaran: new Date().toISOString(),
-      }),
-    ).subscribe({
-      next: () => {
-        if (imageId) {
-          // Send imageId to backend
-          this.store.dispatch(new UploadBuktiTransfer(this.workOrderId, { imageId })).subscribe(() => {
+    this.store
+      .dispatch(
+        new ProsesPembayaran(this.workOrderId, {
+          metodePembayaran: this.metodePembayaran,
+          totalDibayar: Number(this.totalDibayar || this.verifiedTotal()),
+          tanggalPembayaran: new Date().toISOString(),
+        }),
+      )
+      .subscribe({
+        next: () => {
+          if (imageId) {
+            // Send imageId to backend
+            this.store
+              .dispatch(new UploadBuktiTransfer(this.workOrderId, { imageId }))
+              .subscribe(() => {
+                this.saving.set(false);
+                this.goBack();
+              });
+          } else {
             this.saving.set(false);
             this.goBack();
-          });
-        } else {
-          this.saving.set(false);
-          this.goBack();
-        }
-      },
-      error: () => this.saving.set(false)
-    });
+          }
+        },
+        error: () => this.saving.set(false),
+      });
   }
 }

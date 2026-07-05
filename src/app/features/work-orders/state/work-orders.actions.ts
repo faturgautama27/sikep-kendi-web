@@ -3,7 +3,9 @@ import type { ShsItemInput } from '@core/data-access/ports/work-order-data.port'
 export class LoadWorkOrders {
   static readonly type = '[WorkOrders] Load List';
   readonly type = LoadWorkOrders.type;
-  constructor(public readonly filter?: { from?: string; to?: string; vehicleId?: string; vendorId?: string }) {}
+  constructor(
+    public readonly filter?: { from?: string; to?: string; vehicleId?: string; vendorId?: string },
+  ) {}
 }
 
 export class GetWorkOrderDetail {
@@ -30,14 +32,20 @@ export class ApprovePPTK {
 export class RejectPPTK {
   static readonly type = '[WorkOrders] Reject PPTK';
   readonly type = RejectPPTK.type;
-  constructor(public readonly workOrderId: string, public readonly catatan: string) {}
+  constructor(
+    public readonly workOrderId: string,
+    public readonly catatan: string,
+  ) {}
 }
 
 // Step D: PB input SHS mapping
 export class SaveShsMapping {
   static readonly type = '[WorkOrders] Save SHS Mapping';
   readonly type = SaveShsMapping.type;
-  constructor(public readonly workOrderId: string, public readonly items: ShsItemInput[]) {}
+  constructor(
+    public readonly workOrderId: string,
+    public readonly items: ShsItemInput[],
+  ) {}
 }
 
 // Step D: PB review (approve/reject) after SHS mapping
@@ -62,6 +70,7 @@ export class SubmitInvoice {
     public readonly invoiceDraftImageId?: number,
     public readonly dokumentasiImageIds?: number[],
     public readonly dokumentasiKategori?: string[],
+    public readonly fakturPajakImageId?: number,
   ) {}
 }
 

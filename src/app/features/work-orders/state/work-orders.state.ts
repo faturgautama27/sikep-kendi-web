@@ -4,7 +4,10 @@ import { tap } from 'rxjs';
 
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
-import { WORKORDER_DATA, type WorkOrderDataPort } from '@core/data-access/ports/work-order-data.port';
+import {
+  WORKORDER_DATA,
+  type WorkOrderDataPort,
+} from '@core/data-access/ports/work-order-data.port';
 import type { WorkOrder, WorkOrderProgress, WorkOrderEvidence } from '@shared/models';
 
 import {
@@ -71,17 +74,15 @@ export class WorkOrdersState {
   @Action(LoadWorkOrders)
   load(ctx: StateContext<WorkOrdersStateModel>, action: LoadWorkOrders) {
     if (this.env.previewMode) return;
-    return this.data.list(action.filter).pipe(
-      tap((list) => ctx.patchState({ list })),
-    );
+    return this.data.list(action.filter).pipe(tap((list) => ctx.patchState({ list })));
   }
 
   @Action(GetWorkOrderDetail)
   getDetail(ctx: StateContext<WorkOrdersStateModel>, action: GetWorkOrderDetail) {
     if (!this.env.previewMode) {
-      return this.data.getById(action.workOrderId).pipe(
-        tap((detail) => ctx.patchState({ detail })),
-      );
+      return this.data
+        .getById(action.workOrderId)
+        .pipe(tap((detail) => ctx.patchState({ detail })));
     }
     const detail = ctx.getState().list.find((wo) => wo.id === action.workOrderId) ?? null;
     ctx.patchState({ detail });
@@ -106,14 +107,26 @@ export class WorkOrdersState {
     const currentDetail = ctx.getState().detail;
     const updatedDetail: WorkOrder | null =
       currentDetail && currentDetail.id === action.workOrderId
-        ? { ...currentDetail, vendorId: action.vendorId, status: 'VENDOR_DITUGASKAN', assignedAt: new Date().toISOString() }
+        ? {
+            ...currentDetail,
+            vendorId: action.vendorId,
+            status: 'VENDOR_DITUGASKAN',
+            assignedAt: new Date().toISOString(),
+          }
         : currentDetail;
     ctx.patchState({
-      list: ctx.getState().list.map((wo) =>
-        wo.id === action.workOrderId
-          ? { ...wo, vendorId: action.vendorId, status: 'VENDOR_DITUGASKAN' as const, assignedAt: new Date().toISOString() }
-          : wo,
-      ),
+      list: ctx
+        .getState()
+        .list.map((wo) =>
+          wo.id === action.workOrderId
+            ? {
+                ...wo,
+                vendorId: action.vendorId,
+                status: 'VENDOR_DITUGASKAN' as const,
+                assignedAt: new Date().toISOString(),
+              }
+            : wo,
+        ),
       detail: updatedDetail,
     });
     return;
@@ -123,9 +136,9 @@ export class WorkOrdersState {
   @Action(ApprovePPTK)
   approvePPTK(ctx: StateContext<WorkOrdersStateModel>, action: ApprovePPTK) {
     if (!this.env.previewMode) {
-      return this.data.approvePPTK(action.workOrderId).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .approvePPTK(action.workOrderId)
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
@@ -137,13 +150,15 @@ export class WorkOrdersState {
   @Action(RejectPPTK)
   rejectPPTK(ctx: StateContext<WorkOrdersStateModel>, action: RejectPPTK) {
     if (!this.env.previewMode) {
-      return this.data.rejectPPTK(action.workOrderId, action.catatan).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .rejectPPTK(action.workOrderId, action.catatan)
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
-      ctx.patchState({ detail: { ...currentDetail, status: 'DITOLAK_PPTK', rejectedReason: action.catatan } });
+      ctx.patchState({
+        detail: { ...currentDetail, status: 'DITOLAK_PPTK', rejectedReason: action.catatan },
+      });
     }
     return;
   }
@@ -152,9 +167,9 @@ export class WorkOrdersState {
   @Action(SaveShsMapping)
   saveShsMapping(ctx: StateContext<WorkOrdersStateModel>, action: SaveShsMapping) {
     if (!this.env.previewMode) {
-      return this.data.saveShsMapping(action.workOrderId, action.items).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .saveShsMapping(action.workOrderId, action.items)
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     return;
   }
@@ -163,14 +178,17 @@ export class WorkOrdersState {
   @Action(PbReviewShs)
   pbReviewShs(ctx: StateContext<WorkOrdersStateModel>, action: PbReviewShs) {
     if (!this.env.previewMode) {
-      return this.data.pbReviewShs(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .pbReviewShs(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan)
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
       ctx.patchState({
-        detail: { ...currentDetail, status: action.approved ? 'MENUNGGU_INVOICE_VENDOR' : 'DITOLAK_PB' },
+        detail: {
+          ...currentDetail,
+          status: action.approved ? 'MENUNGGU_INVOICE_VENDOR' : 'DITOLAK_PB',
+        },
       });
     }
     return;
@@ -180,9 +198,16 @@ export class WorkOrdersState {
   @Action(SubmitInvoice)
   submitInvoice(ctx: StateContext<WorkOrdersStateModel>, action: SubmitInvoice) {
     if (!this.env.previewMode) {
-      return this.data.submitInvoice(action.workOrderId, action.invoiceImageId, action.invoiceDraftImageId, action.dokumentasiImageIds, action.dokumentasiKategori).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .submitInvoice(
+          action.workOrderId,
+          action.invoiceImageId,
+          action.invoiceDraftImageId,
+          action.dokumentasiImageIds,
+          action.dokumentasiKategori,
+          action.fakturPajakImageId,
+        )
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
@@ -195,14 +220,22 @@ export class WorkOrdersState {
   @Action(VerifikatorReview)
   verifikatorReview(ctx: StateContext<WorkOrdersStateModel>, action: VerifikatorReview) {
     if (!this.env.previewMode) {
-      return this.data.verifikatorReview(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .verifikatorReview(
+          action.workOrderId,
+          action.approved,
+          action.catatan,
+          action.alasanPenolakan,
+        )
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
       ctx.patchState({
-        detail: { ...currentDetail, status: action.approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR' },
+        detail: {
+          ...currentDetail,
+          status: action.approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR',
+        },
       });
     }
     return;
@@ -212,9 +245,9 @@ export class WorkOrdersState {
   @Action(PptkDecision)
   pptkDecision(ctx: StateContext<WorkOrdersStateModel>, action: PptkDecision) {
     if (!this.env.previewMode) {
-      return this.data.pptkApprove(action.workOrderId, action.approved, action.komentar, action.alasan).pipe(
-        tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))),
-      );
+      return this.data
+        .pptkApprove(action.workOrderId, action.approved, action.komentar, action.alasan)
+        .pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {

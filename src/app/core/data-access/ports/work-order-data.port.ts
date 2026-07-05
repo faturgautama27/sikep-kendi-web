@@ -1,9 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
-import type {
-  WorkOrder,
-  WorkOrderStatus,
-} from '@shared/models';
+import type { WorkOrder, WorkOrderStatus } from '@shared/models';
 
 export interface WorkOrderFilter {
   status?: WorkOrderStatus;
@@ -29,13 +26,35 @@ export interface WorkOrderDataPort {
   // Step D: PB input SHS
   saveShsMapping(workOrderId: string, items: ShsItemInput[]): Observable<any>;
   // Step D: PB review (approve/reject)
-  pbReviewShs(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder>;
+  pbReviewShs(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder>;
   // Step E: Vendor submit invoice
-  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number, dokumentasiImageIds?: number[], dokumentasiKategori?: string[]): Observable<WorkOrder>;
+  submitInvoice(
+    workOrderId: string,
+    invoiceImageId: number,
+    invoiceDraftImageId?: number,
+    dokumentasiImageIds?: number[],
+    dokumentasiKategori?: string[],
+    fakturPajakImageId?: number,
+  ): Observable<WorkOrder>;
   // Step F: Verifikator review
-  verifikatorReview(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder>;
+  verifikatorReview(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder>;
   // Step G: PPTK approve (updated)
-  pptkApprove(workOrderId: string, approved: boolean, komentar?: string, alasan?: string): Observable<WorkOrder>;
+  pptkApprove(
+    workOrderId: string,
+    approved: boolean,
+    komentar?: string,
+    alasan?: string,
+  ): Observable<WorkOrder>;
 }
 
 export const WORKORDER_DATA = new InjectionToken<WorkOrderDataPort>('WORKORDER_DATA');

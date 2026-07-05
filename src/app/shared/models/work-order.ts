@@ -25,6 +25,7 @@ export interface WorkOrderVerifikasiHarga {
   id: string;
   status: string;
   catatanRevisi?: string | null;
+  verifikator?: any;
   shsItems: WorkOrderShsItem[];
 }
 
@@ -69,6 +70,7 @@ export interface WorkOrderPenawaranDetail {
 export interface WorkOrder {
   id: Uuid;
   nomor: string; // WO-2025-0001
+  nomorWo?: string;
   pengajuanId: Uuid;
   pengajuanNomor: string;
   vehicleId: Uuid;
@@ -86,11 +88,17 @@ export interface WorkOrder {
   rejectedReason: string | null;
   progressUpdates: WorkOrderProgress[];
   evidence: WorkOrderEvidence[];
+  dokumentasi?: any[];
   penawaranDetail: WorkOrderPenawaranDetail | null;
   verifikasiHarga?: WorkOrderVerifikasiHarga | null;
   pengajuan?: any;
   vendor?: any;
   totalBiaya?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  pbCatatan?: string | null;
+  pbVerifikasiAt?: string | null;
+  pbAlasanPenolakan?: string | null;
 }
 
 export interface WorkOrderProgress {

@@ -48,7 +48,7 @@ export class ShsMasterListComponent implements OnInit {
   protected submitting = false;
 
   protected readonly form: FormGroup = this.fb.group({
-    kodeItem: ['', Validators.required],
+    kodeItem: [''],
     namaItem: ['', Validators.required],
     satuan: ['PCS', Validators.required],
     hargaMaksimum: [0, [Validators.required, Validators.min(0)]],
@@ -65,6 +65,8 @@ export class ShsMasterListComponent implements OnInit {
     this.isEditMode = false;
     this.currentId = null;
     this.form.reset({
+      kodeItem: '',
+      namaItem: '',
       satuan: 'PCS',
       hargaMaksimum: 0,
       isAktif: true,

@@ -1,45 +1,196 @@
 <p-toast /><p-confirmDialog />
 
 <section class="flex flex-col gap-5">
-  <header class="flex items-start justify-between">
-    <div>
-      <h1 class="text-2xl font-bold text-primary-900">Penawaran Final</h1>
+  <header
+    class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-start md:justify-between"
+  >
+    <div class="space-y-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <h1 class="text-2xl font-bold text-primary-900">Penawaran Final</h1>
+        @if (activePenawaran(); as p) {
+          <p-tag [value]="p.status" [severity]="statusSeverity(p.status)" class="text-sm" />
+        }
+      </div>
       <p class="text-sm text-slate-500">
         Work Order: <strong>{{ workOrderId }}</strong>
       </p>
+      @if (workOrder(); as wo) {
+        <div class="flex flex-wrap gap-2 text-xs text-slate-500">
+          <span class="rounded-full bg-slate-100 px-3 py-1">{{ wo.nomorWo }}</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">{{
+            wo.pengajuan?.kendaraan?.nomorPolisi
+          }}</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1"
+            >{{ wo.pengajuan?.kendaraan?.merk }} {{ wo.pengajuan?.kendaraan?.model }}</span
+          >
+        </div>
+      }
     </div>
-    @if (activePenawaran(); as p) {
-      <p-tag [value]="p.status" [severity]="statusSeverity(p.status)" class="text-sm" />
+    @if (activePenawaran()?.status === 'REVISI') {
+      <div
+        class="max-w-xl rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-700"
+      >
+        <p class="font-semibold">Revisi Diperlukan</p>
+        <p class="mt-1">{{ activePenawaran()?.catatanPerubahan }}</p>
+      </div>
+    } @else if (activePenawaran()?.status === 'DIKIRIM') {
+      <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
+        <p class="font-semibold">Menunggu Verifikasi</p>
+        <p class="mt-1">Penawaran sudah dikirim dan sedang menunggu verifikasi tim internal.</p>
+      </div>
+    } @else if (activePenawaran()?.status === 'DIVERIFIKASI') {
+      <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+        <p class="font-semibold">Penawaran Disetujui</p>
+        <p class="mt-1">Penawaran telah diverifikasi. Menunggu proses pembayaran.</p>
+      </div>
     }
   </header>
 
-  <!-- Revisi notice -->
-  @if (activePenawaran()?.status === 'REVISI') {
-    <div class="rounded-lg border border-orange-200 bg-orange-50 p-4 flex gap-3">
-      <i class="pi pi-exclamation-triangle text-orange-500 mt-0.5"></i>
-      <div>
-        <p class="font-semibold text-orange-700">Revisi Diperlukan</p>
-        <p class="text-sm text-orange-600 mt-1">{{ activePenawaran()?.catatanPerubahan }}</p>
-      </div>
+  @if (workOrder(); as wo) {
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <p-card class="lg:col-span-2">
+        <ng-template pTemplate="title">Ringkasan Work Order</ng-template>
+        <ng-template pTemplate="content">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="rounded-xl bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Pengajuan</p>
+              <p class="mt-1 font-semibold text-slate-800">{{ wo.pengajuan?.jenisPengajuan }}</p>
+              <p class="mt-1 text-sm text-slate-600">{{ wo.pengajuan?.deskripsiKerusakan }}</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Vendor</p>
+              <p class="mt-1 font-semibold text-slate-800">{{ wo.vendor?.namaVendor ?? '-' }}</p>
+              <p class="mt-1 text-sm text-slate-600">{{ wo.vendor?.kontak ?? '-' }}</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Kendaraan</p>
+              <p class="mt-1 font-semibold text-slate-800">
+                {{ wo.pengajuan?.kendaraan?.nomorPolisi }}
+              </p>
+              <p class="mt-1 text-sm text-slate-600">
+                {{ wo.pengajuan?.kendaraan?.merk }} {{ wo.pengajuan?.kendaraan?.model }} ·
+                {{ wo.pengajuan?.kendaraan?.tahun }}
+              </p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Status WO</p>
+              <p class="mt-1 font-semibold text-slate-800">{{ wo.status }}</p>
+              <p class="mt-1 text-sm text-slate-600">
+                Dibuat {{ wo.createdAt | date: 'dd MMM yyyy HH:mm' }}
+              </p>
+            </div>
+          </div>
+        </ng-template>
+      </p-card>
     </div>
-  }
 
-  <!-- Waiting notice -->
-  @if (activePenawaran()?.status === 'DIKIRIM') {
-    <div
-      class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 flex items-center gap-2"
-    >
-      <i class="pi pi-clock"></i> Penawaran menunggu verifikasi dari tim internal.
-    </div>
-  }
+    <p-card>
+      <ng-template pTemplate="title">Detail Pengajuan</ng-template>
+      <ng-template pTemplate="content">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div class="lg:col-span-2 space-y-3">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Keluhan / Kerusakan</p>
+              <p class="mt-1 text-sm text-slate-700">{{ wo.pengajuan?.deskripsiKerusakan }}</p>
+            </div>
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div class="rounded-xl border border-slate-200 bg-white p-4">
+                <p class="text-xs uppercase tracking-wide text-slate-500">Pengemudi</p>
+                <p class="mt-1 font-semibold text-slate-800">
+                  {{ wo.pengajuan?.pengemudi?.fullName }}
+                </p>
+                <p class="text-sm text-slate-500">{{ wo.pengajuan?.pengemudi?.username }}</p>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-white p-4">
+                <p class="text-xs uppercase tracking-wide text-slate-500">
+                  Odometer Saat Pengajuan
+                </p>
+                <p class="mt-1 font-semibold text-slate-800">
+                  {{ formatKm(wo.pengajuan?.odometerSaatPengajuan) }} km
+                </p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="mb-2 text-sm font-semibold text-slate-700">Foto Pengajuan</p>
+            <div class="grid grid-cols-2 gap-2">
+              @for (foto of pengajuanPhotos(); track foto.id) {
+                <a
+                  [href]="foto.image?.signedUrl"
+                  target="_blank"
+                  class="group overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                >
+                  <img
+                    [src]="foto.image?.signedUrl"
+                    [alt]="foto.image?.originalFilename"
+                    class="h-28 w-full object-cover transition group-hover:scale-105"
+                  />
+                </a>
+              } @empty {
+                <div
+                  class="col-span-2 rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400"
+                >
+                  Belum ada foto pengajuan.
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </p-card>
 
-  <!-- Approved notice -->
-  @if (activePenawaran()?.status === 'DIVERIFIKASI') {
-    <div
-      class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2"
-    >
-      <i class="pi pi-check-circle"></i> Penawaran telah diverifikasi. Menunggu proses pembayaran.
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <p-card>
+        <ng-template pTemplate="title">Catatan Pengurus Barang</ng-template>
+        <ng-template pTemplate="content">
+          @if (wo.pbCatatan) {
+            <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+              <p class="font-semibold">{{ wo.pbCatatan }}</p>
+              <p class="mt-1 text-xs text-green-700">
+                Diputuskan {{ wo.pbVerifikasiAt | date: 'dd MMM yyyy HH:mm' }}
+              </p>
+            </div>
+          } @else {
+            <p class="text-sm text-slate-500">Belum ada catatan dari Pengurus Barang.</p>
+          }
+
+          @if (wo.pbAlasanPenolakan) {
+            <div class="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <p class="font-semibold">Alasan Penolakan</p>
+              <p class="mt-1">{{ wo.pbAlasanPenolakan }}</p>
+            </div>
+          }
+        </ng-template>
+      </p-card>
     </div>
+
+    <p-card>
+      <ng-template pTemplate="title">Dokumentasi Pengerjaan</ng-template>
+      <ng-template pTemplate="content">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
+          @for (dok of dokumentasiPhotos(); track dok.id) {
+            <a
+              [href]="dok.image?.signedUrl"
+              target="_blank"
+              class="group overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+            >
+              <img
+                [src]="dok.image?.signedUrl"
+                [alt]="dok.image?.originalFilename"
+                class="h-28 w-full object-cover transition group-hover:scale-105"
+              />
+              <div class="px-2 py-1 text-[11px] text-slate-500">{{ dok.kategori }}</div>
+            </a>
+          } @empty {
+            <div
+              class="col-span-full rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400"
+            >
+              Belum ada dokumentasi pengerjaan.
+            </div>
+          }
+        </div>
+      </ng-template>
+    </p-card>
   }
 
   <!-- ══ STEP E: Upload Invoice & Dokumentasi Pengerjaan ══ -->
@@ -63,31 +214,6 @@
           </p>
         </div>
       </div>
-
-      <!-- SHS Readonly -->
-      @if (shsItemsReadonly().length) {
-        <div class="rounded-lg border border-green-200 bg-white p-3">
-          <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Referensi SHS Disetujui
-          </p>
-          <p-table [value]="shsItemsReadonly()" [stripedRows]="true" styleClass="text-xs">
-            <ng-template #header>
-              <tr>
-                <th>Item</th>
-                <th class="text-right w-36">Harga Vendor</th>
-                <th class="text-right w-36">SHS Maks</th>
-              </tr>
-            </ng-template>
-            <ng-template #body let-s>
-              <tr>
-                <td>{{ s.namaItem }}</td>
-                <td class="text-right">{{ formatCurrency(s.hargaVendor) }}</td>
-                <td class="text-right">{{ formatCurrency(s.hargaStandart) }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      }
 
       <p-divider />
 
@@ -154,6 +280,44 @@
               class="hidden"
               [disabled]="stepEUploading()"
               (change)="onStepEFileSelected($event, 'draft')"
+            />
+          </label>
+        }
+      </div>
+
+      <!-- Upload Faktur Pajak -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-slate-700"
+          >Faktur Pajak <span class="text-slate-400 font-normal">(opsional)</span></label
+        >
+        @if (stepEFakturPajakPreview()) {
+          <div class="relative w-40 h-40 rounded-xl overflow-hidden border border-slate-200">
+            <img
+              [src]="stepEFakturPajakPreview()"
+              class="w-full h-full object-cover"
+              alt="Faktur Pajak"
+            />
+            <button
+              type="button"
+              (click)="stepEFakturPajakImageId.set(null); stepEFakturPajakPreview.set('')"
+              class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 shadow"
+            >
+              <i class="pi pi-trash text-xs"></i>
+            </button>
+          </div>
+        } @else {
+          <label
+            class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 py-4 hover:bg-amber-100 transition"
+          >
+            <i class="pi pi-receipt text-xl text-amber-500"></i>
+            <span class="text-sm text-amber-700">Upload faktur pajak (jika ada)</span>
+            <span class="text-xs text-slate-400">JPG, PNG, PDF — maks 5 MB</span>
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              class="hidden"
+              [disabled]="stepEUploading()"
+              (change)="onStepEFileSelected($event, 'faktur_pajak')"
             />
           </label>
         }
@@ -258,191 +422,105 @@
   }
 
   <!-- Approved draft items (read-only) -->
-  <div>
-    <h2 class="text-base font-semibold mb-2">Item dari Draft Checklist (Disetujui)</h2>
-    <div class="sikep-table-wrap">
-      <p-table [value]="approvedItems()" styleClass="text-sm" [rowHover]="true">
-        <ng-template #header>
-          <tr>
-            <th class="w-10">No</th>
-            <th>Kerusakan</th>
-            <th>Tindakan</th>
-            <th class="w-36 text-right">Harga Estimasi</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-item let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>{{ item.namaKerusakan }}</td>
-            <td class="text-xs">{{ item.tindakanPerbaikan }}</td>
-            <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
-          </tr>
-        </ng-template>
-        <ng-template #footer>
-          <tr class="bg-slate-50 font-semibold">
-            <td colspan="3" class="text-right">Total Draft:</td>
-            <td class="text-right">{{ formatCurrency(draftTotalHarga()) }}</td>
-          </tr>
-        </ng-template>
-        <ng-template #emptymessage>
-          <tr>
-            <td colspan="4" class="text-center text-slate-400 py-4">
-              Draft checklist belum disetujui. Pastikan draft sudah diverifikasi terlebih dahulu.
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </div>
-
-  <!-- Penawaran Form -->
-  @if (canEdit()) {
-    <form
-      [formGroup]="form"
-      class="flex flex-col gap-4 bg-slate-50 rounded-xl p-5 border border-slate-200"
-    >
-      <h2 class="text-base font-semibold">Detail Penawaran</h2>
-
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium"
-          >Total Biaya Penawaran (Rp) <span class="text-red-500">*</span></label
-        >
-        <p-inputnumber
-          formControlName="totalBiaya"
-          mode="currency"
-          currency="IDR"
-          locale="id-ID"
-          [min]="1"
-          class="w-full"
-        />
-        @if (form.get('totalBiaya')!.invalid && form.get('totalBiaya')!.touched) {
-          <small class="text-red-500">Total biaya wajib lebih dari 0.</small>
-        }
-        @if (needsCatatan()) {
-          <small class="text-orange-600"
-            >Catatan alasan perubahan harga wajib diisi karena total berbeda dari estimasi
-            draft.</small
-          >
-        }
+  <p-card>
+    <ng-template pTemplate="title">Item dari Draft Checklist (Disetujui)</ng-template>
+    <ng-template pTemplate="content">
+      <div class="sikep-table-wrap">
+        <p-table [value]="approvedItems()" styleClass="text-sm" [rowHover]="true">
+          <ng-template #header>
+            <tr>
+              <th class="w-10">No</th>
+              <th>Kerusakan</th>
+              <th>Tindakan</th>
+              <th class="w-36 text-right">Harga Estimasi</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="font-medium text-slate-700">{{ item.namaKerusakan }}</div>
+                @if (item.namaSparepart) {
+                  <div class="text-xs text-slate-400">Sparepart: {{ item.namaSparepart }}</div>
+                }
+              </td>
+              <td class="text-xs text-slate-600">{{ item.tindakanPerbaikan }}</td>
+              <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
+            </tr>
+            @if (item.fotos?.length) {
+              <tr class="bg-slate-50/70">
+                <td></td>
+                <td colspan="3" class="py-3">
+                  <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Bukti pada Draft
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    @for (foto of item.fotos; track foto.id) {
+                      <a
+                        [href]="foto.image?.signedUrl"
+                        target="_blank"
+                        class="block overflow-hidden rounded-lg border border-slate-200 bg-white"
+                      >
+                        <img
+                          [src]="foto.image?.signedUrl"
+                          [alt]="foto.image?.originalFilename"
+                          class="h-20 w-20 object-cover"
+                        />
+                      </a>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </ng-template>
+          <ng-template #footer>
+            <tr class="bg-slate-50 font-semibold">
+              <td colspan="3" class="text-right">Total Draft:</td>
+              <td class="text-right">{{ formatCurrency(draftTotalHarga()) }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="4" class="text-center text-slate-400 py-4">
+                Draft checklist belum disetujui. Pastikan draft sudah diverifikasi terlebih dahulu.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
-
-      @if (needsCatatan()) {
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium"
-            >Catatan Perubahan Harga <span class="text-red-500">*</span></label
-          >
-          <textarea
-            pTextarea
-            formControlName="catatanPerubahan"
-            rows="3"
-            placeholder="Jelaskan alasan perubahan dari estimasi draft..."
-          ></textarea>
-          @if (form.get('catatanPerubahan')!.invalid && form.get('catatanPerubahan')!.touched) {
-            <small class="text-red-500">Wajib diisi jika total biaya berbeda dari estimasi.</small>
-          }
-        </div>
-      }
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium"
-            >Nomor Invoice <span class="text-red-500">*</span></label
-          >
-          <input pInputText formControlName="nomorInvoice" placeholder="INV/2026/..." />
-          @if (form.get('nomorInvoice')!.invalid && form.get('nomorInvoice')!.touched) {
-            <small class="text-red-500">Wajib diisi.</small>
-          }
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium"
-            >Tanggal Invoice <span class="text-red-500">*</span></label
-          >
-          <p-datepicker
-            formControlName="tanggalInvoice"
-            [maxDate]="today"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            class="w-full"
-          />
-          @if (form.get('tanggalInvoice')!.invalid && form.get('tanggalInvoice')!.touched) {
-            <small class="text-red-500">Wajib diisi.</small>
-          }
-        </div>
-        <div class="col-span-2 flex flex-col gap-2 mt-2">
-          <label class="text-sm font-medium"
-            >File Scan/Foto Invoice <span class="text-red-500">*</span></label
-          >
-          @if (invoiceFileUrl()) {
-            <div class="relative w-48 h-48 rounded-xl overflow-hidden border border-slate-200">
-              <img
-                [src]="invoiceFileUrl()"
-                class="w-full h-full object-cover"
-                alt="Invoice Preview"
-              />
-              <button
-                type="button"
-                (click)="removeInvoiceFile(null)"
-                class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition shadow"
-              >
-                <i class="pi pi-trash text-sm"></i>
-              </button>
-            </div>
-          } @else {
-            <p-fileupload
-              #fuInvoice
-              mode="basic"
-              accept="image/*"
-              [maxFileSize]="5000000"
-              chooseLabel="Pilih File Invoice"
-              [customUpload]="true"
-              [auto]="true"
-              (uploadHandler)="onSelectInvoice($event, fuInvoice)"
-              styleClass="w-full"
-            ></p-fileupload>
-          }
-          <small class="text-slate-500">Maks. ukuran file 5 MB. Format JPG/PNG.</small>
-        </div>
-      </div>
-
-      <div class="flex justify-end pt-2">
-        <p-button
-          label="Kirim Penawaran ke Verifikator"
-          icon="pi pi-send"
-          [loading]="submitting()"
-          (onClick)="kirimPenawaran()"
-        />
-      </div>
-    </form>
-  }
+    </ng-template>
+  </p-card>
 
   <!-- History -->
   @if (penawaranList().length > 1) {
-    <div>
-      <h2 class="text-base font-semibold mb-2">Riwayat Penawaran</h2>
-      <p-table [value]="penawaranList()" dataKey="id" styleClass="text-sm" [rowHover]="true">
-        <ng-template #header>
-          <tr>
-            <th>Versi</th>
-            <th class="w-28 text-center">Status</th>
-            <th class="w-36 text-right">Total Biaya</th>
-            <th>No. Invoice</th>
-            <th>Catatan</th>
-            <th>Dibuat</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-p>
-          <tr>
-            <td>v{{ p.versi }}</td>
-            <td class="text-center">
-              <p-tag [value]="p.status" [severity]="statusSeverity(p.status)" />
-            </td>
-            <td class="text-right">{{ formatCurrency(p.totalBiaya) }}</td>
-            <td class="font-mono text-xs">{{ p.nomorInvoice || '—' }}</td>
-            <td class="text-xs text-slate-400">{{ p.catatanPerubahan || '—' }}</td>
-            <td class="text-xs text-slate-400">{{ p.createdAt | date: 'dd MMM yyyy' }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
+    <p-card>
+      <ng-template pTemplate="title">Riwayat Penawaran</ng-template>
+      <ng-template pTemplate="content">
+        <p-table [value]="penawaranList()" dataKey="id" styleClass="text-sm" [rowHover]="true">
+          <ng-template #header>
+            <tr>
+              <th>Versi</th>
+              <th class="w-28 text-center">Status</th>
+              <th class="w-36 text-right">Total Biaya</th>
+              <th>No. Invoice</th>
+              <th>Catatan</th>
+              <th>Dibuat</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-p>
+            <tr>
+              <td>v{{ p.versi }}</td>
+              <td class="text-center">
+                <p-tag [value]="p.status" [severity]="statusSeverity(p.status)" />
+              </td>
+              <td class="text-right">{{ formatCurrency(p.totalBiaya) }}</td>
+              <td class="font-mono text-xs">{{ p.nomorInvoice || '—' }}</td>
+              <td class="text-xs text-slate-400">{{ p.catatanPerubahan || '—' }}</td>
+              <td class="text-xs text-slate-400">{{ p.createdAt | date: 'dd MMM yyyy' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </ng-template>
+    </p-card>
   }
 </section>

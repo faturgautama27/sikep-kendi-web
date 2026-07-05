@@ -8,15 +8,14 @@ import type {
   WorkOrderStatus,
   Image,
 } from '@shared/models';
-import type {
-  WorkOrderDataPort,
-  WorkOrderFilter,
-} from '../ports/work-order-data.port';
+import type { WorkOrderDataPort, WorkOrderFilter } from '../ports/work-order-data.port';
 import { APP_ENV } from '../app-env.token';
 
 interface BackendImageRef {
   id: number;
   signedUrl?: string;
+  mimeType?: string;
+  originalFilename?: string;
 }
 
 interface BackendDraftChecklistFoto {
@@ -31,6 +30,8 @@ interface BackendDraftChecklistItem {
   urutan?: number;
   namaKerusakan?: string;
   namaSparepart?: string;
+  tindakanPerbaikan?: string;
+  hargaItem?: number | string;
   fotos?: BackendDraftChecklistFoto[];
 }
 
@@ -73,6 +74,19 @@ interface BackendVerifikasiHarga {
   updatedAt: string;
   verifikator?: BackendVerifikator | null;
   shsItems?: any[];
+}
+
+interface BackendDokumentasi {
+  id: number;
+  workOrderId: number;
+  imageId: number;
+  kategori: 'IN_PROGRESS' | 'SETELAH_PERBAIKAN';
+  createdAt: string;
+  image?: BackendImageRef & {
+    originalFilename?: string;
+    mimeType?: string;
+    signedUrl?: string;
+  };
 }
 
 interface BackendBuktiTransfer {
@@ -121,8 +135,11 @@ interface BackendPengajuan {
   kendaraanId: number;
   createdAt?: string;
   odometerSaatPengajuan?: number;
+  jenisPengajuan?: string;
+  deskripsiKerusakan?: string;
   pengemudi?: BackendPengemudi;
   kendaraan: BackendKendaraan;
+  fotos?: any[];
 }
 
 interface BackendWorkOrder {
@@ -139,14 +156,16 @@ interface BackendWorkOrder {
   penawaran?: BackendPenawaran[];
   verifikasiHarga?: BackendVerifikasiHarga | null;
   pembayaran?: BackendPembayaran | null;
-  dokumentasi?: any[];
+  dokumentasi?: BackendDokumentasi[];
 }
 
 interface ApiListResponse<T> {
   success?: boolean;
-  data?: {
-    items?: T[];
-  } | T[];
+  data?:
+    | {
+        items?: T[];
+      }
+    | T[];
 }
 
 interface ApiDetailResponse<T> {
@@ -185,11 +204,19 @@ function emptyImage(imageId: number, signedUrl?: string, caption?: string): Imag
   };
 }
 
+function isImageMimeType(mimeType?: string): boolean {
+  return typeof mimeType === 'string' && mimeType.toLowerCase().startsWith('image/');
+}
+
 function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
   const latestDraft = raw.draftChecklists?.[0];
   const fromDraft =
     latestDraft?.items?.flatMap((item) =>
-      (item.fotos ?? []).map((foto, index) => {
+      (item.fotos ?? []).flatMap((foto, index) => {
+        if (!isImageMimeType(foto.image?.mimeType)) {
+          return [];
+        }
+
         const urutan = foto.urutan ?? index + 1;
         const kategori =
           urutan === 1
@@ -201,15 +228,17 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
                 : 'pasca_perbaikan';
         const imageId = foto.imageId ?? foto.image?.id ?? 0;
         const caption = item.namaSparepart || item.namaKerusakan || `Item ${item.urutan}`;
-        return {
-          id: String(foto.id),
-          workOrderId: String(raw.id),
-          kategori,
-          imageId: String(imageId),
-          image: emptyImage(imageId, foto.image?.signedUrl, caption),
-          uploadedAt: latestDraft.updatedAt,
-          uploadedBy: String(raw.vendorId ?? 0),
-        } satisfies WorkOrderEvidence;
+        return [
+          {
+            id: String(foto.id),
+            workOrderId: String(raw.id),
+            kategori,
+            imageId: String(imageId),
+            image: emptyImage(imageId, foto.image?.signedUrl, caption),
+            uploadedAt: latestDraft.updatedAt,
+            uploadedBy: String(raw.vendorId ?? 0),
+          } satisfies WorkOrderEvidence,
+        ];
       }),
     ) ?? [];
 
@@ -220,7 +249,10 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
           workOrderId: String(raw.id),
           kategori: 'pasca_perbaikan',
           imageId: String(raw.pembayaran.buktiTransfer.imageId),
-          image: emptyImage(raw.pembayaran.buktiTransfer.imageId, raw.pembayaran.buktiTransfer.image?.signedUrl),
+          image: emptyImage(
+            raw.pembayaran.buktiTransfer.imageId,
+            raw.pembayaran.buktiTransfer.image?.signedUrl,
+          ),
           uploadedAt: raw.pembayaran.paidAt ?? raw.pembayaran.updatedAt,
           uploadedBy: String(raw.pembayaran.bendaharaId),
         } satisfies WorkOrderEvidence,
@@ -232,7 +264,11 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
     workOrderId: String(raw.id),
     kategori: dok.kategori === 'IN_PROGRESS' ? 'sparepart_sebelum' : 'pasca_perbaikan',
     imageId: String(dok.imageId),
-    image: emptyImage(dok.imageId, dok.image?.signedUrl, dok.kategori === 'IN_PROGRESS' ? 'In Progress' : 'Setelah Perbaikan'),
+    image: emptyImage(
+      dok.imageId,
+      dok.image?.signedUrl,
+      dok.kategori === 'IN_PROGRESS' ? 'In Progress' : 'Setelah Perbaikan',
+    ),
     uploadedAt: dok.createdAt,
     uploadedBy: String(raw.vendorId ?? 0),
   }));
@@ -274,7 +310,8 @@ function mapProgress(raw: BackendWorkOrder): WorkOrderProgress[] {
       occurredAt: latestDraft.updatedAt ?? latestDraft.createdAt,
       actorId: String(raw.vendorId ?? 0),
       actorName: vendorName,
-      notes: draftNotesByStatus[latestDraft.status] ?? `Draft checklist status ${latestDraft.status}`,
+      notes:
+        draftNotesByStatus[latestDraft.status] ?? `Draft checklist status ${latestDraft.status}`,
     });
   }
 
@@ -328,6 +365,7 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
   return {
     id: String(raw.id),
     nomor: raw.nomorWo,
+    nomorWo: raw.nomorWo,
     pengajuanId: String(raw.pengajuanId),
     pengajuanNomor: `PENGAJUAN-${raw.pengajuan.id}`,
     vehicleId: String(raw.pengajuan.kendaraanId),
@@ -335,21 +373,35 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
     vendorId: String(raw.vendorId ?? 0),
     vendorNama: raw.vendor?.namaVendor ?? 'Belum ditugaskan',
     status: mappedStatus,
-    totalNominal: asNumber(raw.pembayaran?.totalDibayar ?? latestPenawaran?.totalBiaya ?? latestPenawaran?.invoice?.totalTagihan),
+    totalNominal: asNumber(
+      raw.pembayaran?.totalDibayar ??
+        latestPenawaran?.totalBiaya ??
+        latestPenawaran?.invoice?.totalTagihan,
+    ),
     assignedAt: raw.createdAt,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt ?? raw.createdAt,
     receivedAt: raw.draftChecklists?.[0]?.createdAt ?? null,
     startedAt: raw.draftChecklists?.[0]?.updatedAt ?? null,
     completedAt: raw.verifikasiHarga?.verifikasiAt ?? null,
-    validatedAt: raw.pembayaran?.paidAt ?? (raw.verifikasiHarga?.status === 'REVISI_DIMINTA' ? raw.verifikasiHarga?.updatedAt ?? null : null),
+    validatedAt:
+      raw.pembayaran?.paidAt ??
+      (raw.verifikasiHarga?.status === 'REVISI_DIMINTA'
+        ? (raw.verifikasiHarga?.updatedAt ?? null)
+        : null),
     validatedBy:
       mappedStatus === 'DIBAYAR'
         ? String(raw.pembayaran?.bendaharaId ?? 0)
         : raw.verifikasiHarga?.status === 'REVISI_DIMINTA'
           ? String(raw.verifikasiHarga?.verifikator?.id ?? 0)
           : null,
-    rejectedReason: raw.verifikasiHarga?.status === 'REVISI_DIMINTA' ? (raw.verifikasiHarga.catatanRevisi ?? null) : null,
+    rejectedReason:
+      raw.verifikasiHarga?.status === 'REVISI_DIMINTA'
+        ? (raw.verifikasiHarga.catatanRevisi ?? null)
+        : null,
     progressUpdates: mapProgress(raw),
     evidence: mapEvidence(raw),
+    dokumentasi: raw.dokumentasi ?? [],
     penawaranDetail: latestPenawaran
       ? {
           id: String(latestPenawaran.id),
@@ -357,14 +409,15 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
           totalBiaya: asNumber(latestPenawaran.totalBiaya),
           status: latestPenawaran.status,
           catatanPerubahan: null,
-          items: latestPenawaran.items?.map((item: any) => ({
-            id: item.id,
-            urutan: item.urutan ?? 1,
-            namaKerusakan: item.namaKerusakan ?? '',
-            namaSparepart: item.namaSparepart ?? '',
-            tindakanPerbaikan: item.tindakanPerbaikan ?? '',
-            hargaItem: asNumber(item.hargaItem),
-          })) ?? [],
+          items:
+            latestPenawaran.items?.map((item: any) => ({
+              id: item.id,
+              urutan: item.urutan ?? 1,
+              namaKerusakan: item.namaKerusakan ?? '',
+              namaSparepart: item.namaSparepart ?? '',
+              tindakanPerbaikan: item.tindakanPerbaikan ?? '',
+              hargaItem: asNumber(item.hargaItem),
+            })) ?? [],
           invoice: latestPenawaran.invoice
             ? {
                 nomorInvoice: latestPenawaran.invoice.nomorInvoice,
@@ -380,16 +433,17 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
           id: String(raw.verifikasiHarga.id),
           status: raw.verifikasiHarga.status,
           catatanRevisi: raw.verifikasiHarga.catatanRevisi,
-          shsItems: raw.verifikasiHarga.shsItems?.map((s: any) => ({
-            id: s.id,
-            namaItem: s.namaItem ?? '',
-            hargaVendor: asNumber(s.hargaVendor),
-            hargaStandart: asNumber(s.hargaStandart),
-            selisih: asNumber(s.selisih),
-            keterangan: s.keterangan ?? '',
-            shsMasterId: s.shsMasterId ?? null,
-            shsMaster: s.shsMaster ?? null,
-          })) ?? [],
+          shsItems:
+            raw.verifikasiHarga.shsItems?.map((s: any) => ({
+              id: s.id,
+              namaItem: s.namaItem ?? '',
+              hargaVendor: asNumber(s.hargaVendor),
+              hargaStandart: asNumber(s.hargaStandart),
+              selisih: asNumber(s.selisih),
+              keterangan: s.keterangan ?? '',
+              shsMasterId: s.shsMasterId ?? null,
+              shsMaster: s.shsMaster ?? null,
+            })) ?? [],
         }
       : null,
     pengajuan: {
@@ -398,6 +452,9 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
       odometerSaatPengajuan: raw.pengajuan.odometerSaatPengajuan,
       pengemudi: raw.pengajuan.pengemudi,
       kendaraan: raw.pengajuan.kendaraan,
+      jenisPengajuan: raw.pengajuan.jenisPengajuan,
+      deskripsiKerusakan: raw.pengajuan.deskripsiKerusakan,
+      fotos: raw.pengajuan.fotos ?? [],
     },
     vendor: raw.vendor ?? null,
   };
@@ -424,14 +481,16 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
     if (filter?.from) params = params.set('from', filter.from);
     if (filter?.to) params = params.set('to', filter.to);
     return this.http
-      .get<BackendWorkOrder[] | ApiListResponse<BackendWorkOrder>>(this.url('/work-orders'), { params })
+      .get<
+        BackendWorkOrder[] | ApiListResponse<BackendWorkOrder>
+      >(this.url('/work-orders'), { params })
       .pipe(
         map((res) => {
           const rows = Array.isArray(res)
             ? res
             : Array.isArray(res?.data)
               ? res.data
-              : res?.data?.items ?? [];
+              : (res?.data?.items ?? []);
           return rows.map(mapWorkOrder);
         }),
       );
@@ -440,7 +499,13 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
   getById(id: string): Observable<WorkOrder> {
     return this.http
       .get<BackendWorkOrder | ApiDetailResponse<BackendWorkOrder>>(this.url(`/work-orders/${id}`))
-      .pipe(map((res) => mapWorkOrder((res as ApiDetailResponse<BackendWorkOrder>)?.data ?? (res as BackendWorkOrder))));
+      .pipe(
+        map((res) =>
+          mapWorkOrder(
+            (res as ApiDetailResponse<BackendWorkOrder>)?.data ?? (res as BackendWorkOrder),
+          ),
+        ),
+      );
   }
 
   assignVendor(workOrderId: string, vendorId: string): Observable<WorkOrder> {
@@ -459,40 +524,85 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
 
   rejectPPTK(workOrderId: string, catatan: string): Observable<WorkOrder> {
     return this.http
-      .post<BackendWorkOrder>(this.url(`/work-orders/${workOrderId}/reject-pptk`), { catatanRevisi: catatan })
+      .post<BackendWorkOrder>(this.url(`/work-orders/${workOrderId}/reject-pptk`), {
+        catatanRevisi: catatan,
+      })
       .pipe(map((row) => mapWorkOrder(row)));
   }
 
   // Step D: PB input SHS mapping
-  saveShsMapping(workOrderId: string, items: import('../ports/work-order-data.port').ShsItemInput[]): Observable<any> {
+  saveShsMapping(
+    workOrderId: string,
+    items: import('../ports/work-order-data.port').ShsItemInput[],
+  ): Observable<any> {
     return this.http.post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/shs`), { items });
   }
 
   // Step D: PB review approve/reject
-  pbReviewShs(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder> {
+  pbReviewShs(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder> {
     return this.http
-      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pb-review`), { approved, catatan, alasanPenolakan })
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pb-review`), {
+        approved,
+        catatan,
+        alasanPenolakan,
+      })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 
   // Step E: Vendor submit invoice
-  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number, dokumentasiImageIds?: number[], dokumentasiKategori?: string[]): Observable<WorkOrder> {
+  submitInvoice(
+    workOrderId: string,
+    invoiceImageId: number,
+    invoiceDraftImageId?: number,
+    dokumentasiImageIds?: number[],
+    dokumentasiKategori?: string[],
+    fakturPajakImageId?: number,
+  ): Observable<WorkOrder> {
     return this.http
-      .post<any>(this.url(`/work-orders/${workOrderId}/submit-invoice`), { invoiceImageId, invoiceDraftImageId, dokumentasiImageIds, dokumentasiKategori })
+      .post<any>(this.url(`/work-orders/${workOrderId}/submit-invoice`), {
+        invoiceImageId,
+        invoiceDraftImageId,
+        dokumentasiImageIds,
+        dokumentasiKategori,
+        fakturPajakImageId,
+      })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 
   // Step F: Verifikator review
-  verifikatorReview(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder> {
+  verifikatorReview(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder> {
     return this.http
-      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/verifikator-review`), { approved, catatan, alasanPenolakan })
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/verifikator-review`), {
+        approved,
+        catatan,
+        alasanPenolakan,
+      })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 
   // Step G: PPTK unified approve/reject
-  pptkApprove(workOrderId: string, approved: boolean, komentar?: string, alasan?: string): Observable<WorkOrder> {
+  pptkApprove(
+    workOrderId: string,
+    approved: boolean,
+    komentar?: string,
+    alasan?: string,
+  ): Observable<WorkOrder> {
     return this.http
-      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pptk-approve`), { approved, komentar, alasan })
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pptk-approve`), {
+        approved,
+        komentar,
+        alasan,
+      })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 }

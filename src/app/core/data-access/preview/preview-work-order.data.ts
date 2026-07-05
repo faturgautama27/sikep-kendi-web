@@ -2,10 +2,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import type { WorkOrder } from '@shared/models';
-import type {
-  WorkOrderDataPort,
-  WorkOrderFilter,
-} from '../ports/work-order-data.port';
+import type { WorkOrderDataPort, WorkOrderFilter } from '../ports/work-order-data.port';
 
 /**
  * Preview-mode implementation of WorkOrderDataPort.
@@ -32,26 +29,64 @@ export class PreviewWorkOrderData implements WorkOrderDataPort {
   }
 
   rejectPPTK(workOrderId: string, catatan: string): Observable<WorkOrder> {
-    return of({ id: workOrderId, status: 'DITOLAK_PPTK', rejectedReason: catatan } as unknown as WorkOrder);
+    return of({
+      id: workOrderId,
+      status: 'DITOLAK_PPTK',
+      rejectedReason: catatan,
+    } as unknown as WorkOrder);
   }
 
-  saveShsMapping(workOrderId: string, items: import('../ports/work-order-data.port').ShsItemInput[]): Observable<any> {
+  saveShsMapping(
+    workOrderId: string,
+    items: import('../ports/work-order-data.port').ShsItemInput[],
+  ): Observable<any> {
     return of({ success: true });
   }
 
-  pbReviewShs(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder> {
-    return of({ id: workOrderId, status: approved ? 'MENUNGGU_INVOICE_VENDOR' : 'DITOLAK_PB' } as unknown as WorkOrder);
+  pbReviewShs(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder> {
+    return of({
+      id: workOrderId,
+      status: approved ? 'MENUNGGU_INVOICE_VENDOR' : 'DITOLAK_PB',
+    } as unknown as WorkOrder);
   }
 
-  submitInvoice(workOrderId: string, invoiceImageId: number, invoiceDraftImageId?: number): Observable<WorkOrder> {
+  submitInvoice(
+    workOrderId: string,
+    invoiceImageId: number,
+    invoiceDraftImageId?: number,
+    dokumentasiImageIds?: number[],
+    dokumentasiKategori?: string[],
+    fakturPajakImageId?: number,
+  ): Observable<WorkOrder> {
     return of({ id: workOrderId, status: 'MENUNGGU_VERIFIKATOR' } as unknown as WorkOrder);
   }
 
-  verifikatorReview(workOrderId: string, approved: boolean, catatan?: string, alasanPenolakan?: string): Observable<WorkOrder> {
-    return of({ id: workOrderId, status: approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR' } as unknown as WorkOrder);
+  verifikatorReview(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder> {
+    return of({
+      id: workOrderId,
+      status: approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR',
+    } as unknown as WorkOrder);
   }
 
-  pptkApprove(workOrderId: string, approved: boolean, komentar?: string, alasan?: string): Observable<WorkOrder> {
-    return of({ id: workOrderId, status: approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK' } as unknown as WorkOrder);
+  pptkApprove(
+    workOrderId: string,
+    approved: boolean,
+    komentar?: string,
+    alasan?: string,
+  ): Observable<WorkOrder> {
+    return of({
+      id: workOrderId,
+      status: approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK',
+    } as unknown as WorkOrder);
   }
 }

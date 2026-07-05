@@ -4,7 +4,7 @@ export const environment: AppEnvironment = {
   production: true,
   previewMode: false,
   isMobile: true,
-  apiBaseUrl: 'https://apidev-sikepkendi.darmamulticorp.com/api',
+  apiBaseUrl: 'http://localhost:3000/api',
   appName: 'SiKeP KenDI Pengemudi',
   tagline: 'Sistem Kendali Pemeliharaan Kendaraan Dinas',
   defaultLocale: 'id-ID',

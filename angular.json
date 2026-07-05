@@ -109,6 +109,9 @@
             },
             "development": {
               "buildTarget": "sikep-kendi-web:build:development"
+            },
+            "mobile": {
+              "buildTarget": "sikep-kendi-web:build:mobile"
             }
           },
           "defaultConfiguration": "development"

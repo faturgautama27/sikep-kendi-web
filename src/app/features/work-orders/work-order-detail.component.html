@@ -462,7 +462,7 @@
 
         <!-- ══ STEP F: Verifikator Review ══ -->
         @if (wo.status === 'MENUNGGU_VERIFIKATOR' && isVerifikator()) {
-          <p-card header="Step F — Verifikasi Invoice & Dokumen">
+          <p-card header="Verifikasi Invoice & Dokumen">
             <div class="flex flex-col gap-4">
               <p class="text-sm text-slate-600">
                 Review invoice final, draft checklist, SPK, dan Berita Acara.
@@ -518,7 +518,7 @@
 
         <!-- ══ STEP G: PPTK Decision ══ -->
         @if (wo.status === 'MENUNGGU_PPTK' && (isPPTK() || isAdmin())) {
-          <p-card header="Step G — Persetujuan PPTK">
+          <p-card header="Persetujuan PPTK">
             <div class="flex flex-col gap-3">
               <p class="text-sm text-slate-600">
                 Review detail pekerjaan dan nominal. Berikan persetujuan akhir sebelum pembayaran.
