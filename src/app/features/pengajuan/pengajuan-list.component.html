@@ -125,6 +125,7 @@
           [ngModel]="selectedStatuses()"
           (ngModelChange)="selectedStatuses.set($event)"
           styleClass="w-full"
+          appendTo="body"
         ></p-multiSelect>
       </div>
 
@@ -139,6 +140,7 @@
           [ngModel]="selectedJenis()"
           (ngModelChange)="selectedJenis.set($event)"
           styleClass="w-full"
+          appendTo="body"
         ></p-select>
       </div>
 

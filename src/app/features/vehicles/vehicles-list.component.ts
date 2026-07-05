@@ -15,7 +15,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { VehiclesState } from './state';
+import { VehiclesState, LoadVehicles } from './state';
 import type { Vehicle, VehicleStatus, VehicleType } from '@shared/models';
 
 const STATUS_OPTIONS: { label: string; value: VehicleStatus }[] = [
@@ -100,6 +100,7 @@ export class VehiclesListComponent {
     this.search.set('');
     this.selectedStatuses.set([]);
     this.selectedJenis.set(null);
+    this.store.dispatch(new LoadVehicles());
   }
 
   protected onAdd(): void {

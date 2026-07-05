@@ -196,6 +196,7 @@ export class PengajuanListComponent implements OnInit {
     this.searchQuery.set('');
     this.selectedStatuses.set([]);
     this.selectedJenis.set(null);
+    this.store.dispatch(new LoadPengajuan());
   }
 
   /** Mapping status → severity Tag PrimeNG (biru-putih friendly). */

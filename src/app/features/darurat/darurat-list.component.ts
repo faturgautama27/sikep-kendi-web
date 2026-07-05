@@ -145,6 +145,7 @@ export class DaruratListComponent implements OnInit {
   protected onResetFilter(): void {
     this.searchQuery.set('');
     this.selectedStatuses.set([]);
+    this.store.dispatch(new LoadDarurat());
   }
 
   protected getStatusProps(status: string): any {

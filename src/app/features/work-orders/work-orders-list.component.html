@@ -55,7 +55,7 @@
         [filter]="true"
         filterBy="label"
         [ngModel]="selectedVendor()"
-        (ngModelChange)="selectedVendor.set($event)"
+        (ngModelChange)="onVendorChange($event)"
         styleClass="w-full"
         appendTo="body"
       ></p-select>

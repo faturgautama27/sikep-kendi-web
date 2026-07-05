@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 
@@ -15,14 +15,16 @@ import { TimelineModule } from 'primeng/timeline';
 import { RouterLink } from '@angular/router';
 
 import type {
+  VendorAdmin,
   WorkOrder,
   WorkOrderEvidence,
   WorkOrderProgress,
   WorkOrderProgressStatus,
   WorkOrderStatus,
 } from '@shared/models';
+import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
 
-import { WorkOrdersState } from './state';
+import { LoadWorkOrders, WorkOrdersState } from './state';
 import { AuthState } from '@features/login/state/auth.state';
 
 interface OptionItem<T> {
@@ -89,24 +91,55 @@ const EVIDENCE_LABEL: Record<string, string> = {
   templateUrl: './work-orders-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WorkOrdersListComponent {
+export class WorkOrdersListComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly adminPort = inject(AdminDataPort);
 
   protected readonly statusOptions = STATUS_OPTIONS;
 
   /** List dari NGXS state. */
   private readonly list = this.store.selectSignal(WorkOrdersState.list);
+  private readonly vendors = signal<VendorAdmin[]>([]);
   protected readonly permissions = this.store.selectSignal(AuthState.permissions);
 
-  protected readonly vendorOptions = computed<OptionItem<string>[]>(() => [
-    { label: 'Semua vendor', value: null },
-    ...this.list().map((wo) => ({ label: wo.vendorNama, value: wo.vendorId })),
-  ]);
+  protected readonly vendorOptions = computed<OptionItem<string>[]>(() => {
+    const fromApi = this.vendors();
+    if (fromApi.length > 0) {
+      return [
+        { label: 'Semua vendor', value: null },
+        ...fromApi.map((vendor) => ({ label: vendor.namaVendor, value: String(vendor.id) })),
+      ];
+    }
+
+    // Fallback bila API vendor gagal/masih loading.
+    const deduped = new Map<string, string>();
+    for (const wo of this.list()) {
+      if (!deduped.has(wo.vendorId)) {
+        deduped.set(wo.vendorId, wo.vendorNama);
+      }
+    }
+
+    return [
+      { label: 'Semua vendor', value: null },
+      ...Array.from(deduped.entries()).map(([value, label]) => ({ label, value })),
+    ];
+  });
+
+  ngOnInit(): void {
+    this.adminPort.getVendors().subscribe({
+      next: (vendors) => this.vendors.set(vendors),
+      error: () => this.vendors.set([]),
+    });
+  }
 
   /** Filter signals. */
   protected readonly searchQuery = signal('');
   protected readonly selectedStatuses = signal<WorkOrderStatus[]>([]);
   protected readonly selectedVendor = signal<string | null>(null);
+
+  protected onVendorChange(value: string | number | null): void {
+    this.selectedVendor.set(value == null ? null : String(value));
+  }
 
   protected readonly filteredList = computed<WorkOrder[]>(() => {
     const all = this.list();
@@ -119,7 +152,7 @@ export class WorkOrdersListComponent {
         if (!haystack.includes(q)) return false;
       }
       if (statuses.length > 0 && !statuses.includes(wo.status)) return false;
-      if (vendor && wo.vendorId !== vendor) return false;
+      if (vendor && String(wo.vendorId) !== vendor) return false;
       return true;
     });
   });
@@ -152,6 +185,7 @@ export class WorkOrdersListComponent {
     this.searchQuery.set('');
     this.selectedStatuses.set([]);
     this.selectedVendor.set(null);
+    this.store.dispatch(new LoadWorkOrders());
   }
 
   protected statusLabel(status: WorkOrderStatus): string {
