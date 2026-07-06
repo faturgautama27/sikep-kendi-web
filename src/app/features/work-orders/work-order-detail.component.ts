@@ -332,6 +332,50 @@ export class WorkOrderDetailComponent implements OnInit {
     });
   }
 
+  protected fotoMimeType(foto: any): string {
+    return foto?.mimeType ?? foto?.image?.mimeType ?? '';
+  }
+
+  protected fotoFileName(foto: any): string {
+    return foto?.fileName ?? foto?.image?.originalFilename ?? '';
+  }
+
+  protected fotoUrl(foto: any): string {
+    return foto?.url ?? foto?.image?.signedUrl ?? '';
+  }
+
+  protected isImageFile(foto: any): boolean {
+    return this.fotoMimeType(foto).startsWith('image/');
+  }
+
+  protected isPdfFile(foto: any): boolean {
+    return this.fotoMimeType(foto) === 'application/pdf';
+  }
+
+  protected isDocFile(foto: any): boolean {
+    const mt = this.fotoMimeType(foto);
+    return (
+      mt === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      mt === 'application/msword'
+    );
+  }
+
+  protected fotoIcon(foto: any): string {
+    if (this.isImageFile(foto)) return 'pi pi-image';
+    if (this.isPdfFile(foto)) return 'pi pi-file-pdf';
+    if (this.isDocFile(foto)) return 'pi pi-file-word';
+    return 'pi pi-file';
+  }
+
+  protected fotoLabel(foto: any, idx: number): string {
+    const name = this.fotoFileName(foto);
+    if (name) return name;
+    if (this.isPdfFile(foto)) return `PDF ${idx + 1}`;
+    if (this.isDocFile(foto)) return `Word ${idx + 1}`;
+    if (this.isImageFile(foto)) return `Foto ${idx + 1}`;
+    return `File ${idx + 1}`;
+  }
+
   protected formatDateTime(val: string): string {
     if (!val) return '-';
     return new Date(val).toLocaleString('id-ID', {

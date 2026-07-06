@@ -4,7 +4,10 @@ import { map, tap } from 'rxjs';
 
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
-import { DRAFT_CHECKLIST_DATA, type DraftChecklistDataPort } from '@core/data-access/ports/draft-checklist-data.port';
+import {
+  DRAFT_CHECKLIST_DATA,
+  type DraftChecklistDataPort,
+} from '@core/data-access/ports/draft-checklist-data.port';
 
 import {
   ApproveDraft,
@@ -22,7 +25,13 @@ export interface DraftChecklistItem {
   tindakanPerbaikan?: string;
   hargaItem: number;
   fotoIds?: number[];
-  fotos?: { imageId: number; url?: string; fileName?: string; mimeType?: string }[];
+  fotos?: {
+    imageId: number;
+    url?: string;
+    fileName?: string;
+    mimeType?: string;
+    image?: { signedUrl?: string; mimeType?: string; originalFilename?: string };
+  }[];
 }
 
 export interface DraftChecklistRecord {
@@ -76,7 +85,9 @@ export class DraftChecklistState {
     return this.data.listByWorkOrder(action.workOrderId).pipe(
       map((rows) => rows as DraftChecklistRecord[]),
       tap((rows) => {
-        const others = ctx.getState().list.filter((item) => String(item.workOrderId) !== String(action.workOrderId));
+        const others = ctx
+          .getState()
+          .list.filter((item) => String(item.workOrderId) !== String(action.workOrderId));
         ctx.patchState({ list: [...rows, ...others] });
       }),
     );
@@ -92,9 +103,13 @@ export class DraftChecklistState {
       );
     }
 
-    const current = ctx.getState().list.filter((it) => String(it.workOrderId) === String(action.workOrderId));
+    const current = ctx
+      .getState()
+      .list.filter((it) => String(it.workOrderId) === String(action.workOrderId));
     const nextVersion = current.length === 0 ? 1 : Math.max(...current.map((it) => it.versi)) + 1;
-    const items = ((action.payload['items'] as DraftChecklistItem[]) ?? []).map((item) => ({ ...item }));
+    const items = ((action.payload['items'] as DraftChecklistItem[]) ?? []).map((item) => ({
+      ...item,
+    }));
     const totalHarga = items.reduce((sum, item) => sum + Number(item.hargaItem ?? 0), 0);
     const next: DraftChecklistRecord = {
       id: `dc-${action.workOrderId}-${nextVersion}`,
@@ -122,11 +137,13 @@ export class DraftChecklistState {
     }
 
     ctx.patchState({
-      list: ctx.getState().list.map((item) =>
-        item.id === action.id && item.status === 'DRAFT'
-          ? { ...item, status: 'DIKIRIM' as const }
-          : item,
-      ),
+      list: ctx
+        .getState()
+        .list.map((item) =>
+          item.id === action.id && item.status === 'DRAFT'
+            ? { ...item, status: 'DIKIRIM' as const }
+            : item,
+        ),
     });
     return;
   }
@@ -144,11 +161,13 @@ export class DraftChecklistState {
     }
 
     ctx.patchState({
-      list: ctx.getState().list.map((item) =>
-        item.id === action.id && item.status === 'DIKIRIM'
-          ? { ...item, status: 'DISETUJUI' as const, notesRejection: undefined }
-          : item,
-      ),
+      list: ctx
+        .getState()
+        .list.map((item) =>
+          item.id === action.id && item.status === 'DIKIRIM'
+            ? { ...item, status: 'DISETUJUI' as const, notesRejection: undefined }
+            : item,
+        ),
     });
     return;
   }
@@ -166,11 +185,13 @@ export class DraftChecklistState {
     }
 
     ctx.patchState({
-      list: ctx.getState().list.map((item) =>
-        item.id === action.id && item.status === 'DIKIRIM'
-          ? { ...item, status: 'DITOLAK' as const, notesRejection: action.notesRejection }
-          : item,
-      ),
+      list: ctx
+        .getState()
+        .list.map((item) =>
+          item.id === action.id && item.status === 'DIKIRIM'
+            ? { ...item, status: 'DITOLAK' as const, notesRejection: action.notesRejection }
+            : item,
+        ),
     });
     return;
   }

@@ -139,10 +139,11 @@
                         @for (foto of item.fotos; track foto.imageId; let idx = $index) {
                           <button
                             type="button"
-                            class="w-fit text-left text-xs font-medium text-primary-700 underline underline-offset-2"
-                            (click)="openDraftAttachment(foto.imageId, foto.url)"
+                            class="w-fit flex items-center gap-1 text-left text-xs font-medium text-primary-700 underline underline-offset-2"
+                            (click)="openDraftAttachment(foto.imageId, fotoUrl(foto))"
                           >
-                            File {{ idx + 1 }}
+                            <i [class]="fotoIcon(foto)" class="text-xs"></i>
+                            {{ fotoLabel(foto, idx) }}
                           </button>
                         }
                       </div>
