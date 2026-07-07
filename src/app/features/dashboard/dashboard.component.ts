@@ -46,7 +46,9 @@ export class DashboardComponent {
   protected readonly workOrders = this.store.selectSignal(WorkOrdersState.list);
 
   protected readonly activeWorkOrders = computed(
-    () => this.workOrders().filter((wo) => ['assigned', 'received', 'in_progress'].includes(wo.status)).length,
+    () =>
+      this.workOrders().filter((wo) => ['assigned', 'received', 'in_progress'].includes(wo.status))
+        .length,
   );
 
   protected readonly activeEwe = computed(() => this.topDeviation().length);
@@ -57,7 +59,9 @@ export class DashboardComponent {
 
   protected formatRupiah(v: number | null | undefined): string {
     return new Intl.NumberFormat('id-ID', {
-      style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
     }).format(v ?? 0);
   }
 
@@ -77,7 +81,7 @@ export class DashboardComponent {
 
   protected readonly donutOptions = {
     chart: { type: 'donut' as const, height: 220, sparkline: { enabled: false } },
-    labels: ['WO Aktif', 'Pengajuan Pending', 'EWE Aktif'],
+    labels: ['WO Aktif', 'Pengajuan Pending', 'EWS Aktif'],
     colors: ['#2563eb', '#f59e0b', '#ef4444'],
     legend: { show: true, position: 'bottom' as const, fontSize: '11px' },
     plotOptions: {
@@ -118,9 +122,19 @@ export class DashboardComponent {
   ]);
 
   protected readonly barOptions = {
-    chart: { type: 'bar' as const, height: 160, toolbar: { show: false }, sparkline: { enabled: false } } as ApexChart,
+    chart: {
+      type: 'bar' as const,
+      height: 160,
+      toolbar: { show: false },
+      sparkline: { enabled: false },
+    } as ApexChart,
     plotOptions: {
-      bar: { horizontal: false, columnWidth: '40%', borderRadius: 6, borderRadiusApplication: 'end' as const },
+      bar: {
+        horizontal: false,
+        columnWidth: '40%',
+        borderRadius: 6,
+        borderRadiusApplication: 'end' as const,
+      },
     } as ApexPlotOptions,
     xaxis: {
       categories: ['Aktif', 'Perbaikan', 'Pensiun'],
@@ -135,7 +149,9 @@ export class DashboardComponent {
 
   // ── Vendor performa: Radial ───────────────────────────────────────────
   protected readonly radialSeries = computed(() =>
-    this.safeArray<VendorPerformance>(this.vendorPerf()).slice(0, 4).map(v => Math.round((1 - v.rejectionRate) * 100))
+    this.safeArray<VendorPerformance>(this.vendorPerf())
+      .slice(0, 4)
+      .map((v) => Math.round((1 - v.rejectionRate) * 100)),
   );
 
   protected readonly radialOptions = computed(() => ({
@@ -149,7 +165,9 @@ export class DashboardComponent {
         dataLabels: { name: { fontSize: '10px' }, value: { fontSize: '12px', fontWeight: 700 } },
       },
     },
-    labels: this.safeArray<VendorPerformance>(this.vendorPerf()).slice(0, 4).map(v => v.vendorNama.split(' ').slice(0, 2).join(' ')),
+    labels: this.safeArray<VendorPerformance>(this.vendorPerf())
+      .slice(0, 4)
+      .map((v) => v.vendorNama.split(' ').slice(0, 2).join(' ')),
     colors: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'],
     legend: { show: true, position: 'bottom' as const, fontSize: '10px' },
   }));
