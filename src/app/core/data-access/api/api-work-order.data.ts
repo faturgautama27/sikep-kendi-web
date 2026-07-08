@@ -157,6 +157,9 @@ interface BackendWorkOrder {
   verifikasiHarga?: BackendVerifikasiHarga | null;
   pembayaran?: BackendPembayaran | null;
   dokumentasi?: BackendDokumentasi[];
+  invoiceImage?: BackendImageRef | null;
+  invoiceDraft?: BackendImageRef | null;
+  fakturPajakFile?: BackendImageRef | null;
 }
 
 interface ApiListResponse<T> {
@@ -457,6 +460,28 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
       fotos: raw.pengajuan.fotos ?? [],
     },
     vendor: raw.vendor ?? null,
+    // Dokumen invoice & faktur pajak
+    invoiceImage: raw.invoiceImage
+      ? emptyImage(
+          raw.invoiceImage.id,
+          raw.invoiceImage.signedUrl,
+          raw.invoiceImage.originalFilename,
+        )
+      : null,
+    invoiceDraft: raw.invoiceDraft
+      ? emptyImage(
+          raw.invoiceDraft.id,
+          raw.invoiceDraft.signedUrl,
+          raw.invoiceDraft.originalFilename,
+        )
+      : null,
+    fakturPajakFile: raw.fakturPajakFile
+      ? emptyImage(
+          raw.fakturPajakFile.id,
+          raw.fakturPajakFile.signedUrl,
+          raw.fakturPajakFile.originalFilename,
+        )
+      : null,
   };
 }
 

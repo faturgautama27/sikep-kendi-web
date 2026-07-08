@@ -20,6 +20,11 @@ export interface Vehicle {
   baselinePhotos: Image[];
   tanggalHabisPajak?: string;
   tanggalHabisSTNK?: string;
+  // Early warning fields
+  intervalServisHari?: number | null; // jumlah hari antar servis berkala
+  intervalServisKm?: number | null; // jarak km antar servis berkala
+  odometerServisTerakhir?: number | null; // odometer saat servis terakhir
+  paguTahunan?: number | null; // pagu anggaran tahunan kendaraan (Rp)
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

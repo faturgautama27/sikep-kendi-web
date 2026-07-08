@@ -1,19 +1,52 @@
 @if (wo(); as w) {
   <!-- Print Layout Container -->
-  <div class="print-container">
+  <div class="print-container" #printContainer>
     <!-- Non-print controls -->
-    <div class="no-print p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-      <button class="px-4 py-2 bg-white border border-slate-300 rounded shadow-sm text-sm font-medium hover:bg-slate-50" (click)="goBack()">Kembali</button>
-      <button class="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm font-medium hover:bg-blue-700" onclick="window.print()">Cetak BAST</button>
+    <div
+      class="no-print p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center"
+    >
+      <button
+        class="px-4 py-2 bg-white border border-slate-300 rounded shadow-sm text-sm font-medium hover:bg-slate-50"
+        (click)="goBack()"
+      >
+        Kembali
+      </button>
+      <button
+        class="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        (click)="exportPdf()"
+        [disabled]="isExporting()"
+      >
+        @if (isExporting()) {
+          <span class="animate-spin text-sm">⏳</span> Mengekspor PDF...
+        } @else {
+          Export PDF BAST
+        }
+      </button>
     </div>
 
-    <!-- Print Page Content -->
+    <!-- ═══ HALAMAN 1: BAST ═══ -->
     <div class="print-page bg-white p-8 max-w-[210mm] mx-auto min-h-[297mm]">
-      <!-- Header / Kop Surat Dummy -->
-      <div class="border-b-4 border-double border-slate-800 pb-4 mb-6 flex flex-col items-center text-center">
-        <h1 class="text-xl font-black uppercase tracking-wider">KEMENTERIAN KEUANGAN REPUBLIK INDONESIA</h1>
-        <h2 class="text-sm font-bold uppercase">DIREKTORAT JENDERAL PERBENDAHARAAN</h2>
-        <p class="text-xs mt-1">Gedung Prijadi Praptosuhardjo II Lt. 2, Jl. Lapangan Banteng Timur No.2-4, Jakarta Pusat 10710</p>
+      <!-- Kop Surat Disperindag -->
+      <div class="border-b-4 border-double border-slate-800 pb-4 mb-6 flex items-center gap-4">
+        <img
+          src="/logo_for_light.png"
+          alt="Logo Disperindag"
+          class="w-20 h-20 shrink-0 object-contain"
+        />
+        <div class="flex-1 text-center">
+          <h1 class="text-base font-black uppercase tracking-wider">
+            PEMERINTAH PROVINSI JAWA TENGAH
+          </h1>
+          <h2 class="text-lg font-black uppercase tracking-wide">
+            DINAS PERINDUSTRIAN DAN PERDAGANGAN
+          </h2>
+          <h3 class="text-sm font-bold uppercase">PROVINSI JAWA TENGAH</h3>
+          <p class="text-xs mt-1">Jl. Pahlawan No. 4, Semarang 50241, Jawa Tengah</p>
+          <p class="text-xs">
+            Telp. (024) 8311712 &bull; Fax. (024) 8311713 &bull; Website:
+            disperindag.jatengprov.go.id
+          </p>
+        </div>
       </div>
 
       <!-- Title -->
@@ -24,47 +57,236 @@
 
       <!-- Body -->
       <div class="text-sm leading-relaxed space-y-4 text-justify">
-        <p>Pada hari ini, <b>{{ printDate | date:'fullDate':'':'id-ID' }}</b>, yang bertanda tangan di bawah ini:</p>
-        
+        <p>
+          Pada hari ini, <b>{{ printDate | date: 'fullDate' : '' : 'id-ID' }}</b
+          >, yang bertanda tangan di bawah ini:
+        </p>
+
         <table class="w-full ml-4 mb-4">
-          <tr><td class="w-48 align-top">Nama Bengkel / Vendor</td><td class="w-4 align-top">:</td><td class="font-bold">{{ w.vendor?.nama || '-' }}</td></tr>
-          <tr><td class="align-top">Alamat</td><td class="align-top">:</td><td>{{ w.vendor?.alamat || '-' }}</td></tr>
+          <tr>
+            <td class="w-48 align-top">Nama Bengkel / Vendor</td>
+            <td class="w-4 align-top">:</td>
+            <td class="font-bold">{{ w.vendor?.namaVendor || '-' }}</td>
+          </tr>
+          <tr>
+            <td class="align-top">Alamat</td>
+            <td class="align-top">:</td>
+            <td>{{ w.vendor?.alamat || '-' }}</td>
+          </tr>
+          <tr>
+            <td class="align-top">Kontak</td>
+            <td class="align-top">:</td>
+            <td>{{ w.vendor?.kontak || w.vendor?.telepon || '-' }}</td>
+          </tr>
         </table>
-        
+
         <p>Selanjutnya disebut sebagai <b>PIHAK PERTAMA</b> (Penyedia Jasa).</p>
 
         <table class="w-full ml-4 mb-4 mt-4">
-          <tr><td class="w-48 align-top">Nama</td><td class="w-4 align-top">:</td><td>Pengurus Barang</td></tr>
-          <tr><td class="align-top">Instansi</td><td class="align-top">:</td><td>Direktorat Jenderal Perbendaharaan</td></tr>
+          <tr>
+            <td class="w-48 align-top">Nama/Jabatan</td>
+            <td class="w-4 align-top">:</td>
+            <td>Pejabat Pelaksana Teknis Kegiatan (PPTK)</td>
+          </tr>
+          <tr>
+            <td class="align-top">Instansi</td>
+            <td class="align-top">:</td>
+            <td>Dinas Perindustrian dan Perdagangan Provinsi Jawa Tengah</td>
+          </tr>
         </table>
 
         <p>Selanjutnya disebut sebagai <b>PIHAK KEDUA</b> (Penerima Hasil Pekerjaan).</p>
 
-        <p>Menyatakan bahwa PIHAK PERTAMA telah menyerahkan hasil pekerjaan pemeliharaan/perbaikan kendaraan kepada PIHAK KEDUA, dan PIHAK KEDUA telah menerima hasil pekerjaan tersebut dengan baik, dengan rincian sebagai berikut:</p>
+        <p>
+          Menyatakan bahwa PIHAK PERTAMA telah menyerahkan hasil pekerjaan pemeliharaan/perbaikan
+          kendaraan kepada PIHAK KEDUA, dan PIHAK KEDUA telah menerima hasil pekerjaan tersebut
+          dengan baik, dengan rincian sebagai berikut:
+        </p>
 
         <table class="w-full border-collapse border border-slate-800 mb-4 mt-2">
           <tbody>
-            <tr><td class="border border-slate-800 p-2 w-48 font-bold bg-slate-100">Nomor SPK / WO</td><td class="border border-slate-800 p-2">{{ w.nomor }}</td></tr>
-            <tr><td class="border border-slate-800 p-2 font-bold bg-slate-100">Kendaraan</td><td class="border border-slate-800 p-2">{{ w.pengajuan?.vehiclePlate || w.pengajuanId }}</td></tr>
-            <tr><td class="border border-slate-800 p-2 font-bold bg-slate-100">Rincian Pekerjaan Selesai</td><td class="border border-slate-800 p-2 whitespace-pre-line">{{ w.pengajuan?.deskripsi || '-' }}</td></tr>
+            <tr>
+              <td class="border border-slate-800 p-2 w-48 font-bold bg-slate-100">
+                Nomor SPK / WO
+              </td>
+              <td class="border border-slate-800 p-2">{{ w.nomorWo || w.nomor }}</td>
+            </tr>
+            <tr>
+              <td class="border border-slate-800 p-2 font-bold bg-slate-100">Kendaraan</td>
+              <td class="border border-slate-800 p-2">
+                {{ w.pengajuan?.kendaraan?.merk || '' }} {{ w.pengajuan?.kendaraan?.model || '' }} —
+                {{ w.pengajuan?.kendaraan?.nomorPolisi || w.vehiclePlate || '-' }}
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-slate-800 p-2 font-bold bg-slate-100">Jenis Pekerjaan</td>
+              <td class="border border-slate-800 p-2">
+                {{ w.pengajuan?.jenisPengajuan || '-' }}
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-slate-800 p-2 font-bold bg-slate-100">
+                Rincian Pekerjaan Selesai
+              </td>
+              <td class="border border-slate-800 p-2 whitespace-pre-line">
+                {{ w.pengajuan?.deskripsiKerusakan || '-' }}
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-slate-800 p-2 font-bold bg-slate-100">Total Biaya</td>
+              <td class="border border-slate-800 p-2 font-bold">
+                Rp {{ (w.totalNominal || w.totalBiaya || 0).toLocaleString('id-ID') }}
+              </td>
+            </tr>
           </tbody>
         </table>
 
-        <p>Demikian Berita Acara Serah Terima ini dibuat dalam 2 (dua) rangkap untuk dipergunakan sebagaimana mestinya.</p>
-        
+        <p>
+          Demikian Berita Acara Serah Terima ini dibuat dalam 2 (dua) rangkap untuk dipergunakan
+          sebagaimana mestinya.
+        </p>
       </div>
 
       <!-- Signatures -->
       <div class="mt-16 flex justify-between text-sm text-center">
         <div class="w-1/3">
           <p>PIHAK PERTAMA</p>
-          <p class="mb-20">{{ w.vendor?.nama }}</p>
+          <p class="mb-20">{{ w.vendor?.namaVendor || '-' }}</p>
           <p class="underline">( ........................................ )</p>
           <p>Penyedia Jasa</p>
         </div>
         <div class="w-1/3">
           <p>PIHAK KEDUA</p>
-          <p class="mb-20">Pengurus Barang</p>
+          <p class="mb-20">Pejabat Pelaksana Teknis Kegiatan</p>
+          <p class="underline">( ........................................ )</p>
+          <p>NIP. ........................................</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HALAMAN 2: Dokumentasi & Lampiran ═══ -->
+    <div class="print-page print-page-break bg-white p-8 max-w-[210mm] mx-auto min-h-[297mm]">
+      <!-- Kop ringkas -->
+      <div class="border-b-2 border-slate-800 pb-2 mb-4 text-center">
+        <h2 class="text-sm font-black uppercase">
+          DINAS PERINDUSTRIAN DAN PERDAGANGAN PROVINSI JAWA TENGAH
+        </h2>
+        <p class="text-xs text-slate-600">
+          Lampiran BAST-{{ w.nomor }}/{{ printDate.getFullYear() }}
+        </p>
+      </div>
+
+      <h3 class="text-base font-bold uppercase text-center mb-4">
+        Lampiran: Dokumentasi & Dokumen Pendukung
+      </h3>
+
+      <!-- Dokumen Invoice -->
+      @if (w.invoiceImage || w.invoiceDraft || w.fakturPajakFile) {
+        <div class="mb-6">
+          <h4 class="text-sm font-bold uppercase border-b border-slate-400 pb-1 mb-3">
+            Dokumen Invoice & Faktur
+          </h4>
+          <div class="grid grid-cols-3 gap-3 text-xs">
+            @if (w.invoiceImage) {
+              <div class="border border-slate-300 rounded p-2 text-center">
+                @if (isImageUrl(w.invoiceImage.url)) {
+                  <img
+                    [src]="w.invoiceImage.url"
+                    [attr.data-image-id]="w.invoiceImage.id"
+                    class="w-full h-28 object-contain mb-1"
+                    alt="Invoice Final"
+                  />
+                } @else {
+                  <div class="w-full h-28 flex items-center justify-center bg-slate-100 mb-1">
+                    <span class="text-slate-500 text-2xl">📄</span>
+                  </div>
+                }
+                <p class="font-semibold">Invoice Final</p>
+                <p class="text-slate-500 truncate">{{ w.invoiceImage.caption || 'invoice' }}</p>
+                @if (isPdfUrl(w.invoiceImage.url)) {
+                  <p class="text-blue-500 text-[10px] mt-1">✓ Dilampirkan sebagai PDF</p>
+                }
+              </div>
+            }
+            @if (w.invoiceDraft) {
+              <div class="border border-slate-300 rounded p-2 text-center">
+                @if (isImageUrl(w.invoiceDraft.url)) {
+                  <img
+                    [src]="w.invoiceDraft.url"
+                    [attr.data-image-id]="w.invoiceDraft.id"
+                    class="w-full h-28 object-contain mb-1"
+                    alt="Draft Invoice"
+                  />
+                } @else {
+                  <div class="w-full h-28 flex items-center justify-center bg-slate-100 mb-1">
+                    <span class="text-slate-500 text-2xl">📄</span>
+                  </div>
+                }
+                <p class="font-semibold">Draft Invoice (TTD/Cap)</p>
+                <p class="text-slate-500 truncate">{{ w.invoiceDraft.caption || 'draft' }}</p>
+                @if (isPdfUrl(w.invoiceDraft.url)) {
+                  <p class="text-blue-500 text-[10px] mt-1">✓ Dilampirkan sebagai PDF</p>
+                }
+              </div>
+            }
+            @if (w.fakturPajakFile) {
+              <div class="border border-slate-300 rounded p-2 text-center">
+                @if (isImageUrl(w.fakturPajakFile.url)) {
+                  <img
+                    [src]="w.fakturPajakFile.url"
+                    [attr.data-image-id]="w.fakturPajakFile.id"
+                    class="w-full h-28 object-contain mb-1"
+                    alt="Faktur Pajak"
+                  />
+                } @else {
+                  <div class="w-full h-28 flex items-center justify-center bg-slate-100 mb-1">
+                    <span class="text-slate-500 text-2xl">🧾</span>
+                  </div>
+                }
+                <p class="font-semibold">Faktur Pajak</p>
+                <p class="text-slate-500 truncate">
+                  {{ w.fakturPajakFile.caption || 'faktur pajak' }}
+                </p>
+                @if (isPdfUrl(w.fakturPajakFile.url)) {
+                  <p class="text-blue-500 text-[10px] mt-1">✓ Dilampirkan sebagai PDF</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Foto Dokumentasi Pekerjaan -->
+      @if (w.evidence && w.evidence.length > 0) {
+        <div class="mb-6">
+          <h4 class="text-sm font-bold uppercase border-b border-slate-400 pb-1 mb-3">
+            Foto Dokumentasi Pekerjaan
+          </h4>
+          <div class="grid grid-cols-3 gap-3 text-xs">
+            @for (ev of w.evidence; track ev.id) {
+              @if (ev.image && ev.image.url) {
+                <div class="border border-slate-300 rounded p-2 text-center">
+                  <img
+                    [src]="ev.image.url"
+                    [attr.data-image-id]="ev.image.id"
+                    class="w-full h-28 object-cover mb-1 rounded"
+                    [alt]="ev.image.caption || ev.kategori"
+                  />
+                  <p class="font-semibold capitalize">
+                    {{ ev.image.caption || evidenceLabelMap(ev.kategori) }}
+                  </p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Footer tanda tangan halaman 2 -->
+      <div class="mt-8 flex justify-end text-sm text-center">
+        <div class="w-1/3">
+          <p>Semarang, {{ printDate | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
+          <p class="mb-16">Pejabat Pelaksana Teknis Kegiatan</p>
           <p class="underline">( ........................................ )</p>
           <p>NIP. ........................................</p>
         </div>

@@ -1,16 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
-import {
-  AbstractControl,
-  ReactiveFormsModule,
-  FormBuilder,
-  Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { AbstractControl, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 
@@ -29,7 +18,10 @@ import { CreateVehicle, UpdateVehicle, RetireVehicle } from './state/vehicles.ac
 import type { Vehicle } from '@shared/models';
 import { VEHICLE_DATA, type VehicleDataPort } from '@core/data-access/ports/vehicle-data.port';
 
-interface SelectOpt { label: string; value: string }
+interface SelectOpt {
+  label: string;
+  value: string;
+}
 
 const STATUS_OPTS: SelectOpt[] = [
   { label: 'Aktif', value: 'active' },
@@ -97,6 +89,11 @@ export class VehicleFormComponent implements OnInit {
     nomorMesin: [''],
     tanggalHabisPajak: [null as Date | null],
     tanggalHabisSTNK: [null as Date | null],
+    // Early warning fields
+    intervalServisHari: [null as number | null, [Validators.min(1)]],
+    intervalServisKm: [null as number | null, [Validators.min(1)]],
+    odometerServisTerakhir: [null as number | null, [Validators.min(0)]],
+    paguTahunan: [null as number | null, [Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -104,16 +101,20 @@ export class VehicleFormComponent implements OnInit {
     if (id) {
       this.isEditMode.set(true);
       this.vehicleId.set(id);
-      const v = this.store.selectSnapshot(
-        (state: { vehicles: { list: Vehicle[] } }) =>
-          state.vehicles.list.find((x) => x.id === id),
+      const v = this.store.selectSnapshot((state: { vehicles: { list: Vehicle[] } }) =>
+        state.vehicles.list.find((x) => x.id === id),
       );
       if (v) {
         this.patchForm(v);
       } else {
         this.dataPort.getById(id).subscribe({
           next: (res) => this.patchForm(res),
-          error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Kendaraan tidak ditemukan.' })
+          error: () =>
+            this.msg.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Kendaraan tidak ditemukan.',
+            }),
         });
       }
     }
@@ -134,6 +135,10 @@ export class VehicleFormComponent implements OnInit {
       nomorMesin: v.nomorMesin,
       tanggalHabisPajak: v.tanggalHabisPajak ? new Date(v.tanggalHabisPajak) : null,
       tanggalHabisSTNK: v.tanggalHabisSTNK ? new Date(v.tanggalHabisSTNK) : null,
+      intervalServisHari: v.intervalServisHari ?? null,
+      intervalServisKm: v.intervalServisKm ?? null,
+      odometerServisTerakhir: v.odometerServisTerakhir ?? null,
+      paguTahunan: v.paguTahunan ?? null,
     });
   }
 
@@ -157,8 +162,12 @@ export class VehicleFormComponent implements OnInit {
     const rawFormValue = this.form.getRawValue();
     const raw = {
       ...rawFormValue,
-      tanggalHabisPajak: rawFormValue.tanggalHabisPajak ? (rawFormValue.tanggalHabisPajak as Date).toISOString() : undefined,
-      tanggalHabisSTNK: rawFormValue.tanggalHabisSTNK ? (rawFormValue.tanggalHabisSTNK as Date).toISOString() : undefined,
+      tanggalHabisPajak: rawFormValue.tanggalHabisPajak
+        ? (rawFormValue.tanggalHabisPajak as Date).toISOString()
+        : undefined,
+      tanggalHabisSTNK: rawFormValue.tanggalHabisSTNK
+        ? (rawFormValue.tanggalHabisSTNK as Date).toISOString()
+        : undefined,
     } as unknown as Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'> & {
       baselinePhotos?: never[];
     };
@@ -166,39 +175,54 @@ export class VehicleFormComponent implements OnInit {
     if (this.isEditMode()) {
       this.store.dispatch(new UpdateVehicle(this.vehicleId()!, raw)).subscribe({
         next: () => {
-          this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Data kendaraan berhasil diperbarui.' });
+          this.msg.add({
+            severity: 'success',
+            summary: 'Berhasil',
+            detail: 'Data kendaraan berhasil diperbarui.',
+          });
           this.saving.set(false);
           setTimeout(() => this.router.navigate(['/vehicles', this.vehicleId()]), 1500);
         },
         error: (err: Error) => {
           this.saving.set(false);
-          this.msg.add({ severity: 'error', summary: 'Error', detail: err?.message ?? 'Gagal menyimpan.' });
-        }
+          this.msg.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err?.message ?? 'Gagal menyimpan.',
+          });
+        },
       });
     } else {
-      this.store
-        .dispatch(new CreateVehicle({ ...raw, baselinePhotos: [] }))
-        .subscribe({
-          next: () => {
-            this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Kendaraan berhasil ditambahkan.' });
-            this.saving.set(false);
-            setTimeout(() => this.router.navigate(['/vehicles']), 1500);
-          },
-          error: (err: Error) => {
-            this.saving.set(false);
-            if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('duplikat')) {
-              this.nopolConflict.set(true);
-            } else {
-              this.msg.add({ severity: 'error', summary: 'Error', detail: err?.message ?? 'Gagal menyimpan.' });
-            }
-          },
-        });
+      this.store.dispatch(new CreateVehicle({ ...raw, baselinePhotos: [] })).subscribe({
+        next: () => {
+          this.msg.add({
+            severity: 'success',
+            summary: 'Berhasil',
+            detail: 'Kendaraan berhasil ditambahkan.',
+          });
+          this.saving.set(false);
+          setTimeout(() => this.router.navigate(['/vehicles']), 1500);
+        },
+        error: (err: Error) => {
+          this.saving.set(false);
+          if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('duplikat')) {
+            this.nopolConflict.set(true);
+          } else {
+            this.msg.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: err?.message ?? 'Gagal menyimpan.',
+            });
+          }
+        },
+      });
     }
   }
 
   protected onNonaktifkan(): void {
     this.confirm.confirm({
-      message: 'Kendaraan ini akan dinonaktifkan dan tidak dapat menerima pengajuan baru. Lanjutkan?',
+      message:
+        'Kendaraan ini akan dinonaktifkan dan tidak dapat menerima pengajuan baru. Lanjutkan?',
       header: 'Nonaktifkan Kendaraan',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Nonaktifkan',

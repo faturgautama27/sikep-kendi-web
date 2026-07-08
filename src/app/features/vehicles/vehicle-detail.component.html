@@ -48,6 +48,46 @@
       </div>
     </div>
 
+    <!-- Early Warning Config panel (shown only when at least one field is set) -->
+    @if (v.intervalServisHari || v.intervalServisKm || v.paguTahunan) {
+      <div class="rounded-xl border border-blue-100 bg-blue-50 p-4 flex flex-col gap-2">
+        <div class="flex items-center gap-2 mb-1">
+          <i class="pi pi-bell text-blue-600"></i>
+          <span class="text-sm font-semibold text-blue-800">Konfigurasi Early Warning</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+          @if (v.intervalServisHari) {
+            <div class="text-slate-500">Interval Servis</div>
+            <div class="font-medium text-slate-700">{{ v.intervalServisHari }} hari</div>
+          }
+          @if (v.intervalServisKm) {
+            <div class="text-slate-500">Interval Servis (km)</div>
+            <div class="font-medium text-slate-700">
+              {{ v.intervalServisKm.toLocaleString('id-ID') }} km
+            </div>
+          }
+          @if (v.odometerServisTerakhir != null) {
+            <div class="text-slate-500">Odometer Servis Terakhir</div>
+            <div class="font-medium text-slate-700">
+              {{ v.odometerServisTerakhir!.toLocaleString('id-ID') }} km
+            </div>
+          }
+          @if (v.paguTahunan) {
+            <div class="text-slate-500">Pagu Tahunan</div>
+            <div class="font-medium text-slate-700">
+              {{
+                v.paguTahunan.toLocaleString('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                  maximumFractionDigits: 0,
+                })
+              }}
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Komponen section -->
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
       <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">

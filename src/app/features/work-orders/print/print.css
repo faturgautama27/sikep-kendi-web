@@ -1,7 +1,28 @@
 @media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Only show print-container and its children */
+  .print-container,
+  .print-container * {
+    visibility: visible;
+  }
+  
+  /* Position print-container at the top-left for printing */
+  .print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
   body {
     background: white !important;
   }
+  
+  /* Hide navigation and non-print elements */
   .no-print, 
   nav, 
   header, 
@@ -10,11 +31,25 @@
   .p-toast {
     display: none !important;
   }
+  
   .print-page {
     box-shadow: none !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
+  }
+  
+  /* For PDF attachment pages: hide header, fill entire page */
+  .pdf-attachment-page {
+    padding: 0 !important;
+  }
+  .pdf-attachment-page .no-pdf-header {
+    display: none !important;
+  }
+  .pdf-iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 297mm !important; /* A4 height */
   }
 }
 
@@ -26,4 +61,25 @@
 @page {
   size: A4;
   margin: 20mm;
+}
+
+.print-page-break {
+  page-break-before: always;
+  break-before: page;
+}
+
+/* PDF iframe styling for screen & print */
+.pdf-attachment-page {
+  position: relative;
+  min-height: 297mm;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-iframe {
+  width: 100%;
+  flex: 1;
+  min-height: 280mm;
+  border: none;
 }

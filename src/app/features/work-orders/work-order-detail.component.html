@@ -581,6 +581,73 @@
           </div>
         }
 
+        <!-- ══ Dokumen Invoice & Faktur Pajak ══ -->
+        @if (wo.invoiceImage || wo.invoiceDraft || wo.fakturPajakFile) {
+          <p-card header="Dokumen Invoice & Faktur Pajak">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              @if (wo.invoiceImage) {
+                <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-file-pdf text-red-500 text-lg"></i>
+                    <span class="text-sm font-semibold text-slate-700">Invoice Final</span>
+                  </div>
+                  <p class="text-xs text-slate-500 truncate">
+                    {{ wo.invoiceImage.caption || 'Invoice vendor' }}
+                  </p>
+                  <p-button
+                    label="Buka Dokumen"
+                    icon="pi pi-external-link"
+                    size="small"
+                    [outlined]="true"
+                    severity="info"
+                    (onClick)="openDocument(wo.invoiceImage.id, wo.invoiceImage.url)"
+                  ></p-button>
+                </div>
+              }
+
+              @if (wo.invoiceDraft) {
+                <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-file text-blue-500 text-lg"></i>
+                    <span class="text-sm font-semibold text-slate-700">Draft Invoice TTD/Cap</span>
+                  </div>
+                  <p class="text-xs text-slate-500 truncate">
+                    {{ wo.invoiceDraft.caption || 'Draft invoice' }}
+                  </p>
+                  <p-button
+                    label="Buka Dokumen"
+                    icon="pi pi-external-link"
+                    size="small"
+                    [outlined]="true"
+                    severity="info"
+                    (onClick)="openDocument(wo.invoiceDraft.id, wo.invoiceDraft.url)"
+                  ></p-button>
+                </div>
+              }
+
+              @if (wo.fakturPajakFile) {
+                <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-receipt text-green-600 text-lg"></i>
+                    <span class="text-sm font-semibold text-slate-700">Faktur Pajak</span>
+                  </div>
+                  <p class="text-xs text-slate-500 truncate">
+                    {{ wo.fakturPajakFile.caption || 'Faktur pajak' }}
+                  </p>
+                  <p-button
+                    label="Buka Dokumen"
+                    icon="pi pi-external-link"
+                    size="small"
+                    [outlined]="true"
+                    severity="info"
+                    (onClick)="openDocument(wo.fakturPajakFile.id, wo.fakturPajakFile.url)"
+                  ></p-button>
+                </div>
+              }
+            </div>
+          </p-card>
+        }
+
         <!-- Rejection notices -->
         @if (wo.status === 'DITOLAK_PB') {
           <div class="rounded-lg border border-red-200 bg-red-50 p-4">

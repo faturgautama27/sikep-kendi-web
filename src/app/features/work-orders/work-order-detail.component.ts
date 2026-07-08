@@ -296,7 +296,6 @@ export class WorkOrderDetailComponent implements OnInit {
   }
 
   protected evidenceLabel(ev: WorkOrderEvidence): string {
-    console.log('ev =>', ev);
     const base = EVIDENCE_LABEL[ev.kategori] ?? ev.kategori;
     return ev.image?.caption ? `${ev.image.caption}` : base;
   }
@@ -734,6 +733,38 @@ export class WorkOrderDetailComponent implements OnInit {
           });
         },
       });
+  }
+
+  // ─── Document helpers ─────────────────────────────────────────────────────
+  protected openDocument(imageId: string, fallbackUrl?: string): void {
+    if (!imageId) {
+      if (fallbackUrl) window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    this.http.get<any>(`${this.env.apiBaseUrl}/images/${imageId}/url`).subscribe({
+      next: (res) => {
+        const freshUrl = res?.signedUrl ?? res?.url ?? fallbackUrl;
+        if (freshUrl) {
+          window.open(freshUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          this.msg.add({ severity: 'warn', summary: 'Dokumen tidak tersedia.' });
+        }
+      },
+      error: () => {
+        if (fallbackUrl) {
+          window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          this.msg.add({ severity: 'error', summary: 'Gagal membuka dokumen.' });
+        }
+      },
+    });
+  }
+
+  protected docIcon(doc: any): string {
+    const mime: string = doc?.mimeType ?? doc?.url ?? '';
+    if (mime.includes('pdf') || (doc?.url ?? '').includes('.pdf')) return 'pi pi-file-pdf';
+    if (mime.startsWith('image/')) return 'pi pi-image';
+    return 'pi pi-file';
   }
 
   // Legacy

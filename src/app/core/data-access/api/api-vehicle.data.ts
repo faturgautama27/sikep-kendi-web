@@ -27,6 +27,11 @@ interface ApiVehicle {
   odometerCurrent?: number;
   createdAt?: string;
   updatedAt?: string;
+  // Early warning fields
+  intervalServisHari?: number | null;
+  intervalServisKm?: number | null;
+  odometerServisTerakhir?: number | null;
+  paguTahunan?: number | null;
 }
 
 interface ApiOdometerReading {
@@ -69,7 +74,12 @@ export class ApiVehicleData implements VehicleDataPort {
 
   private mapJenis(jenis: string | undefined): Vehicle['jenisKendaraan'] {
     const normalized = (jenis ?? '').toLowerCase();
-    if (normalized === 'mobil' || normalized === 'motor' || normalized === 'truk' || normalized === 'bus') {
+    if (
+      normalized === 'mobil' ||
+      normalized === 'motor' ||
+      normalized === 'truk' ||
+      normalized === 'bus'
+    ) {
       return normalized;
     }
     return 'lainnya';
@@ -93,6 +103,11 @@ export class ApiVehicleData implements VehicleDataPort {
       baselinePhotos: [],
       createdAt: raw.createdAt ?? nowIso,
       updatedAt: raw.updatedAt ?? nowIso,
+      // Early warning fields
+      intervalServisHari: raw.intervalServisHari ?? null,
+      intervalServisKm: raw.intervalServisKm ?? null,
+      odometerServisTerakhir: raw.odometerServisTerakhir ?? null,
+      paguTahunan: raw.paguTahunan ?? null,
     };
   }
 
@@ -118,55 +133,49 @@ export class ApiVehicleData implements VehicleDataPort {
   }
 
   getById(id: string): Observable<Vehicle> {
-    return this.http.get<ApiVehicle>(this.url(`/vehicles/${id}`)).pipe(
-      map((resp) => this.mapVehicle(resp)),
-    );
+    return this.http
+      .get<ApiVehicle>(this.url(`/vehicles/${id}`))
+      .pipe(map((resp) => this.mapVehicle(resp)));
   }
 
   create(input: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>): Observable<Vehicle> {
-    return this.http.post<ApiVehicle>(this.url('/vehicles'), input).pipe(
-      map((resp) => this.mapVehicle(resp)),
-    );
+    return this.http
+      .post<ApiVehicle>(this.url('/vehicles'), input)
+      .pipe(map((resp) => this.mapVehicle(resp)));
   }
 
   update(id: string, patch: Partial<Vehicle>): Observable<Vehicle> {
-    return this.http.patch<ApiVehicle>(this.url(`/vehicles/${id}`), patch).pipe(
-      map((resp) => this.mapVehicle(resp)),
-    );
+    return this.http
+      .patch<ApiVehicle>(this.url(`/vehicles/${id}`), patch)
+      .pipe(map((resp) => this.mapVehicle(resp)));
   }
 
   retire(id: string): Observable<Vehicle> {
-    return this.http.patch<ApiVehicle>(this.url(`/vehicles/${id}`), { status: 'NONAKTIF' }).pipe(
-      map((resp) => this.mapVehicle(resp)),
-    );
+    return this.http
+      .patch<ApiVehicle>(this.url(`/vehicles/${id}`), { status: 'NONAKTIF' })
+      .pipe(map((resp) => this.mapVehicle(resp)));
   }
 
   listDocuments(vehicleId: string): Observable<VehicleDocument[]> {
     return of([]);
   }
 
-  addDocument(
-    vehicleId: string,
-    doc: Omit<VehicleDocument, 'id'>,
-  ): Observable<VehicleDocument> {
+  addDocument(vehicleId: string, doc: Omit<VehicleDocument, 'id'>): Observable<VehicleDocument> {
     return of({ ...doc, id: `doc-${Date.now()}` });
   }
 
   listOdometerReadings(vehicleId: string): Observable<OdometerReading[]> {
-    return this.http.get<ApiOdometerReading[]>(this.url(`/vehicles/${vehicleId}/odometer`)).pipe(
-      map((rows) => rows.map((row) => this.mapOdometer(row, vehicleId))),
-    );
+    return this.http
+      .get<ApiOdometerReading[]>(this.url(`/vehicles/${vehicleId}/odometer`))
+      .pipe(map((rows) => rows.map((row) => this.mapOdometer(row, vehicleId))));
   }
 
   addOdometerReading(
     vehicleId: string,
     reading: Omit<OdometerReading, 'id'>,
   ): Observable<OdometerReading> {
-    return this.http.post<ApiOdometerReading>(
-      this.url(`/vehicles/${vehicleId}/odometer`),
-      reading,
-    ).pipe(
-      map((row) => this.mapOdometer(row, vehicleId)),
-    );
+    return this.http
+      .post<ApiOdometerReading>(this.url(`/vehicles/${vehicleId}/odometer`), reading)
+      .pipe(map((row) => this.mapOdometer(row, vehicleId)));
   }
 }

@@ -14,6 +14,10 @@
       "status": "active",
       "odometerCurrent": 87450,
       "baselinePhotos": [],
+      "intervalServisHari": 180,
+      "intervalServisKm": 10000,
+      "odometerServisTerakhir": 80000,
+      "paguTahunan": 50000000,
       "createdAt": "2024-01-15T09:00:00+07:00",
       "updatedAt": "2025-01-14T16:30:00+07:00"
     },
@@ -31,6 +35,10 @@
       "status": "in_repair",
       "odometerCurrent": 142800,
       "baselinePhotos": [],
+      "intervalServisHari": 90,
+      "intervalServisKm": 5000,
+      "odometerServisTerakhir": 138000,
+      "paguTahunan": 75000000,
       "createdAt": "2024-01-15T09:15:00+07:00",
       "updatedAt": "2025-01-13T11:20:00+07:00"
     },
