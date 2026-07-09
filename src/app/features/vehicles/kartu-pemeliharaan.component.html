@@ -1,0 +1,272 @@
+<p-toast />
+
+<!-- Print stylesheet — action bar tidak ikut tercetak -->
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    body { font-size: 11px; }
+    .kartu-section { page-break-inside: avoid; }
+  }
+  .print-only { display: none; }
+</style>
+
+@if (loading()) {
+  <div class="flex flex-col gap-4 p-6">
+    <p-skeleton height="2rem" styleClass="mb-2" />
+    <p-skeleton height="1rem" />
+    <p-skeleton height="1rem" />
+    <p-skeleton height="10rem" />
+  </div>
+} @else if (kartu(); as k) {
+  <section class="flex flex-col gap-5">
+
+    <!-- Header — no-print -->
+    <div class="no-print">
+      <app-page-header
+        [title]="judul()"
+        subtitle="Kartu Pemeliharaan / Perawatan Kendaraan Dinas — Perda No. 3 Tahun 2025 Ps. 152(1)d"
+      >
+        <div page-header-action class="flex gap-2 flex-wrap">
+          <p-select
+            [options]="tahunOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="tahun()"
+            (ngModelChange)="onTahunChange($event)"
+            styleClass="w-32"
+            appendTo="body"
+          />
+          <a [routerLink]="['/vehicles', vehicleId()]">
+            <p-button label="Kembali" icon="pi pi-arrow-left" severity="secondary" [text]="true" />
+          </a>
+          <p-button
+            label="Export PDF"
+            icon="pi pi-print"
+            severity="primary"
+            (onClick)="onPrint()"
+          />
+        </div>
+      </app-page-header>
+    </div>
+
+    <!-- Judul cetak -->
+    <div class="print-only text-center mb-4">
+      <p class="text-xs uppercase tracking-wide">Pemerintah Provinsi Jawa Tengah</p>
+      <p class="text-xs">{{ k.identitas.opd }}</p>
+      <h2 class="text-base font-bold uppercase mt-1">Kartu Pemeliharaan / Perawatan Kendaraan Dinas</h2>
+      <p class="text-xs">Tahun Anggaran {{ k.tahun }}</p>
+      <p class="text-xs italic">Peraturan Daerah Nomor 3 Tahun 2025 — Pasal 152 Ayat (1) Huruf d</p>
+    </div>
+
+    <!-- Section Identitas Kendaraan -->
+    <div class="kartu-section rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
+        I. Identitas Kendaraan
+      </h2>
+      <div class="grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-8 text-sm">
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Nama Barang</span>
+          <span class="font-medium">{{ k.identitas.namaBarang }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Kode Barang</span>
+          <span class="font-medium">{{ k.identitas.kodeBarang }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Nomor Register</span>
+          <span class="font-medium">{{ k.identitas.nomorRegister }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Nomor Polisi</span>
+          <span class="font-medium">{{ k.identitas.nomorPolisi }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Merk / Tipe</span>
+          <span class="font-medium">{{ k.identitas.merkTipe }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Tahun Perolehan</span>
+          <span class="font-medium">{{ k.identitas.tahunPerolehan }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Nomor Mesin</span>
+          <span class="font-medium">{{ k.identitas.nomorMesin ?? '-' }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Nomor Rangka</span>
+          <span class="font-medium">{{ k.identitas.nomorRangka ?? '-' }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Warna</span>
+          <span class="font-medium">{{ k.identitas.warna ?? '-' }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">OPD</span>
+          <span class="font-medium">{{ k.identitas.opd }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Unit Kerja</span>
+          <span class="font-medium">{{ k.identitas.unitKerja ?? '-' }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Pengguna</span>
+          <span class="font-medium">{{ k.identitas.pengguna ?? '-' }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="w-40 shrink-0 text-slate-500">Kondisi Awal</span>
+          <span class="font-medium">
+            <p-tag
+              [value]="k.identitas.kondisiAwal"
+              [severity]="k.identitas.kondisiAwal === 'BAIK' ? 'success' : k.identitas.kondisiAwal === 'KURANG BAIK' ? 'warn' : 'danger'"
+            />
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Riwayat Pemeliharaan -->
+    <div class="kartu-section rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
+        II. Riwayat Pemeliharaan Tahun {{ k.tahun }}
+      </h2>
+
+      @if (k.riwayat.length === 0) {
+        <div class="py-8 text-center text-sm text-slate-400">
+          Tidak ada riwayat pemeliharaan yang tercatat untuk tahun {{ k.tahun }}.
+        </div>
+      } @else {
+        <p-table
+          [value]="k.riwayat"
+          styleClass="p-datatable-sm p-datatable-gridlines"
+          [tableStyle]="{ 'min-width': '900px' }"
+        >
+          <ng-template #header>
+            <tr class="text-xs">
+              <th class="text-center w-8">No.</th>
+              <th>Tanggal</th>
+              <th class="text-right">Kilometer</th>
+              <th>Jenis Pemeliharaan</th>
+              <th>Barang / Bahan</th>
+              <th class="text-right">Biaya Jasa</th>
+              <th class="text-right">Biaya Sparepart</th>
+              <th class="text-right">Total Biaya</th>
+              <th>Pelaksana / Bengkel</th>
+              <th>Keterangan</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row let-i="rowIndex">
+            <tr class="text-xs">
+              <td class="text-center">{{ i + 1 }}</td>
+              <td class="whitespace-nowrap">{{ formatDate(row.tanggal) }}</td>
+              <td class="text-right whitespace-nowrap">{{ formatKm(row.kilometer) }}</td>
+              <td>{{ row.jenisPemeliharaan }}</td>
+              <td>{{ row.bahanDigunakan }}</td>
+              <td class="text-right whitespace-nowrap">{{ formatRupiah(row.biayaJasa) }}</td>
+              <td class="text-right whitespace-nowrap">{{ formatRupiah(row.biayaSparepart) }}</td>
+              <td class="text-right whitespace-nowrap font-medium">{{ formatRupiah(row.totalBiaya) }}</td>
+              <td>{{ row.pelaksana }}</td>
+              <td class="text-slate-500">{{ row.keterangan }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+
+    <!-- Section Rekapitulasi -->
+    <div class="kartu-section rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
+        III. Rekapitulasi Pemeliharaan
+      </h2>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 text-sm">
+        <div class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+          <p class="text-xs text-slate-500">Total Kegiatan</p>
+          <p class="text-xl font-bold text-primary-900">{{ k.rekapitulasi.totalKegiatan }}</p>
+        </div>
+        <div class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+          <p class="text-xs text-slate-500">Total Biaya Jasa</p>
+          <p class="text-base font-bold text-primary-900">{{ formatRupiah(k.rekapitulasi.totalBiayaJasa) }}</p>
+        </div>
+        <div class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+          <p class="text-xs text-slate-500">Total Biaya Sparepart</p>
+          <p class="text-base font-bold text-primary-900">{{ formatRupiah(k.rekapitulasi.totalBiayaSparepart) }}</p>
+        </div>
+        <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 sm:col-span-1">
+          <p class="text-xs text-slate-500">Total Keseluruhan</p>
+          <p class="text-base font-bold text-blue-800">{{ formatRupiah(k.rekapitulasi.totalKeseluruhan) }}</p>
+        </div>
+        @if (k.rekapitulasi.paguTahunan !== null) {
+          <div class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+            <p class="text-xs text-slate-500">Pagu Tahunan</p>
+            <p class="text-base font-bold text-primary-900">{{ formatRupiah(k.rekapitulasi.paguTahunan) }}</p>
+          </div>
+          <div class="rounded-lg border p-3"
+            [class]="k.rekapitulasi.sisaPagu !== null && k.rekapitulasi.sisaPagu < 0
+              ? 'border-red-100 bg-red-50'
+              : 'border-green-100 bg-green-50'"
+          >
+            <p class="text-xs text-slate-500">Sisa Pagu</p>
+            <p class="text-base font-bold"
+              [class]="k.rekapitulasi.sisaPagu !== null && k.rekapitulasi.sisaPagu < 0
+                ? 'text-red-700'
+                : 'text-green-700'"
+            >
+              {{ formatRupiah(k.rekapitulasi.sisaPagu ?? 0) }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Section Catatan Kondisi -->
+    <div class="kartu-section rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
+        IV. Catatan Kondisi Kendaraan
+      </h2>
+      <div class="min-h-16 rounded border border-dashed border-slate-300 p-3 text-sm text-slate-400 italic">
+        (Diisi oleh Pengurus Barang setelah pemeriksaan fisik kendaraan)
+      </div>
+    </div>
+
+    <!-- Section Pengesahan -->
+    <div class="kartu-section rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
+        V. Pengesahan
+      </h2>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-4 text-sm text-center">
+        <div class="flex flex-col gap-2">
+          <p class="font-medium text-slate-700">Pengemudi / Pengguna</p>
+          <div class="h-20 border-b border-slate-400 mt-2"></div>
+          <p class="text-slate-500">( _________________________ )</p>
+          <p class="text-xs text-slate-400">NIP. ____________________</p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-medium text-slate-700">Pengurus Barang</p>
+          <div class="h-20 border-b border-slate-400 mt-2"></div>
+          <p class="text-slate-500">( _________________________ )</p>
+          <p class="text-xs text-slate-400">NIP. ____________________</p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-medium text-slate-700">Verifikator</p>
+          <div class="h-20 border-b border-slate-400 mt-2"></div>
+          <p class="text-slate-500">( _________________________ )</p>
+          <p class="text-xs text-slate-400">NIP. ____________________</p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-medium text-slate-700">Kepala OPD</p>
+          <div class="h-20 border-b border-slate-400 mt-2"></div>
+          <p class="text-slate-500">( _________________________ )</p>
+          <p class="text-xs text-slate-400">NIP. ____________________</p>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 mt-4 text-right no-print">
+        Dicetak pada: {{ today | date: 'dd MMMM yyyy, HH:mm' : '' : 'id-ID' }}
+      </p>
+    </div>
+
+  </section>
+} @else {
+  <div class="py-16 text-center text-slate-400 text-sm">
+    Data kartu pemeliharaan tidak tersedia.
+  </div>
+}

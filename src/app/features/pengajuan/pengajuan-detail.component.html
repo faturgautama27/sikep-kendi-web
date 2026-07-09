@@ -24,6 +24,11 @@
             [outlined]="true"
             (onClick)="goBack()"
           />
+          @if (p.status !== 'draft') {
+            <a [routerLink]="['/pengajuan', p.id, 'print']">
+              <p-button label="Cetak PDF" icon="pi pi-print" severity="secondary" [outlined]="true" />
+            </a>
+          }
           @if (p.status === 'draft' || p.status === 'menunggu_verifikasi') {
             <a
               [routerLink]="

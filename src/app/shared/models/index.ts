@@ -14,3 +14,5 @@ export * from './image';
 export * from './notification';
 export * from './audit';
 export * from './dashboard';
+export * from './kartu-pemeliharaan';
+export * from './pengajuan';

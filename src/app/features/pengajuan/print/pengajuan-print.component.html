@@ -1,0 +1,589 @@
+@if (data(); as d) {
+  <!-- Print Layout Container -->
+  <div class="print-container" #printContainer>
+    <!-- Non-print controls -->
+    <div
+      class="no-print p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center"
+    >
+      <button
+        class="px-4 py-2 bg-white border border-slate-300 rounded shadow-sm text-sm font-medium hover:bg-slate-50"
+        (click)="goBack()"
+      >
+        Kembali
+      </button>
+      <button
+        class="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        (click)="exportPdf()"
+        [disabled]="isExporting()"
+      >
+        @if (isExporting()) {
+          <span class="animate-spin text-sm">&#x231B;</span> Mengekspor PDF...
+        } @else {
+          Export PDF Pengajuan
+        }
+      </button>
+    </div>
+
+    <!-- ═══ HALAMAN 1: Informasi Pengajuan & Kendaraan ═══ -->
+    <div class="print-page bg-white p-8 max-w-[210mm] mx-auto min-h-[297mm]">
+      <!-- Kop Surat -->
+      <div class="border-b-4 border-double border-slate-800 pb-4 mb-6 flex items-center gap-4">
+        <img
+          src="/logo_for_light.png"
+          alt="Logo Disperindag"
+          class="w-20 h-20 shrink-0 object-contain"
+        />
+        <div class="flex-1 text-center">
+          <h1 class="text-base font-black uppercase tracking-wider">
+            PEMERINTAH PROVINSI JAWA TENGAH
+          </h1>
+          <h2 class="text-lg font-black uppercase tracking-wide">
+            DINAS PERINDUSTRIAN DAN PERDAGANGAN
+          </h2>
+          <h3 class="text-sm font-bold uppercase">PROVINSI JAWA TENGAH</h3>
+          <p class="text-xs mt-1">Jl. Pahlawan No. 4, Semarang 50241, Jawa Tengah</p>
+          <p class="text-xs">
+            Telp. (024) 8311712 &bull; Fax. (024) 8311713 &bull; Website:
+            disperindag.jatengprov.go.id
+          </p>
+        </div>
+      </div>
+
+      <!-- Judul -->
+      <div class="text-center mb-6">
+        <h3 class="text-lg font-bold underline uppercase">
+          Laporan Pengajuan Pemeliharaan Kendaraan
+        </h3>
+        <p class="text-sm mt-1">Nomor: PENG-{{ d.id }}/{{ printDate.getFullYear() }}</p>
+      </div>
+
+      <!-- ── BAGIAN 1: Informasi Pengajuan ── -->
+      <div class="mb-6">
+        <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+          1. Informasi Pengajuan
+        </h4>
+        <table class="w-full text-sm border-collapse">
+          <tbody>
+            <tr>
+              <td class="w-44 py-1 align-top text-slate-600">Jenis Pengajuan</td>
+              <td class="w-4 align-top">:</td>
+              <td class="py-1">{{ d.jenisPengajuan }}</td>
+            </tr>
+            <tr>
+              <td class="py-1 align-top text-slate-600">Status</td>
+              <td class="align-top">:</td>
+              <td class="py-1 font-medium">{{ statusLabel(d.status) }}</td>
+            </tr>
+            <tr>
+              <td class="py-1 align-top text-slate-600">Odometer Saat Pengajuan</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.odometerSaatPengajuan.toLocaleString('id-ID') }} km</td>
+            </tr>
+            <tr>
+              <td class="py-1 align-top text-slate-600">Pengemudi</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.pengemudi.fullName }}</td>
+            </tr>
+            <tr>
+              <td class="py-1 align-top text-slate-600">Tanggal Pengajuan</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.createdAt | date: 'dd MMMM yyyy, HH:mm' : '' : 'id-ID' }}</td>
+            </tr>
+            @if (d.verifikasiAt) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Tanggal Verifikasi</td>
+                <td class="align-top">:</td>
+                <td class="py-1">
+                  {{ d.verifikasiAt | date: 'dd MMMM yyyy, HH:mm' : '' : 'id-ID' }}
+                </td>
+              </tr>
+            }
+            @if (d.verifikasiOleh) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Diverifikasi Oleh</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.verifikasiOleh.fullName }}</td>
+              </tr>
+            }
+            @if (d.komentarVerifikasi) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Komentar Verifikasi</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.komentarVerifikasi }}</td>
+              </tr>
+            }
+            @if (d.alasanPenolakan) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Alasan Penolakan</td>
+                <td class="align-top">:</td>
+                <td class="py-1 text-red-700">{{ d.alasanPenolakan }}</td>
+              </tr>
+            }
+            <tr>
+              <td class="py-1 align-top text-slate-600 font-medium">Deskripsi Kerusakan</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.deskripsiKerusakan }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── BAGIAN 2: Data Kendaraan ── -->
+      <div class="mb-6">
+        <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+          2. Data Kendaraan
+        </h4>
+        <table class="w-full text-sm border-collapse">
+          <tbody>
+            <tr>
+              <td class="w-44 py-1 align-top text-slate-600">Nomor Polisi</td>
+              <td class="w-4 align-top">:</td>
+              <td class="py-1 font-bold">{{ d.kendaraan.nomorPolisi }}</td>
+            </tr>
+            <tr>
+              <td class="py-1 align-top text-slate-600">Merk / Model</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.kendaraan.merk }} {{ d.kendaraan.model }}</td>
+            </tr>
+            <tr>
+              <td class="py-1 align-top text-slate-600">Tahun</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.kendaraan.tahun }}</td>
+            </tr>
+            @if (d.kendaraan.jenisKendaraan) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Jenis Kendaraan</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.kendaraan.jenisKendaraan }}</td>
+              </tr>
+            }
+            <tr>
+              <td class="py-1 align-top text-slate-600">Odometer Saat Ini</td>
+              <td class="align-top">:</td>
+              <td class="py-1">{{ d.kendaraan.odometerSaatIni.toLocaleString('id-ID') }} km</td>
+            </tr>
+            @if (d.kendaraan.nomorInventaris) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Nomor Inventaris</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.kendaraan.nomorInventaris }}</td>
+              </tr>
+            }
+            @if (d.kendaraan.nomorMesin) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Nomor Mesin</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.kendaraan.nomorMesin }}</td>
+              </tr>
+            }
+            @if (d.kendaraan.nomorRangka) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Nomor Rangka</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.kendaraan.nomorRangka }}</td>
+              </tr>
+            }
+            @if (d.kendaraan.unitKerja) {
+              <tr>
+                <td class="py-1 align-top text-slate-600">Unit Kerja</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ d.kendaraan.unitKerja }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── BAGIAN 3: Foto Bukti ── -->
+      @if (d.fotos && d.fotos.length > 0) {
+        <div class="mb-6">
+          <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+            3. Foto Bukti Kerusakan
+          </h4>
+          <div class="flex flex-wrap gap-3">
+            @for (foto of d.fotos; track foto.urutan) {
+              <div class="flex flex-col items-center gap-1">
+                <img
+                  [src]="foto.image.url"
+                  [alt]="'Foto ' + foto.urutan"
+                  class="w-36 h-28 object-cover border border-slate-300 rounded"
+                />
+                <span class="text-xs text-slate-500">Foto {{ foto.urutan }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Footer Halaman 1 -->
+      <div class="mt-auto pt-8 flex justify-end text-sm text-center">
+        <div class="w-1/3">
+          <p>Semarang, {{ printDate | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
+          <p class="mb-16">Pejabat Pelaksana Teknis Kegiatan</p>
+          <p class="underline">( ........................................ )</p>
+          <p>NIP. ........................................</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HALAMAN 2: Work Order (hanya jika ada) ═══ -->
+    @if (d.workOrder; as wo) {
+      <div class="print-page bg-white p-8 max-w-[210mm] mx-auto min-h-[297mm] print-page-break">
+        <!-- Kop Surat ringkas -->
+        <div class="border-b-2 border-slate-800 pb-2 mb-5 flex items-center gap-3">
+          <img src="/logo_for_light.png" alt="Logo" class="w-12 h-12 shrink-0 object-contain" />
+          <div class="flex-1 text-center">
+            <p class="text-sm font-black uppercase">
+              Dinas Perindustrian dan Perdagangan Prov. Jawa Tengah
+            </p>
+            <p class="text-xs font-bold">
+              Laporan Pengajuan — Nomor: PENG-{{ d.id }}/{{ printDate.getFullYear() }}
+            </p>
+          </div>
+        </div>
+
+        <!-- ── BAGIAN 4: Work Order ── -->
+        <div class="mb-6">
+          <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+            4. Informasi Work Order
+          </h4>
+          <table class="w-full text-sm border-collapse">
+            <tbody>
+              <tr>
+                <td class="w-44 py-1 align-top text-slate-600">Nomor WO</td>
+                <td class="w-4 align-top">:</td>
+                <td class="py-1 font-bold">{{ wo.nomorWo }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 align-top text-slate-600">Status WO</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ wo.status }}</td>
+              </tr>
+              <tr>
+                <td class="py-1 align-top text-slate-600">Tanggal Dibuat</td>
+                <td class="align-top">:</td>
+                <td class="py-1">{{ wo.createdAt | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Data Vendor -->
+        @if (wo.vendor) {
+          <div class="mb-6">
+            <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+              4a. Data Vendor / Bengkel
+            </h4>
+            <table class="w-full text-sm border-collapse">
+              <tbody>
+                <tr>
+                  <td class="w-44 py-1 align-top text-slate-600">Nama Vendor</td>
+                  <td class="w-4 align-top">:</td>
+                  <td class="py-1 font-bold">{{ wo.vendor.namaVendor }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 align-top text-slate-600">Alamat</td>
+                  <td class="align-top">:</td>
+                  <td class="py-1">{{ wo.vendor.alamat }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 align-top text-slate-600">Kontak</td>
+                  <td class="align-top">:</td>
+                  <td class="py-1">{{ wo.vendor.kontak }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 align-top text-slate-600">Email</td>
+                  <td class="align-top">:</td>
+                  <td class="py-1">{{ wo.vendor.email }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <!-- Penawaran Terbaru -->
+        @if (penawaranTerbaru(wo.penawaran); as pen) {
+          <div class="mb-6">
+            <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+              4b. Penawaran (Versi {{ pen.versi }})
+            </h4>
+            <table class="w-full text-sm border-collapse border border-slate-400">
+              <thead>
+                <tr class="bg-slate-100">
+                  <th class="border border-slate-400 p-1 text-left">No</th>
+                  <th class="border border-slate-400 p-1 text-left">Kerusakan</th>
+                  <th class="border border-slate-400 p-1 text-left">Tindakan</th>
+                  <th class="border border-slate-400 p-1 text-left">Sparepart</th>
+                  <th class="border border-slate-400 p-1 text-right">Harga</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of pen.items; track item.urutan) {
+                  <tr>
+                    <td class="border border-slate-400 p-1 text-center">{{ item.urutan }}</td>
+                    <td class="border border-slate-400 p-1">{{ item.namaKerusakan }}</td>
+                    <td class="border border-slate-400 p-1">{{ item.tindakanPerbaikan }}</td>
+                    <td class="border border-slate-400 p-1">{{ item.namaSparepart || '-' }}</td>
+                    <td class="border border-slate-400 p-1 text-right">
+                      Rp {{ formatCurrency(item.hargaItem) }}
+                    </td>
+                  </tr>
+                }
+                <tr class="font-bold bg-slate-50">
+                  <td class="border border-slate-400 p-1 text-right" colspan="4">Total Biaya</td>
+                  <td class="border border-slate-400 p-1 text-right">
+                    Rp {{ formatCurrency(pen.totalBiaya) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            @if (pen.invoice) {
+              <div class="mt-2 text-sm">
+                <span class="font-medium">Invoice:</span>
+                {{ pen.invoice.nomorInvoice }} &mdash;
+                {{ pen.invoice.tanggalInvoice | date: 'dd MMMM yyyy' : '' : 'id-ID' }} &mdash; Rp
+                {{ formatCurrency(pen.invoice.totalTagihan) }}
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Verifikasi SHS -->
+        @if (wo.verifikasiHarga) {
+          <div class="mb-6">
+            <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+              4c. Verifikasi Harga (SHS)
+            </h4>
+            <table class="w-full text-sm border-collapse mb-2">
+              <tbody>
+                <tr>
+                  <td class="w-44 py-1 text-slate-600">Status</td>
+                  <td class="w-4">:</td>
+                  <td class="py-1">{{ wo.verifikasiHarga.status }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-600">Verifikator</td>
+                  <td>:</td>
+                  <td class="py-1">{{ wo.verifikasiHarga.verifikator.fullName }}</td>
+                </tr>
+                @if (wo.verifikasiHarga.verifikasiAt) {
+                  <tr>
+                    <td class="py-1 text-slate-600">Tanggal</td>
+                    <td>:</td>
+                    <td class="py-1">
+                      {{ wo.verifikasiHarga.verifikasiAt | date: 'dd MMMM yyyy' : '' : 'id-ID' }}
+                    </td>
+                  </tr>
+                }
+                @if (wo.verifikasiHarga.catatanRevisi) {
+                  <tr>
+                    <td class="py-1 align-top text-slate-600">Catatan Revisi</td>
+                    <td class="align-top">:</td>
+                    <td class="py-1">{{ wo.verifikasiHarga.catatanRevisi }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (wo.verifikasiHarga.shsItems.length > 0) {
+              <table class="w-full text-sm border-collapse border border-slate-400">
+                <thead>
+                  <tr class="bg-slate-100">
+                    <th class="border border-slate-400 p-1 text-left">Item</th>
+                    <th class="border border-slate-400 p-1 text-right">Harga Vendor</th>
+                    <th class="border border-slate-400 p-1 text-right">Harga Standar</th>
+                    <th class="border border-slate-400 p-1 text-right">Selisih</th>
+                    <th class="border border-slate-400 p-1 text-left">Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of wo.verifikasiHarga.shsItems; track $index) {
+                    <tr>
+                      <td class="border border-slate-400 p-1">{{ item.namaItem }}</td>
+                      <td class="border border-slate-400 p-1 text-right">
+                        Rp {{ formatCurrency(item.hargaVendor) }}
+                      </td>
+                      <td class="border border-slate-400 p-1 text-right">
+                        Rp {{ formatCurrency(item.hargaStandart) }}
+                      </td>
+                      <td class="border border-slate-400 p-1 text-right">
+                        Rp {{ formatCurrency(item.selisih) }}
+                      </td>
+                      <td class="border border-slate-400 p-1">{{ item.keterangan || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        }
+
+        <!-- Alur Persetujuan -->
+        <div class="mb-6">
+          <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+            4d. Alur Persetujuan
+          </h4>
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-slate-100">
+                <th class="border border-slate-400 p-2 text-left">Peran</th>
+                <th class="border border-slate-400 p-2 text-left">Nama</th>
+                <th class="border border-slate-400 p-2 text-left">Tanggal</th>
+                <th class="border border-slate-400 p-2 text-left">Catatan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Verifikator -->
+              <tr>
+                <td class="border border-slate-400 p-2">Verifikator</td>
+                <td class="border border-slate-400 p-2">{{ wo.verifikator?.fullName || '-' }}</td>
+                <td class="border border-slate-400 p-2">
+                  @if (wo.verifikasiAt) {
+                    {{ wo.verifikasiAt | date: 'dd/MM/yyyy' : '' : 'id-ID' }}
+                  } @else {
+                    -
+                  }
+                </td>
+                <td class="border border-slate-400 p-2">
+                  @if (wo.verifikatorAlasanPenolakan) {
+                    <span class="text-red-700">Ditolak: {{ wo.verifikatorAlasanPenolakan }}</span>
+                  } @else {
+                    {{ wo.verifikatorCatatan || '-' }}
+                  }
+                </td>
+              </tr>
+              <!-- PB (Pembuat Bukti) -->
+              <tr>
+                <td class="border border-slate-400 p-2">Pembuat Bukti (PB)</td>
+                <td class="border border-slate-400 p-2">{{ wo.pbVerifikator?.fullName || '-' }}</td>
+                <td class="border border-slate-400 p-2">
+                  @if (wo.pbVerifikasiAt) {
+                    {{ wo.pbVerifikasiAt | date: 'dd/MM/yyyy' : '' : 'id-ID' }}
+                  } @else {
+                    -
+                  }
+                </td>
+                <td class="border border-slate-400 p-2">
+                  @if (wo.pbAlasanPenolakan) {
+                    <span class="text-red-700">Ditolak: {{ wo.pbAlasanPenolakan }}</span>
+                  } @else {
+                    {{ wo.pbCatatan || '-' }}
+                  }
+                </td>
+              </tr>
+              <!-- PPTK -->
+              <tr>
+                <td class="border border-slate-400 p-2">PPTK</td>
+                <td class="border border-slate-400 p-2">{{ wo.pptk?.fullName || '-' }}</td>
+                <td class="border border-slate-400 p-2">
+                  @if (wo.pptkeAt) {
+                    {{ wo.pptkeAt | date: 'dd/MM/yyyy' : '' : 'id-ID' }}
+                  } @else {
+                    -
+                  }
+                </td>
+                <td class="border border-slate-400 p-2">
+                  @if (wo.alasanPenolakanPptk) {
+                    <span class="text-red-700">Ditolak: {{ wo.alasanPenolakanPptk }}</span>
+                  } @else {
+                    {{ wo.catatanPptk || '-' }}
+                  }
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ── BAGIAN 4e: Dokumentasi / Evidence Foto WO ── -->
+        @if (wo.dokumentasi && wo.dokumentasi.length > 0) {
+          <div class="mb-6">
+            <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+              4e. Dokumentasi Perbaikan
+            </h4>
+            @for (kategori of dokumentasiGrouped(wo.dokumentasi); track kategori.label) {
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-slate-500 uppercase mb-2">{{ kategori.label }}</p>
+                <div class="flex flex-wrap gap-3">
+                  @for (item of kategori.items; track $index) {
+                    <div class="flex flex-col items-center gap-1">
+                      <img
+                        [src]="item.image.url"
+                        [alt]="kategori.label"
+                        class="w-36 h-28 object-cover border border-slate-300 rounded"
+                      />
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ── BAGIAN 5: Pembayaran ── -->
+        @if (wo.pembayaran; as bayar) {
+          <div class="mb-6">
+            <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
+              5. Informasi Pembayaran
+            </h4>
+            <table class="w-full text-sm border-collapse">
+              <tbody>
+                <tr>
+                  <td class="w-44 py-1 text-slate-600">Total Dibayar</td>
+                  <td class="w-4">:</td>
+                  <td class="py-1 font-bold">Rp {{ formatCurrency(bayar.totalDibayar) }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-600">Metode Pembayaran</td>
+                  <td>:</td>
+                  <td class="py-1">{{ bayar.metodePembayaran }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-600">Tanggal Pembayaran</td>
+                  <td>:</td>
+                  <td class="py-1">
+                    {{ bayar.tanggalPembayaran | date: 'dd MMMM yyyy' : '' : 'id-ID' }}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-600">Status</td>
+                  <td>:</td>
+                  <td class="py-1">{{ bayar.status }}</td>
+                </tr>
+                @if (bayar.paidAt) {
+                  <tr>
+                    <td class="py-1 text-slate-600">Lunas Pada</td>
+                    <td>:</td>
+                    <td class="py-1">
+                      {{ bayar.paidAt | date: 'dd MMMM yyyy, HH:mm' : '' : 'id-ID' }}
+                    </td>
+                  </tr>
+                }
+                <tr>
+                  <td class="py-1 text-slate-600">Bendahara</td>
+                  <td>:</td>
+                  <td class="py-1">{{ bayar.bendahara.fullName }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <!-- Footer Halaman 2 -->
+        <div class="mt-8 flex justify-between text-sm text-center">
+          <div class="w-1/3">
+            <p>Semarang, {{ printDate | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
+            <p class="mb-16">Pengemudi</p>
+            <p class="underline">( {{ d.pengemudi.fullName }} )</p>
+          </div>
+          <div class="w-1/3">
+            <p>Semarang, {{ printDate | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
+            <p class="mb-16">Pejabat Pelaksana Teknis Kegiatan</p>
+            <p class="underline">( ........................................ )</p>
+            <p>NIP. ........................................</p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="p-10 text-center">Memuat dokumen...</div>
+}

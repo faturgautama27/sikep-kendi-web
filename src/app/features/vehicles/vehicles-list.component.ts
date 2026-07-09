@@ -111,6 +111,14 @@ export class VehiclesListComponent {
     this.router.navigate(['/vehicles', v.id]);
   }
 
+  protected onAdd(): void {
+    this.router.navigate(['/vehicles/new']);
+  }
+
+  protected onKartu(v: Vehicle): void {
+    this.router.navigate(['/vehicles', v.id, 'kartu']);
+  }
+
   protected statusSeverity(s: VehicleStatus): 'success' | 'warn' | 'secondary' {
     return s === 'active' ? 'success' : s === 'in_repair' ? 'warn' : 'secondary';
   }

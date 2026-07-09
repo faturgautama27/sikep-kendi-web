@@ -148,6 +148,15 @@ export const routes: Routes = [
         data: { title: 'Detail Kendaraan', requiredPermissions: ['kendaraan.read'] },
       },
       {
+        path: 'vehicles/:id/kartu',
+        loadComponent: () =>
+          import('@features/vehicles/kartu-pemeliharaan.component').then(
+            (m) => m.KartuPemeliharaanComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Kartu Pemeliharaan', requiredPermissions: ['kendaraan.kartu'] },
+      },
+      {
         path: 'pengajuan/new',
         loadComponent: () =>
           import('@features/pengajuan/pengajuan-form.component').then(
@@ -164,6 +173,15 @@ export const routes: Routes = [
           ),
         canActivate: [permissionGuard],
         data: { title: 'Edit Pengajuan', requiredPermissions: ['pengajuan.create'] },
+      },
+      {
+        path: 'pengajuan/:id/print',
+        loadComponent: () =>
+          import('@features/pengajuan/print/pengajuan-print.component').then(
+            (m) => m.PengajuanPrintComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Cetak Pengajuan', requiredPermissions: ['pengajuan.read'] },
       },
       {
         path: 'pengajuan/:id',
