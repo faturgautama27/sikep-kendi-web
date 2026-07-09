@@ -107,15 +107,19 @@
             <span class="text-slate-500">Foto Bukti Kerusakan</span>
             <div class="flex flex-wrap gap-3 mt-2">
               @for (foto of p.photos; track foto.id) {
-                <div
-                  class="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                <a
+                  [href]="foto.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm hover:shadow-md hover:scale-105 transition-all"
                 >
-                  <img [src]="foto.url" alt="Foto Pengajuan" class="w-full h-full object-cover" />
-                </div>
+                  <img [src]="foto.url" alt="Foto Pengajuan" class="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                </a>
               }
             </div>
           </div>
         }
+
         @if (p.status === 'ditolak') {
           <div class="flex flex-col gap-1 px-5 py-3 bg-red-50">
             <span class="text-red-600 font-medium">Alasan Penolakan</span>
