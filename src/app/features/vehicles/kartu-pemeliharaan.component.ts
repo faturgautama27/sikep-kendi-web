@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { DatePipe, FormsModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import { APP_ENV } from '@core/data-access/app-env.token';
 
@@ -85,7 +86,7 @@ export class KartuPemeliharaanComponent implements OnInit {
     this.loading.set(true);
     this.http
       .get<{ data: KartuPemeliharaan }>(
-        `${this.env.apiUrl}/vehicles/${id}/kartu-pemeliharaan`,
+        `${this.env.apiBaseUrl}/vehicles/${id}/kartu-pemeliharaan`,
         { params: { tahun: String(this.tahun()) } },
       )
       .subscribe({
