@@ -10,88 +10,120 @@
       </div>
     }
 
-    <div
-      class="flex items-center gap-2"
-      [class.w-full]="env.isMobile"
-      [class.justify-between]="env.isMobile"
-    >
-      @if (env.isMobile) {
+    @if (!env.isMobile) {
+      <div class="flex items-center gap-2">
         <p-button
-          icon="pi pi-filter"
-          label="Filter"
-          severity="secondary"
-          [rounded]="true"
-          [text]="true"
-          (onClick)="op.toggle($event)"
+          icon="pi pi-plus"
+          label="Buat Pengajuan Manual"
+          severity="primary"
+          (onClick)="onCreateManual()"
         ></p-button>
-
-        <p-popover #op>
-          <div class="flex flex-col gap-4 w-64 p-2">
-            <h3 class="font-bold text-slate-800">Filter Pencarian</h3>
-            <div class="flex flex-col gap-1">
-              <label for="search_mobile" class="text-xs font-medium text-slate-600"
-                >Cari nomor / judul</label
-              >
-              <span class="p-input-icon-left">
-                <input
-                  pInputText
-                  id="search_mobile"
-                  class="w-full"
-                  placeholder="Kata kunci..."
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="searchQuery.set($event)"
-                />
-              </span>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="status_mobile" class="text-xs font-medium text-slate-600">Status</label>
-              <p-multiSelect
-                inputId="status_mobile"
-                [options]="statusOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Semua status"
-                [maxSelectedLabels]="1"
-                selectedItemsLabel="{0} item"
-                [ngModel]="selectedStatuses()"
-                (ngModelChange)="selectedStatuses.set($event)"
-                styleClass="w-full"
-                appendTo="body"
-              ></p-multiSelect>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="jenis_mobile" class="text-xs font-medium text-slate-600">Jenis</label>
-              <p-select
-                inputId="jenis_mobile"
-                [options]="jenisOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Semua jenis"
-                [ngModel]="selectedJenis()"
-                (ngModelChange)="selectedJenis.set($event)"
-                styleClass="w-full"
-                appendTo="body"
-              ></p-select>
-            </div>
-            <p-button
-              label="Reset Filter"
-              severity="secondary"
-              size="small"
-              class="mt-2"
-              (onClick)="onResetFilter(); op.hide()"
-            ></p-button>
-          </div>
-        </p-popover>
-      }
-
-      <p-button
-        icon="pi pi-plus"
-        [label]="env.isMobile ? 'Ajukan' : 'Buat Pengajuan Manual'"
-        severity="primary"
-        (onClick)="onCreateManual()"
-      ></p-button>
-    </div>
+      </div>
+    }
   </header>
+
+  @if (env.isMobile) {
+    <!-- Mobile: title row + Buat button -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-lg font-bold text-slate-800">Pengajuan Saya</h1>
+      <button
+        type="button"
+        class="flex items-center gap-1.5 bg-blue-600 text-white text-sm font-semibold px-3 py-2 rounded-xl active:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        (click)="navigateToCreate()"
+      >
+        <i class="pi pi-plus text-xs"></i>
+        <span>Buat</span>
+      </button>
+    </div>
+
+    <!-- Mobile: search bar + filter trigger -->
+    <div class="flex items-center gap-2">
+      <div class="flex-1 relative">
+        <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+        <input
+          pInputText
+          class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm shadow-sm"
+          placeholder="Cari nomor atau judul..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+      <button
+        type="button"
+        class="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm active:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        (click)="op.toggle($event)"
+        aria-label="Filter lanjutan"
+      >
+        <i class="pi pi-sliders-h text-base"></i>
+      </button>
+    </div>
+
+    <!-- Mobile: status filter chips horizontal scroll -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
+      <!-- All chip -->
+      <button
+        type="button"
+        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+        [ngClass]="selectedStatuses().length === 0
+          ? 'bg-blue-600 text-white'
+          : 'bg-slate-100 text-slate-600'"
+        (click)="selectedStatuses.set([])"
+      >
+        Semua
+      </button>
+      <!-- Per-status chips -->
+      @for (opt of statusOptions; track opt.value) {
+        <button
+          type="button"
+          class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+          [ngClass]="selectedStatuses().includes(opt.value)
+            ? 'bg-blue-600 text-white'
+            : 'bg-slate-100 text-slate-600'"
+          (click)="selectedStatuses.set(
+            selectedStatuses().includes(opt.value)
+              ? selectedStatuses().filter(s => s !== opt.value)
+              : [...selectedStatuses(), opt.value]
+          )"
+        >
+          @switch (opt.value) {
+            @case ('draft') { Draft }
+            @case ('menunggu_verifikasi') { Menunggu }
+            @case ('terverifikasi') { Terverifikasi }
+            @case ('ditolak') { Ditolak }
+            @case ('work_order_terbuat') { WO Terbuat }
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Mobile: advanced filter popover (jenis) -->
+    <p-popover #op>
+      <div class="flex flex-col gap-4 w-64 p-2">
+        <h3 class="font-bold text-slate-800">Filter Lanjutan</h3>
+        <div class="flex flex-col gap-1">
+          <label for="jenis_mobile" class="text-xs font-medium text-slate-600">Jenis</label>
+          <p-select
+            inputId="jenis_mobile"
+            [options]="jenisOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Semua jenis"
+            [ngModel]="selectedJenis()"
+            (ngModelChange)="selectedJenis.set($event)"
+            styleClass="w-full"
+            appendTo="body"
+          ></p-select>
+        </div>
+        <p-button
+          label="Reset Filter"
+          severity="secondary"
+          size="small"
+          class="mt-2"
+          (onClick)="onResetFilter(); op.hide()"
+        ></p-button>
+      </div>
+    </p-popover>
+  }
 
   @if (!env.isMobile) {
     <!-- Filter bar -->
@@ -238,53 +270,80 @@
       </p-table>
     </div>
   } @else {
-    <!-- Mobile Card List -->
-    <div class="flex flex-col gap-4 mb-20">
+    <!-- Mobile Card Feed -->
+    <div class="flex flex-col gap-3 mb-24">
       @for (p of filteredList(); track p.id) {
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3 transition active:scale-95"
-          (click)="onOpenDetail(p)"
+        <button
+          type="button"
+          class="w-full text-left bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition active:scale-[0.98] active:shadow-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          (click)="navigateToDetail(p.id)"
         >
-          <div class="flex justify-between items-start gap-2">
-            <div>
-              <p class="font-bold text-slate-800 text-sm mb-1 leading-tight">
-                {{ truncate(p.judul, 45) }}
-              </p>
-              <p class="text-xs text-slate-500 font-mono">{{ p.nomor }}</p>
-            </div>
-            <p-tag
-              [value]="statusLabel(p.status)"
-              [severity]="statusSeverity(p.status)"
-              [rounded]="true"
-              styleClass="text-[10px] px-2 py-0.5"
-            ></p-tag>
-          </div>
+          <div class="flex items-stretch min-h-[56px]">
+            <!-- Left accent border by status -->
+            <div
+              class="w-1 shrink-0"
+              [ngClass]="{
+                'bg-slate-400':   p.status === 'draft',
+                'bg-amber-500':   p.status === 'menunggu_verifikasi',
+                'bg-emerald-600': p.status === 'terverifikasi',
+                'bg-red-500':     p.status === 'ditolak',
+                'bg-blue-600':    p.status === 'work_order_terbuat'
+              }"
+            ></div>
 
-          <div class="flex items-center gap-4 text-xs text-slate-600 mt-1">
-            <div class="flex items-center gap-1.5">
-              <i class="pi pi-car text-slate-400"></i>
-              <span class="font-mono">{{ p.vehiclePlate }}</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <i class="pi pi-calendar text-slate-400"></i>
-              <span>{{ formatDate(p.createdAt) }}</span>
-            </div>
-          </div>
+            <!-- Card body -->
+            <div class="flex-1 px-4 py-3 flex flex-col gap-1.5">
+              <!-- Top row: nomor pengajuan + status tag -->
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-semibold text-slate-800 text-sm leading-snug truncate">
+                  {{ p.nomor }}
+                </span>
+                <p-tag
+                  [value]="statusLabel(p.status)"
+                  [severity]="statusSeverity(p.status)"
+                  [rounded]="true"
+                  styleClass="text-[10px] shrink-0"
+                ></p-tag>
+              </div>
 
-          <div class="flex justify-between items-center mt-2 pt-3 border-t border-slate-50">
-            <p-tag
-              [value]="jenisLabel(p.jenis)"
-              [severity]="jenisSeverity(p.jenis)"
-              [rounded]="true"
-              styleClass="text-[10px]"
-            ></p-tag>
-            <span class="font-bold text-slate-800">{{ formatRupiah(p.totalEstimasi) }}</span>
+              <!-- Middle: kendaraan info -->
+              <div class="flex items-center gap-1 text-sm text-slate-600">
+                <i class="pi pi-car text-slate-400 text-xs"></i>
+                @if (p.vehiclePlate) {
+                  <span class="font-mono font-medium">{{ p.vehiclePlate }}</span>
+                  @if (p.vehicleMerk || p.vehicleModel) {
+                    <span class="text-slate-400 text-xs">·</span>
+                    <span class="text-slate-500 text-xs truncate">{{ p.vehicleMerk }} {{ p.vehicleModel }}</span>
+                  }
+                } @else {
+                  <span class="text-slate-400 text-xs italic">Kendaraan tidak tersedia</span>
+                }
+              </div>
+
+              <!-- Bottom row: tanggal kiri + jenis badge kanan -->
+              <div class="flex items-center justify-between gap-2 mt-0.5">
+                <span class="flex items-center gap-1 text-xs text-slate-400">
+                  <i class="pi pi-calendar text-[10px]"></i>
+                  {{ formatDate(p.createdAt) }}
+                </span>
+                <span
+                  class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0"
+                >
+                  {{ jenisLabel(p.jenis) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Chevron -->
+            <div class="flex items-center pr-3 pl-1">
+              <i class="pi pi-chevron-right text-xs text-slate-300"></i>
+            </div>
           </div>
-        </div>
+        </button>
       } @empty {
-        <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-slate-200">
-          <i class="pi pi-inbox text-3xl text-slate-300 mb-3 block"></i>
-          <p class="text-sm font-medium text-slate-500">Belum ada pengajuan</p>
+        <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200">
+          <i class="pi pi-inbox text-5xl text-slate-200 mb-3 block"></i>
+          <p class="text-sm font-semibold text-slate-500">Belum ada pengajuan</p>
           <p class="text-xs text-slate-400 mt-1">Daftar pengajuan servis akan muncul di sini</p>
         </div>
       }

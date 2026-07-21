@@ -27,7 +27,7 @@ import type { Pengajuan, PengajuanJenis, PengajuanStatus } from '@shared/models'
 import { AuthState } from '@features/login/state';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { LoadPengajuan } from './state/pengajuan.actions';
-import { NgClass } from '../../../../node_modules/@angular/common/types/_common_module-chunk';
+import { NgClass } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 
 interface StatusOption {
@@ -78,6 +78,7 @@ const STATUS_LABEL: Record<PengajuanStatus, string> = {
   standalone: true,
   imports: [
     FormsModule,
+    NgClass,
     ButtonModule,
     ChipModule,
     InputTextModule,
@@ -99,6 +100,14 @@ export class PengajuanListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   protected readonly env = inject(APP_ENV);
+
+  protected navigateToCreate(): void {
+    this.router.navigate(['/driver/pengajuan/baru']);
+  }
+
+  protected navigateToDetail(id: string): void {
+    this.router.navigate(['/driver/pengajuan', id]);
+  }
 
   protected readonly statusOptions = STATUS_OPTIONS;
   protected readonly jenisOptions = JENIS_OPTIONS;

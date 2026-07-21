@@ -8,74 +8,73 @@
       </div>
     }
 
-    <div
-      class="flex items-center gap-2"
-      [class.w-full]="env.isMobile"
-      [class.justify-between]="env.isMobile"
-    >
-      @if (env.isMobile) {
+    @if (env.isMobile) {
+      <!-- Mobile header: title left + CTA right -->
+      <div class="flex items-center justify-between w-full">
+        <h1 class="text-lg font-bold text-slate-900">Laporan Darurat</h1>
         <p-button
-          label="Filter"
-          icon="pi pi-filter"
-          severity="secondary"
-          [rounded]="true"
-          [text]="true"
-          (onClick)="op.toggle($event)"
+          icon="pi pi-plus"
+          label="Laporkan"
+          severity="primary"
+          size="small"
+          (onClick)="onCreateManual()"
         ></p-button>
-
-        <p-popover #op>
-          <div class="flex flex-col gap-4 w-64 p-2">
-            <h3 class="font-bold text-slate-800">Filter Pencarian</h3>
-            <div class="flex flex-col gap-1">
-              <label for="search_mobile" class="text-xs font-medium text-slate-600"
-                >Cari nopol / merk / deskripsi</label
-              >
-              <span class="p-input-icon-left">
-                <input
-                  pInputText
-                  id="search_mobile"
-                  class="w-full"
-                  placeholder="Kata kunci..."
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="searchQuery.set($event)"
-                />
-              </span>
-            </div>
-            <div class="flex flex-col gap-1">
-              <label for="status_mobile" class="text-xs font-medium text-slate-600">Status</label>
-              <p-multiSelect
-                inputId="status_mobile"
-                [options]="statusOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Semua status"
-                [maxSelectedLabels]="1"
-                selectedItemsLabel="{0} item"
-                [ngModel]="selectedStatuses()"
-                (ngModelChange)="selectedStatuses.set($event)"
-                styleClass="w-full"
-                appendTo="body"
-              ></p-multiSelect>
-            </div>
-            <p-button
-              label="Reset Filter"
-              severity="secondary"
-              size="small"
-              class="mt-2"
-              (onClick)="onResetFilter(); op.hide()"
-            ></p-button>
-          </div>
-        </p-popover>
-      }
-
-      <p-button
-        icon="pi pi-plus"
-        [label]="env.isMobile ? 'Lapor Darurat' : 'Buat Laporan'"
-        severity="primary"
-        (onClick)="onCreateManual()"
-      ></p-button>
-    </div>
+      </div>
+    } @else {
+      <div class="flex items-center gap-2">
+        <p-button
+          icon="pi pi-plus"
+          label="Buat Laporan"
+          severity="primary"
+          (onClick)="onCreateManual()"
+        ></p-button>
+      </div>
+    }
   </header>
+
+  @if (env.isMobile) {
+    <!-- Mobile search bar: full-width -->
+    <div class="relative">
+      <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+      <input
+        pInputText
+        class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm shadow-sm"
+        placeholder="Cari nopol, merk, deskripsi..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+
+    <!-- Mobile filter chips: horizontal scroll -->
+    <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
+      <!-- All chip -->
+      <button
+        type="button"
+        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors focus:outline-none"
+        [class.bg-primary-600]="selectedStatuses().length === 0"
+        [class.text-white]="selectedStatuses().length === 0"
+        [class.border-primary-600]="selectedStatuses().length === 0"
+        [class.bg-white]="selectedStatuses().length > 0"
+        [class.text-slate-600]="selectedStatuses().length > 0"
+        [class.border-slate-200]="selectedStatuses().length > 0"
+        (click)="onResetFilter()"
+      >Semua</button>
+
+      @for (opt of statusOptions; track opt.value) {
+        <button
+          type="button"
+          class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors focus:outline-none"
+          [class.bg-primary-600]="selectedStatuses().includes(opt.value)"
+          [class.text-white]="selectedStatuses().includes(opt.value)"
+          [class.border-primary-600]="selectedStatuses().includes(opt.value)"
+          [class.bg-white]="!selectedStatuses().includes(opt.value)"
+          [class.text-slate-600]="!selectedStatuses().includes(opt.value)"
+          [class.border-slate-200]="!selectedStatuses().includes(opt.value)"
+          (click)="selectedStatuses.set([opt.value])"
+        >{{ opt.label }}</button>
+      }
+    </div>
+  }
 
   @if (!env.isMobile) {
     <!-- Filter bar -->
@@ -203,51 +202,78 @@
       </p-table>
     </div>
   } @else {
-    <!-- Mobile Card List -->
-    <div class="flex flex-col gap-4 mb-20">
+    <!-- Mobile Card Feed -->
+    <div class="flex flex-col gap-3 mb-24">
       @for (row of filteredList(); track row.id) {
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3 transition active:scale-95"
+        @let st = getStatusProps(row.status);
+        <button
+          type="button"
+          class="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden transition active:scale-[0.98] active:shadow-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           (click)="onOpenDetail(row)"
         >
-          <div class="flex justify-between items-start gap-2">
-            <div>
-              <p class="font-bold text-slate-800 text-sm mb-1 leading-tight">
-                {{ row.kendaraan?.nomorPolisi || '-' }}
-              </p>
-              <p class="text-xs text-slate-500 line-clamp-1">
-                {{ truncate(row.deskripsiDarurat, 45) }}
-              </p>
-            </div>
-            @let st = getStatusProps(row.status);
-            <p-tag
-              [value]="st.label"
-              [severity]="st.severity"
-              [rounded]="true"
-              styleClass="tag-mobile-status px-2 py-0.5"
-            ></p-tag>
-          </div>
+          <div class="flex items-stretch min-h-[56px]">
+            <!-- Left color stripe per status -->
+            <div
+              class="w-1 shrink-0 rounded-l-xl"
+              [ngClass]="{
+                'bg-amber-500':   row.status === 'MENUNGGU_VERIFIKASI_PB',
+                'bg-emerald-600': row.status === 'DISETUJUI_PB',
+                'bg-red-500':     row.status === 'DITOLAK_PB',
+                'bg-blue-500':    row.status === 'MENUNGGU_REIMBURSEMENT',
+                'bg-blue-600':    row.status === 'REIMBURSEMENT_DIAJUKAN',
+                'bg-purple-500':  row.status === 'MENUNGGU_SHS_PB',
+                'bg-purple-600':  row.status === 'SHS_DIKERJAKAN',
+                'bg-indigo-500':  row.status === 'MENUNGGU_PPTK',
+                'bg-emerald-500': row.status === 'DISETUJUI_PPTK',
+                'bg-emerald-700': row.status === 'DIBAYAR',
+                'bg-red-600':     row.status === 'DITOLAK_VERIFIKATOR',
+                'bg-red-700':     row.status === 'DITOLAK_PPTK',
+                'bg-slate-300':   !row.status
+              }"
+            ></div>
 
-          <div class="flex items-center gap-4 text-xs text-slate-600 mt-1">
-            <div class="flex items-center gap-1.5">
-              <i class="pi pi-user text-slate-400"></i>
-              <span>{{ truncate(row.pengemudi?.fullName || '-', 15) }}</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <i class="pi pi-calendar text-slate-400"></i>
-              <span>{{ formatDate(row.createdAt) }}</span>
-            </div>
-          </div>
+            <!-- Card content -->
+            <div class="flex-1 px-3 py-3 flex flex-col gap-1.5 min-w-0">
+              <!-- Top row: nopol + status tag -->
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-semibold text-slate-800 text-sm truncate">
+                  {{ row.kendaraan?.nomorPolisi || '-' }}
+                </span>
+                <p-tag
+                  [value]="st.label"
+                  [severity]="st.severity"
+                  [rounded]="true"
+                  styleClass="text-[10px] shrink-0"
+                ></p-tag>
+              </div>
 
-          <div class="flex justify-between items-center mt-2 pt-3 border-t border-slate-50">
-            <span class="text-xs font-medium text-slate-500">Total Pengeluaran</span>
-            <span class="font-bold text-slate-800">{{ formatRupiah(row.totalPengeluaran || 0) }}</span>
+              <!-- Middle row: merk + tipe -->
+              <p class="text-xs text-slate-500 truncate">
+                {{ row.kendaraan?.merk || '' }}{{ row.kendaraan?.tipe ? ' · ' + row.kendaraan?.tipe : '' }}
+              </p>
+
+              <!-- Bottom row: tanggal + estimasi biaya -->
+              <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                <span class="flex items-center gap-1">
+                  <i class="pi pi-calendar text-[10px]"></i>
+                  <span>{{ formatDate(row.createdAt) }}</span>
+                </span>
+                @if (row.estimasiBiaya) {
+                  <span class="font-medium text-slate-600">~ {{ formatRupiah(row.estimasiBiaya) }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Chevron -->
+            <div class="flex items-center pr-3">
+              <i class="pi pi-chevron-right text-xs text-slate-300"></i>
+            </div>
           </div>
-        </div>
+        </button>
       } @empty {
-        <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-slate-200">
-          <i class="pi pi-inbox text-3xl text-slate-300 mb-3 block"></i>
-          <p class="text-sm font-medium text-slate-500">Belum ada laporan</p>
+        <div class="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-dashed border-slate-200">
+          <i class="pi pi-inbox text-4xl text-slate-300 mb-3"></i>
+          <p class="text-sm font-semibold text-slate-500">Belum ada laporan</p>
           <p class="text-xs text-slate-400 mt-1">Laporan darurat akan muncul di sini</p>
         </div>
       }

@@ -29,7 +29,7 @@ import { MessageService } from 'primeng/api';
 import { PageHeaderComponent } from '@core/layout';
 import { PengajuanState } from './state/pengajuan.state';
 import { ApprovePengajuan, RejectPengajuan } from './state/pengajuan.actions';
-import type { Pengajuan, PengajuanStatus, User } from '@shared/models';
+import type { Pengajuan, PengajuanJenis, PengajuanStatus, User } from '@shared/models';
 import { CommonModule } from '@angular/common';
 
 const STATUS_LABEL: Record<PengajuanStatus, string> = {
@@ -140,6 +140,24 @@ export class PengajuanDetailComponent implements OnInit {
 
   protected statusLabel(s: PengajuanStatus): string {
     return STATUS_LABEL[s];
+  }
+
+  protected jenisLabel(j: PengajuanJenis): string {
+    const m: Record<PengajuanJenis, string> = {
+      SERVIS_RUTIN: 'Servis Rutin',
+      PERBAIKAN_KERUSAKAN: 'Perbaikan',
+      GANTI_SPARE_PART: 'Spare Part',
+    };
+    return m[j] ?? j;
+  }
+
+  protected jenisSeverity(j: PengajuanJenis): 'info' | 'warn' | 'secondary' {
+    const m: Record<PengajuanJenis, 'info' | 'warn' | 'secondary'> = {
+      SERVIS_RUTIN: 'info',
+      PERBAIKAN_KERUSAKAN: 'warn',
+      GANTI_SPARE_PART: 'secondary',
+    };
+    return m[j] ?? 'secondary';
   }
 
   // Approve flow

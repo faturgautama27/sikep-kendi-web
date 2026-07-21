@@ -3,12 +3,11 @@
 @if (pengajuan(); as p) {
   <section
     class="flex flex-col"
-    [class.px-4]="env.isMobile"
-    [class.py-6]="env.isMobile"
-    [class.pb-6]="env.isMobile"
+    [class.pb-28]="env.isMobile"
     [class.bg-slate-50]="env.isMobile"
     [class.gap-5]="!env.isMobile"
-    [class.gap-4]="env.isMobile"
+    [class.gap-0]="env.isMobile"
+    [class.px-4]="!env.isMobile"
     [class.max-w-3xl]="!env.isMobile"
   >
     @if (!env.isMobile) {
@@ -42,74 +41,119 @@
       </app-page-header>
     }
 
-    <!-- Status Banner -->
-    <div
-      class="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-    >
-      <div class="flex gap-3" [class.flex-col]="env.isMobile" [class.items-center]="!env.isMobile">
-        <p-tag
-          [value]="statusLabel(p.status)"
-          [severity]="statusSeverity(p.status)"
-          styleClass="text-base px-3 py-1"
-        />
-        <span class="text-sm text-slate-500">Dibuat {{ formatDate(p.createdAt) }}</span>
-      </div>
-      <div class="text-xs text-slate-400">
-        Terakhir diupdate: {{ formatDate(p.updatedAt ?? p.createdAt) }}
-      </div>
-    </div>
+    @if (env.isMobile) {
+      <!-- Mobile Hero Banner -->
+      <div
+        class="relative overflow-hidden px-5 pt-5 pb-16 bg-gradient-to-br"
+        [class.from-slate-600]="p.status === 'draft'"
+        [class.to-slate-700]="p.status === 'draft'"
+        [class.from-amber-500]="p.status === 'menunggu_verifikasi'"
+        [class.to-amber-600]="p.status === 'menunggu_verifikasi'"
+        [class.from-emerald-500]="p.status === 'terverifikasi'"
+        [class.to-emerald-600]="p.status === 'terverifikasi'"
+        [class.from-red-500]="p.status === 'ditolak'"
+        [class.to-red-600]="p.status === 'ditolak'"
+        [class.from-blue-500]="p.status === 'work_order_terbuat'"
+        [class.to-blue-600]="p.status === 'work_order_terbuat'"
+      >
+        <!-- Decorative circles -->
+        <div class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5"></div>
+        <div class="absolute -right-4 top-14 h-24 w-24 rounded-full bg-white/5"></div>
+        <div class="absolute left-0 bottom-0 h-12 w-full bg-gradient-to-t from-black/10 to-transparent"></div>
 
-    <!-- Data -->
-    <div
-      class="flex flex-col gap-0 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
-    >
-      <div class="border-b border-slate-100 px-5 py-3">
-        <h2 class="font-semibold text-slate-800">Informasi Pengajuan</h2>
-      </div>
-      <div class="divide-y divide-slate-50 text-sm">
-        <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
-          <span class="w-full md:w-48 text-slate-500">Kendaraan</span>
-          <span class="font-medium"
-            >{{ p.vehiclePlate }} ({{ p.vehicleMerk }} {{ p.vehicleModel }} -
-            {{ p.vehicleTahun }})</span
-          >
-        </div>
-        <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
-          <span class="w-full md:w-48 text-slate-500">Odometer saat diajukan</span>
-          <span class="font-medium">{{ p.odometerSaatPengajuan | number }} km</span>
-        </div>
-        <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
-          <span class="w-full md:w-48 text-slate-500">Jenis Pengajuan</span>
-          <span class="font-medium capitalize">{{ p.jenis }}</span>
-        </div>
-        <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
-          <span class="w-full md:w-48 text-slate-500">Diajukan oleh</span>
-          <span class="font-medium">{{ p.createdByName || '—' }}</span>
-        </div>
-        @if (p.submittedAt) {
-          <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
-            <span class="w-full md:w-48 text-slate-500">Diajukan pada</span>
-            <span class="font-medium">{{ formatDate(p.submittedAt) }}</span>
+        <!-- Back button -->
+        <button
+          type="button"
+          class="mb-4 flex items-center gap-1.5 text-white/80 text-sm active:text-white transition"
+          (click)="goBack()"
+        >
+          <i class="pi pi-arrow-left text-xs"></i>
+          <span>Kembali</span>
+        </button>
+
+        <div class="relative">
+          <p class="text-white/60 text-[11px] font-medium tracking-widest uppercase mb-1">Pengajuan Pemeliharaan</p>
+          <h1 class="text-xl font-extrabold text-white leading-tight">{{ p.nomor }}</h1>
+          <div class="flex items-center gap-2 mt-3 flex-wrap">
+            <span
+              class="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold bg-white/15 backdrop-blur-sm text-white"
+            >
+              {{ statusLabel(p.status) }}
+            </span>
+            <span class="text-white/60 text-xs">{{ formatDate(p.createdAt) }}</span>
           </div>
-        }
-        <div class="flex flex-col gap-1 px-5 py-3">
-          <span class="text-slate-500">Deskripsi Kerusakan / Pekerjaan</span>
-          <p
-            class="mt-1 rounded-md bg-slate-50 p-3 text-slate-700 leading-relaxed whitespace-pre-line"
-          >
-            {{ p.deskripsi }}
-          </p>
+        </div>
+      </div>
+
+      <!-- Mobile Info Card (overlaps hero) -->
+      <div class="mx-4 -mt-10 relative z-10 flex flex-col gap-3">
+        <div class="rounded-2xl bg-white shadow-xl shadow-blue-900/15 border border-slate-100 overflow-hidden">
+          <!-- Section header -->
+          <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-50">
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
+              <i class="pi pi-car text-xs text-white"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Informasi Kendaraan</span>
+          </div>
+          <!-- Info rows -->
+          <div class="divide-y divide-slate-50 text-sm">
+            <div class="flex flex-col px-5 py-4">
+              <span class="text-xs text-slate-500 mb-0.5">Kendaraan</span>
+              <span class="font-medium text-slate-800">{{ p.vehiclePlate }} · {{ p.vehicleMerk }} {{ p.vehicleModel }}</span>
+            </div>
+            <div class="flex flex-col px-5 py-4">
+              <span class="text-xs text-slate-500 mb-0.5">Odometer</span>
+              <span class="font-medium text-slate-800">{{ p.odometerSaatPengajuan | number }} km</span>
+            </div>
+            <div class="flex flex-col px-5 py-4">
+              <span class="text-xs text-slate-500 mb-0.5">Jenis</span>
+              <p-tag
+                [value]="jenisLabel(p.jenis)"
+                [severity]="jenisSeverity(p.jenis)"
+                [rounded]="true"
+                styleClass="text-[10px] self-start"
+              ></p-tag>
+            </div>
+            <div class="flex flex-col px-5 py-4">
+              <span class="text-xs text-slate-500 mb-0.5">Diajukan oleh</span>
+              <span class="font-medium text-slate-800">{{ p.createdByName || '—' }}</span>
+            </div>
+            @if (p.submittedAt) {
+              <div class="flex flex-col px-5 py-4">
+                <span class="text-xs text-slate-500 mb-0.5">Diajukan pada</span>
+                <span class="font-medium text-slate-800">{{ formatDate(p.submittedAt) }}</span>
+              </div>
+            }
+          </div>
         </div>
 
-        <!-- Foto Bukti -->
+        <!-- Deskripsi card -->
+        <div class="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+          <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-50">
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-600">
+              <i class="pi pi-file-edit text-xs text-white"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Deskripsi</span>
+          </div>
+          <div class="px-5 py-4">
+            <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{{ p.deskripsi }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile extra cards (photos, rejection, work order) -->
+      <div class="mx-4 mt-3 flex flex-col gap-3">
         @if (p.photos && p.photos.length > 0) {
-          <div class="flex flex-col gap-2 px-5 py-3">
-            <span class="text-slate-500">Foto Bukti Kerusakan</span>
-            <div class="flex flex-wrap gap-3 mt-2">
+          <div class="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+            <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-50">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500">
+                <i class="pi pi-images text-xs text-white"></i>
+              </div>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Foto Bukti</span>
+            </div>
+            <div class="flex flex-wrap gap-3 p-4">
               @for (foto of p.photos; track foto.id) {
-                <div
-                  class="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                >
+                <div class="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
                   <img [src]="foto.url" alt="Foto Pengajuan" class="w-full h-full object-cover" />
                 </div>
               }
@@ -117,24 +161,114 @@
           </div>
         }
         @if (p.status === 'ditolak') {
-          <div class="flex flex-col gap-1 px-5 py-3 bg-red-50">
-            <span class="text-red-600 font-medium">Alasan Penolakan</span>
-            <p class="text-red-700">{{ p.kategoriKerusakan || '—' }}</p>
+          <div class="rounded-2xl bg-red-50 border border-red-100 overflow-hidden">
+            <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-red-100">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500">
+                <i class="pi pi-times text-xs text-white"></i>
+              </div>
+              <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Alasan Penolakan</span>
+            </div>
+            <div class="px-5 py-4">
+              <p class="text-sm text-red-700 leading-relaxed">{{ p.kategoriKerusakan || '—' }}</p>
+            </div>
           </div>
         }
         @if (p.workOrderId) {
-          <div class="flex flex-col md:flex-row px-5 py-3 bg-green-50 gap-1 md:gap-0">
-            <span class="w-full md:w-40 text-slate-500">Work Order</span>
-            <a
-              [routerLink]="['/work-orders', p.workOrderId]"
-              class="text-blue-600 font-medium underline"
-            >
-              Lihat Work Order
-            </a>
-          </div>
+          <a
+            [routerLink]="['/work-orders', p.workOrderId]"
+            class="flex items-center justify-between rounded-2xl bg-emerald-50 border border-emerald-100 px-5 py-4 active:opacity-80 transition"
+          >
+            <div class="flex items-center gap-2">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600">
+                <i class="pi pi-wrench text-xs text-white"></i>
+              </div>
+              <span class="text-sm font-semibold text-emerald-800">Lihat Work Order</span>
+            </div>
+            <i class="pi pi-chevron-right text-sm text-emerald-400"></i>
+          </a>
         }
       </div>
-    </div>
+    }
+
+    @if (!env.isMobile) {
+      <!-- Desktop: Status Banner -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <p-tag
+            [value]="statusLabel(p.status)"
+            [severity]="statusSeverity(p.status)"
+            styleClass="text-base px-3 py-1"
+          />
+          <span class="text-sm text-slate-500">Dibuat {{ formatDate(p.createdAt) }}</span>
+        </div>
+        <div class="text-xs text-slate-400">
+          Terakhir diupdate: {{ formatDate(p.updatedAt ?? p.createdAt) }}
+        </div>
+      </div>
+
+      <!-- Desktop: Data -->
+      <div class="flex flex-col gap-0 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="border-b border-slate-100 px-5 py-3">
+          <h2 class="font-semibold text-slate-800">Informasi Pengajuan</h2>
+        </div>
+        <div class="divide-y divide-slate-50 text-sm">
+          <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
+            <span class="w-full md:w-48 text-slate-500">Kendaraan</span>
+            <span class="font-medium">{{ p.vehiclePlate }} ({{ p.vehicleMerk }} {{ p.vehicleModel }} - {{ p.vehicleTahun }})</span>
+          </div>
+          <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
+            <span class="w-full md:w-48 text-slate-500">Odometer saat diajukan</span>
+            <span class="font-medium">{{ p.odometerSaatPengajuan | number }} km</span>
+          </div>
+          <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
+            <span class="w-full md:w-48 text-slate-500">Jenis Pengajuan</span>
+            <span class="font-medium capitalize">{{ p.jenis }}</span>
+          </div>
+          <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
+            <span class="w-full md:w-48 text-slate-500">Diajukan oleh</span>
+            <span class="font-medium">{{ p.createdByName || '—' }}</span>
+          </div>
+          @if (p.submittedAt) {
+            <div class="flex flex-col md:flex-row px-5 py-3 gap-1 md:gap-0">
+              <span class="w-full md:w-48 text-slate-500">Diajukan pada</span>
+              <span class="font-medium">{{ formatDate(p.submittedAt) }}</span>
+            </div>
+          }
+          <div class="flex flex-col gap-1 px-5 py-3">
+            <span class="text-slate-500">Deskripsi Kerusakan / Pekerjaan</span>
+            <p class="mt-1 rounded-md bg-slate-50 p-3 text-slate-700 leading-relaxed whitespace-pre-line">
+              {{ p.deskripsi }}
+            </p>
+          </div>
+          @if (p.photos && p.photos.length > 0) {
+            <div class="flex flex-col gap-2 px-5 py-3">
+              <span class="text-slate-500">Foto Bukti Kerusakan</span>
+              <div class="flex flex-wrap gap-3 mt-2">
+                @for (foto of p.photos; track foto.id) {
+                  <div class="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity">
+                    <img [src]="foto.url" alt="Foto Pengajuan" class="w-full h-full object-cover" />
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @if (p.status === 'ditolak') {
+            <div class="flex flex-col gap-1 px-5 py-3 bg-red-50">
+              <span class="text-red-600 font-medium">Alasan Penolakan</span>
+              <p class="text-red-700">{{ p.kategoriKerusakan || '—' }}</p>
+            </div>
+          }
+          @if (p.workOrderId) {
+            <div class="flex flex-col md:flex-row px-5 py-3 bg-green-50 gap-1 md:gap-0">
+              <span class="w-full md:w-40 text-slate-500">Work Order</span>
+              <a [routerLink]="['/work-orders', p.workOrderId]" class="text-blue-600 font-medium underline">
+                Lihat Work Order
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     <!-- Actions -->
     @if (isMenunggu() && !env.isMobile) {
@@ -163,9 +297,15 @@
     <!-- Mobile Actions -->
     @if (env.isMobile && (p.status === 'draft' || p.status === 'menunggu_verifikasi')) {
       <div
-        class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40"
+        class="fixed bottom-0 left-0 right-0 px-4 py-3 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 flex gap-3"
       >
-        <a [routerLink]="['/driver/pengajuan', p.id, 'edit']" class="block">
+        <p-button
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="goBack()"
+        />
+        <a [routerLink]="['/driver/pengajuan', p.id, 'edit']" class="flex-1">
           <p-button label="Edit Pengajuan" icon="pi pi-pencil" styleClass="w-full" class="w-full" />
         </a>
       </div>

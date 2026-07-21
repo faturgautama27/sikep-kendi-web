@@ -14,22 +14,60 @@
   </div>
 }
 
+<!-- ── Mobile Page Header ─────────────────────────────────────────────── -->
+@if (env.isMobile) {
+  <div class="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 pt-5 pb-14">
+    <div class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5"></div>
+    <div class="absolute -right-4 top-14 h-24 w-24 rounded-full bg-white/5"></div>
+    <div class="absolute left-0 bottom-0 h-12 w-full bg-gradient-to-t from-black/10 to-transparent"></div>
+    <div class="relative">
+      <p class="text-white/60 text-[11px] font-medium tracking-widest uppercase mb-1">Pengajuan Pemeliharaan</p>
+      <h1 class="text-xl font-extrabold text-white leading-tight">
+        {{ isEditMode() ? 'Edit Pengajuan' : 'Buat Pengajuan' }}
+      </h1>
+      <!-- Step indicator pills -->
+      <div class="flex items-center gap-2 mt-3">
+        @for (s of steps; track $index) {
+          <div
+            class="flex items-center gap-1.5"
+            [class.opacity-100]="step() >= $index"
+            [class.opacity-40]="step() < $index"
+          >
+            <div
+              class="h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-bold transition"
+              [class.bg-white]="step() === $index"
+              [class.text-blue-700]="step() === $index"
+              [class.bg-white/30]="step() !== $index"
+              [class.text-white]="step() !== $index"
+            >{{ $index + 1 }}</div>
+            <span class="text-[11px] font-semibold text-white hidden sm:block">{{ s.label }}</span>
+          </div>
+          @if ($index < steps.length - 1) {
+            <div class="h-px w-4 bg-white/30"></div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}
+
 <!-- ── Main Layout Container ──────────────────────────────────────────── -->
 <div
   class="flex flex-col"
   [class.px-4]="env.isMobile"
-  [class.py-6]="env.isMobile"
   [class.pb-6]="env.isMobile"
   [class.bg-slate-50]="env.isMobile"
+  [class.-mt-8]="env.isMobile"
   [class.gap-5]="!env.isMobile"
   [class.max-w-3xl]="!env.isMobile"
 >
-  <p-steps
-    [model]="steps"
-    [activeIndex]="step()"
-    [readonly]="true"
-    [styleClass]="env.isMobile ? 'mb-4 scale-90 origin-left' : ''"
-  />
+  @if (!env.isMobile) {
+    <p-steps
+      [model]="steps"
+      [activeIndex]="step()"
+      [readonly]="true"
+    />
+  }
 
   <!-- Step 0: Data Kendaraan -->
   @if (step() === 0) {
@@ -38,14 +76,27 @@
       class="flex flex-col"
       [class.gap-5]="env.isMobile"
       [class.gap-4]="!env.isMobile"
-      [class.rounded-xl]="!env.isMobile"
-      [class.border]="!env.isMobile"
+      [class.rounded-2xl]="env.isMobile"
+      [class.bg-white]="env.isMobile"
+      [class.shadow-xl]="env.isMobile"
+      [class.shadow-blue-900/10]="env.isMobile"
+      [class.border]="env.isMobile || !env.isMobile"
+      [class.border-slate-100]="env.isMobile"
       [class.border-slate-200]="!env.isMobile"
+      [class.p-5]="env.isMobile"
+      [class.rounded-xl]="!env.isMobile"
       [class.bg-white]="!env.isMobile"
       [class.p-6]="!env.isMobile"
       [class.shadow-sm]="!env.isMobile"
     >
-      @if (!env.isMobile) {
+      @if (env.isMobile) {
+        <div class="flex items-center gap-2 -mx-1 mb-1">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
+            <i class="pi pi-car text-xs text-white"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Data Kendaraan</span>
+        </div>
+      } @else {
         <h3 class="font-semibold text-slate-700">Step 1 — Data Kendaraan</h3>
       }
 
@@ -139,14 +190,27 @@
       class="flex flex-col"
       [class.gap-5]="env.isMobile"
       [class.gap-4]="!env.isMobile"
-      [class.rounded-xl]="!env.isMobile"
-      [class.border]="!env.isMobile"
+      [class.rounded-2xl]="env.isMobile"
+      [class.bg-white]="env.isMobile"
+      [class.shadow-xl]="env.isMobile"
+      [class.shadow-blue-900/10]="env.isMobile"
+      [class.border]="true"
+      [class.border-slate-100]="env.isMobile"
       [class.border-slate-200]="!env.isMobile"
+      [class.p-5]="env.isMobile"
+      [class.rounded-xl]="!env.isMobile"
       [class.bg-white]="!env.isMobile"
       [class.p-6]="!env.isMobile"
       [class.shadow-sm]="!env.isMobile"
     >
-      @if (!env.isMobile) {
+      @if (env.isMobile) {
+        <div class="flex items-center gap-2 -mx-1 mb-1">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-600">
+            <i class="pi pi-file-edit text-xs text-white"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Detail Kerusakan</span>
+        </div>
+      } @else {
         <h3 class="font-semibold text-slate-700">Step 2 — Detail Kerusakan</h3>
       }
 
