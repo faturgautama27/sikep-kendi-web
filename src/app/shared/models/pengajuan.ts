@@ -23,7 +23,7 @@ export interface PengajuanDetailLengkap {
   };
   pengemudi: { id: number; fullName: string; email: string };
   verifikasiOleh: { id: number; fullName: string; email: string } | null;
-  fotos: Array<{ urutan: number; image: { url: string } }>;
+  fotos: Array<{ urutan: number; url: string }>;
   workOrder: {
     id: number;
     nomorWo: string;
@@ -81,7 +81,7 @@ export interface PengajuanDetailLengkap {
         keterangan: string | null;
       }>;
     } | null;
-    dokumentasi: Array<{ kategori: string; image: { url: string } }>;
+    dokumentasi: Array<{ kategori: string; url: string }>;
     pembayaran: {
       metodePembayaran: string;
       tanggalPembayaran: string;

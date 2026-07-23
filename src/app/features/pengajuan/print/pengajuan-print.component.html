@@ -204,7 +204,7 @@
             @for (foto of d.fotos; track foto.urutan) {
               <div class="flex flex-col items-center gap-1">
                 <img
-                  [src]="foto.image.url"
+                  [src]="foto.url"
                   [alt]="'Foto ' + foto.urutan"
                   class="w-36 h-28 object-cover border border-slate-300 rounded"
                 />
@@ -506,7 +506,7 @@
                   @for (item of kategori.items; track $index) {
                     <div class="flex flex-col items-center gap-1">
                       <img
-                        [src]="item.image.url"
+                        [src]="item.url"
                         [alt]="kategori.label"
                         class="w-36 h-28 object-cover border border-slate-300 rounded"
                       />

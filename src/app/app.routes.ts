@@ -127,16 +127,9 @@ export const routes: Routes = [
       {
         path: 'vehicles/new',
         loadComponent: () =>
-          import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
+          import('@features/vehicles/vehicle-detail.component').then((m) => m.VehicleDetailComponent),
         canActivate: [permissionGuard],
         data: { title: 'Tambah Kendaraan', requiredPermissions: ['kendaraan.create'] },
-      },
-      {
-        path: 'vehicles/:id/edit',
-        loadComponent: () =>
-          import('@features/vehicles/vehicle-form.component').then((m) => m.VehicleFormComponent),
-        canActivate: [permissionGuard],
-        data: { title: 'Edit Kendaraan', requiredPermissions: ['kendaraan.create'] },
       },
       {
         path: 'vehicles/:id',
@@ -216,6 +209,42 @@ export const routes: Routes = [
           import('@features/laporan/laporan-list.component').then((m) => m.LaporanListComponent),
         canActivate: [permissionGuard],
         data: { title: 'Laporan Biaya Perbaikan', requiredPermissions: ['laporan.read'] },
+      },
+      {
+        path: 'work-orders/:id/draft-checklist/:draftId/print',
+        loadComponent: () =>
+          import('@features/draft-checklist/draft-checklist-print.component').then(
+            (m) => m.DraftChecklistPrintComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Cetak Draft Checklist', requiredPermissions: ['draft_checklist.read'] },
+      },
+      {
+        path: 'work-orders/:id/draft-checklist/new',
+        loadComponent: () =>
+          import('@features/draft-checklist/draft-checklist-form.component').then(
+            (m) => m.DraftChecklistFormComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Buat Draft Checklist', requiredPermissions: ['draft_checklist.create'] },
+      },
+      {
+        path: 'work-orders/:id/draft-checklist/:draftId/edit',
+        loadComponent: () =>
+          import('@features/draft-checklist/draft-checklist-form.component').then(
+            (m) => m.DraftChecklistFormComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Edit Draft Checklist', requiredPermissions: ['draft_checklist.create'] },
+      },
+      {
+        path: 'work-orders/:id/draft-checklist/:draftId',
+        loadComponent: () =>
+          import('@features/draft-checklist/draft-checklist-form.component').then(
+            (m) => m.DraftChecklistFormComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Detail Draft Checklist', requiredPermissions: ['draft_checklist.read'] },
       },
       {
         path: 'work-orders/:id',

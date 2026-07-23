@@ -98,7 +98,7 @@ export class VendorPenawaranComponent implements OnInit {
       )?.items ?? [],
   );
   protected readonly draftTotalHarga = computed(() =>
-    this.approvedItems().reduce((s, i) => s + i.hargaItem, 0),
+    this.approvedItems().reduce((s, i) => s + (i.hargaItem ?? 0), 0),
   );
 
   // Penawaran history

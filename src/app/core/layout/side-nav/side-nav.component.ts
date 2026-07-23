@@ -38,7 +38,7 @@ export class SideNavComponent {
       items: [
         { label: 'Dashboard', icon: 'pi pi-th-large', route: '/dashboard' },
         {
-          label: 'Master Kendaraan Dinas',
+          label: 'Data Kendaraan Dinas',
           icon: 'pi pi-truck',
           route: '/vehicles',
           permission: 'kendaraan.read',

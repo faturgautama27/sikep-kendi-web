@@ -13,6 +13,16 @@ export class CreateDraftChecklist {
   ) {}
 }
 
+export class UpdateDraftChecklist {
+  static readonly type = '[DraftChecklist] Update';
+  readonly type = UpdateDraftChecklist.type;
+  constructor(
+    public readonly id: string,
+    public readonly workOrderId: string,
+    public readonly payload: Record<string, unknown>,
+  ) {}
+}
+
 export class SubmitDraft {
   static readonly type = '[DraftChecklist] Submit';
   readonly type = SubmitDraft.type;

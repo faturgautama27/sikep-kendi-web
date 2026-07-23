@@ -38,6 +38,7 @@ export interface Pengajuan {
   vehicleMerk?: string;
   vehicleModel?: string;
   vehicleTahun?: number;
+  vehicleUnitKerja?: string;
   odometerSaatPengajuan?: number;
   odometerSaatIni?: number;
   verifikasiOlehId?: string | null;
@@ -45,6 +46,17 @@ export interface Pengajuan {
   komentarVerifikasi?: string | null;
   alasanPenolakan?: string | null;
   warnings?: string[];
+  workOrder?: PengajuanWorkOrder | null;
+}
+
+export interface PengajuanWorkOrder {
+  id: number;
+  nomorWo: string;
+  status: string;
+  vendorNama: string | null;
+  createdAt: Timestamp;
+  selesaiAt: Timestamp | null;   // paidAt dari pembayaran
+  nominal: Money | null;         // totalDibayar dari pembayaran
 }
 
 export interface PengajuanSparepart {

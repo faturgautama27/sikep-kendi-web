@@ -214,6 +214,38 @@ export class PengajuanDetailComponent implements OnInit {
     }).format(new Date(iso));
   }
 
+  protected formatRupiah(value: number | null): string {
+    if (value === null || value === undefined) return '—';
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
+
+  protected woStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      VENDOR_DITUGASKAN: 'Vendor Ditugaskan',
+      PENAWARAN: 'Penawaran',
+      DITOLAK_PB: 'Ditolak PB',
+      MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice',
+      MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
+      DITOLAK_VERIFIKATOR: 'Ditolak Verifikator',
+      MENUNGGU_PPTK: 'Menunggu PPTK',
+      DISETUJUI_PPTK: 'Disetujui PPTK',
+      DITOLAK_PPTK: 'Ditolak PPTK',
+      DIBAYAR: 'Selesai / Dibayar',
+    };
+    return map[status] ?? status;
+  }
+
+  protected woStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' {
+    if (status === 'DIBAYAR') return 'success';
+    if (['DITOLAK_PB', 'DITOLAK_VERIFIKATOR', 'DITOLAK_PPTK'].includes(status)) return 'danger';
+    if (['DISETUJUI_PPTK', 'MENUNGGU_PPTK', 'MENUNGGU_VERIFIKATOR'].includes(status)) return 'info';
+    return 'warn';
+  }
+
   protected goBack(): void {
     this.location.back();
   }

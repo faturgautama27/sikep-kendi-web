@@ -193,10 +193,10 @@ export class PengajuanPrintComponent implements OnInit, OnDestroy {
   };
 
   protected dokumentasiGrouped(
-    dokumentasi: Array<{ kategori: string; image: { url: string } }>,
-  ): Array<{ label: string; items: Array<{ kategori: string; image: { url: string } }> }> {
+    dokumentasi: Array<{ kategori: string; url: string }>,
+  ): Array<{ label: string; items: Array<{ kategori: string; url: string }> }> {
     const order = ['kondisi_awal', 'sparepart_sebelum', 'sparepart_sesudah', 'pasca_perbaikan'];
-    const groups = new Map<string, Array<{ kategori: string; image: { url: string } }>>();
+    const groups = new Map<string, Array<{ kategori: string; url: string }>>();
 
     for (const item of dokumentasi) {
       const existing = groups.get(item.kategori) ?? [];

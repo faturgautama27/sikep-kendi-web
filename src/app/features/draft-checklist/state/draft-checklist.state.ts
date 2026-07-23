@@ -15,15 +15,25 @@ import {
   LoadDraftChecklist,
   RejectDraft,
   SubmitDraft,
+  UpdateDraftChecklist,
 } from './draft-checklist.actions';
 
 type DraftChecklistStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK';
 
 export interface DraftChecklistItem {
+  id?: number;
+  urutan?: number;
+  // New spreadsheet fields
+  uraian?: string;
+  qty?: number;
+  harga?: number;
+  diskon?: number;
+  subTotal?: number;
+  // Legacy fields — preserved for backward compat
   namaKerusakan?: string;
   namaSparepart?: string;
   tindakanPerbaikan?: string;
-  hargaItem: number;
+  hargaItem?: number;
   fotoIds?: number[];
   fotos?: {
     imageId: number;
@@ -43,6 +53,8 @@ export interface DraftChecklistRecord {
   notesRejection?: string;
   items: DraftChecklistItem[];
   createdAt: string;
+  scanDraftImageId?: number | null;
+  scanDraftImageUrl?: string | null;
 }
 
 export interface DraftChecklistStateModel {
@@ -121,6 +133,26 @@ export class DraftChecklistState {
       createdAt: new Date().toISOString(),
     };
     ctx.patchState({ list: [next, ...ctx.getState().list] });
+    return;
+  }
+
+  @Action(UpdateDraftChecklist)
+  update(ctx: StateContext<DraftChecklistStateModel>, action: UpdateDraftChecklist) {
+    if (!this.env.previewMode) {
+      return this.data.update(action.id, action.payload).pipe(
+        tap(() => {
+          ctx.dispatch(new LoadDraftChecklist(action.workOrderId));
+        }),
+      );
+    }
+
+    const items = ((action.payload['items'] as DraftChecklistItem[]) ?? []).map((item) => ({ ...item }));
+    const totalHarga = items.reduce((sum, item) => sum + Number(item.hargaItem ?? 0), 0);
+    ctx.patchState({
+      list: ctx.getState().list.map((it) =>
+        it.id === action.id ? { ...it, items, totalHarga } : it,
+      ),
+    });
     return;
   }
 

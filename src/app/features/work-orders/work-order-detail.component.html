@@ -60,7 +60,7 @@
             <div>
               <span class="block text-xs font-medium text-slate-500">Odometer Saat Ini</span>
               <span class="block text-sm font-semibold text-slate-800">
-                {{ (wo.pengajuan?.kendaraan?.odometerSaatIni | number) ?? '-' }}
+                {{ (wo.pengajuan?.odometerSaatPengajuan | number) ?? '-' }}
               </span>
             </div>
             <div>
@@ -112,83 +112,104 @@
           </p-card>
         </div>
 
-        <!-- Draft Checklist -->
-        @if (latestDraft(); as draft) {
-          <p-card header="Detail Draft Checklist">
-            <p-table [value]="draft.items" [stripedRows]="true">
+        <!-- ══ Draft Checklist Section ══ -->
+        <p-card>
+          <ng-template #header>
+            <div class="flex items-center justify-between px-6 pt-5 pb-0">
+              <span class="text-base font-semibold text-slate-800">Draft Checklist</span>
+              @if (canCreateDraft()) {
+                <a [routerLink]="['/work-orders', wo.id, 'draft-checklist', 'new']">
+                  <p-button
+                    label="Buat Draft Baru"
+                    icon="pi pi-plus"
+                    size="small"
+                  ></p-button>
+                </a>
+              }
+            </div>
+          </ng-template>
+
+          @if (drafts().length === 0) {
+            <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+              <p class="text-sm text-slate-500">Belum ada draft checklist untuk work order ini.</p>
+            </div>
+          } @else {
+            <p-table [value]="visibleDrafts()" [stripedRows]="true">
               <ng-template #header>
                 <tr>
-                  <th>Sparepart / Jasa</th>
-                  <th>Kerusakan</th>
-                  <th>Tindakan</th>
-                  <th class="text-right">Harga</th>
-                  <th class="w-36">Lampiran</th>
+                  <th class="w-20">Versi</th>
+                  <th>Tanggal Dibuat</th>
+                  <th class="w-36 text-center">Status</th>
+                  <th class="text-right">Total</th>
+                  <th class="w-36 text-right">Aksi</th>
                 </tr>
               </ng-template>
-              <ng-template #body let-item>
+              <ng-template #body let-draft>
                 <tr>
-                  <td class="font-medium text-slate-800">{{ item.namaSparepart || '-' }}</td>
-                  <td>{{ item.namaKerusakan || '-' }}</td>
-                  <td>{{ item.tindakanPerbaikan || '-' }}</td>
-                  <td class="text-right font-medium text-primary-700">
-                    {{ formatRupiah(item.hargaItem) }}
+                  <td class="font-semibold text-slate-700">v{{ draft.versi }}</td>
+                  <td class="text-sm text-slate-600">{{ formatDateTime(draft.createdAt) }}</td>
+                  <td class="text-center">
+                    <p-tag
+                      [value]="draftStatusLabel(draft.status)"
+                      [severity]="draftStatusSeverity(draft.status)"
+                    ></p-tag>
                   </td>
-                  <td>
-                    @if (item.fotos?.length) {
-                      <div class="flex flex-col gap-1">
-                        @for (foto of item.fotos; track foto.imageId; let idx = $index) {
-                          <button
-                            type="button"
-                            class="w-fit flex items-center gap-1 text-left text-xs font-medium text-primary-700 underline underline-offset-2"
-                            (click)="openDraftAttachment(foto.imageId, fotoUrl(foto))"
-                          >
-                            <i [class]="fotoIcon(foto)" class="text-xs"></i>
-                            {{ fotoLabel(foto, idx) }}
-                          </button>
-                        }
-                      </div>
-                    } @else {
-                      <span class="text-xs text-slate-400">-</span>
-                    }
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template #footer>
-                <tr>
-                  <td colspan="4" class="text-right font-bold">Total</td>
-                  <td class="text-right font-bold text-primary-700">
+                  <td class="text-right font-semibold text-primary-700">
                     {{ formatRupiah(draft.totalHarga) }}
+                  </td>
+                  <td class="text-right">
+                    <div class="flex justify-end gap-1">
+                      @if (draft.status === 'DITOLAK' && isVendor()) {
+                        <a [routerLink]="['/work-orders', wo.id, 'draft-checklist', 'new']" [queryParams]="{ from: draft.id }">
+                          <p-button
+                            label="Duplikat"
+                            icon="pi pi-copy"
+                            size="small"
+                            severity="secondary"
+                            [outlined]="true"
+                            pTooltip="Buat versi baru berdasarkan draft ini"
+                            tooltipPosition="top"
+                          ></p-button>
+                        </a>
+                      }
+                      @if (draft.status === 'DRAFT' && isVendor()) {
+                        <a [routerLink]="['/work-orders', wo.id, 'draft-checklist', draft.id, 'edit']">
+                          <p-button
+                            label="Edit"
+                            icon="pi pi-pencil"
+                            size="small"
+                            severity="secondary"
+                            [outlined]="true"
+                          ></p-button>
+                        </a>
+                      }
+                      <a [routerLink]="['/work-orders', wo.id, 'draft-checklist', draft.id]">
+                        <p-button
+                          label="Lihat"
+                          icon="pi pi-eye"
+                          size="small"
+                          [outlined]="true"
+                        ></p-button>
+                      </a>
+                    </div>
                   </td>
                 </tr>
               </ng-template>
             </p-table>
-            <!-- Legacy approve/reject for draft checklist -->
-            @if (wo.status === 'DRAFT_CHECKLIST' || draft.status === 'DIKIRIM') {
-              <div
-                class="mt-4 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4"
-              >
-                <h3 class="text-sm font-semibold text-primary-900">Review Draft Checklist</h3>
-                <div class="flex items-end gap-3">
-                  <div class="flex-1">
-                    <input
-                      pInputText
-                      class="w-full"
-                      [(ngModel)]="catatan"
-                      placeholder="Catatan jika menolak..."
-                    />
-                  </div>
-                  <p-button
-                    label="Tolak"
-                    icon="pi pi-times"
-                    severity="danger"
-                    (onClick)="reject()"
-                  ></p-button>
-                  <p-button label="Setujui" icon="pi pi-check" (onClick)="approve()"></p-button>
-                </div>
-              </div>
-            }
-          </p-card>
-        }
+          }
+
+          <!-- Approve/reject untuk PB jika draft terbaru DIKIRIM -->
+          @if (latestDraft()?.status === 'DIKIRIM' && (isPB() || isAdmin()) && wo.status === 'DRAFT_CHECKLIST') {
+            <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p class="text-xs text-slate-500">Review tersedia di halaman
+                <a [routerLink]="['/work-orders', wo.id, 'draft-checklist', latestDraft()!.id]"
+                   class="font-semibold text-primary-600 underline underline-offset-2">
+                  detail draft v{{ latestDraft()!.versi }}
+                </a>.
+              </p>
+            </div>
+          }
+        </p-card>
 
         <!-- ══ STEP D: PB Input SHS Mapping ══ -->
         @if (wo.status === 'PENAWARAN' && (isPB() || isAdmin())) {
@@ -229,7 +250,7 @@
                               {{ item.namaSparepart || item.namaKerusakan || 'Item tanpa nama' }}
                             </td>
                             <td class="py-2 text-right font-semibold text-slate-700">
-                              {{ formatRupiah(item.hargaItem) }}
+                              {{ formatRupiah(item.hargaItem ?? 0) }}
                             </td>
                           </tr>
                         }

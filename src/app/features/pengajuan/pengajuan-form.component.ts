@@ -122,6 +122,14 @@ export class PengajuanFormComponent implements OnInit {
       this.store.dispatch(new LoadVehicles());
     }
 
+    // Set default deskripsi berdasarkan nilai awal jenis pengajuan (servis_rutin by default)
+    this.syncDeskripsiDefault(this.step1.controls.jenisPengajuan.value);
+
+    // Auto-isi/kosongkan deskripsi saat jenis pengajuan berubah
+    this.step1.controls.jenisPengajuan.valueChanges.subscribe((jenis) => {
+      this.syncDeskripsiDefault(jenis);
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.pengajuanId.set(id);
@@ -145,6 +153,19 @@ export class PengajuanFormComponent implements OnInit {
     const v = this.selectedVehicle();
     if (v && !this.isEditMode()) {
       this.step1.patchValue({ odometerSaatPengajuan: v.odometerCurrent });
+    }
+  }
+
+  private syncDeskripsiDefault(jenis: string | null): void {
+    const current = this.step2.controls.deskripsiKerusakan.value ?? '';
+    if (jenis === 'servis_rutin') {
+      if (!current.trim()) {
+        this.step2.controls.deskripsiKerusakan.setValue('Service Rutin Kendaraan Dinas');
+      }
+    } else {
+      if (current.trim() === 'Service Rutin Kendaraan Dinas') {
+        this.step2.controls.deskripsiKerusakan.setValue('');
+      }
     }
   }
 

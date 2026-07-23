@@ -2,14 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
-  computed,
   inject,
   signal,
 } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AbstractControl, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
-import { HttpClient } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
 
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { VEHICLE_DATA, type VehicleDataPort } from '@core/data-access/ports/vehicle-data.port';
@@ -17,16 +16,36 @@ import { VEHICLE_DATA, type VehicleDataPort } from '@core/data-access/ports/vehi
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
+import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { PageHeaderComponent } from '@core/layout';
-import type { Vehicle, Komponen, KomponenEweStatus } from '@shared/models';
+import { VehiclesState } from './state/vehicles.state';
+import { CreateVehicle, UpdateVehicle, RetireVehicle } from './state/vehicles.actions';
+import type { Vehicle, VehicleStatus } from '@shared/models';
+
+interface SelectOpt {
+  label: string;
+  value: string;
+}
+
+const STATUS_OPTS: SelectOpt[] = [
+  { label: 'Aktif', value: 'active' },
+  { label: 'Dalam Perbaikan', value: 'in_repair' },
+  { label: 'Nonaktif', value: 'retired' },
+];
+
+const JENIS_OPTS: SelectOpt[] = [
+  { label: 'Mobil', value: 'mobil' },
+  { label: 'Motor', value: 'motor' },
+  { label: 'Truk', value: 'truk' },
+  { label: 'Bus', value: 'bus' },
+  { label: 'Lainnya', value: 'lainnya' },
+];
 
 @Component({
   selector: 'app-vehicle-detail',
@@ -34,13 +53,13 @@ import type { Vehicle, Komponen, KomponenEweStatus } from '@shared/models';
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    DatePipe,
     ButtonModule,
     DatePickerModule,
     ConfirmDialogModule,
-    DialogModule,
     InputNumberModule,
     InputTextModule,
-    TableModule,
+    SelectModule,
     TagModule,
     ToastModule,
     PageHeaderComponent,
@@ -56,230 +75,198 @@ export class VehicleDetailComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
-
   private readonly env = inject(APP_ENV);
-  private readonly http = inject(HttpClient);
   private readonly dataPort = inject<VehicleDataPort>(VEHICLE_DATA);
+
+  protected readonly currentYear = new Date().getFullYear();
+  protected readonly statusOpts = STATUS_OPTS;
+  protected readonly jenisOpts = JENIS_OPTS;
 
   protected readonly vehicleId = signal<string>('');
   protected readonly vehicle = signal<Vehicle | null>(null);
-  protected readonly today = new Date();
+  protected readonly isCreateMode = signal(false);
+  protected readonly isEditMode = signal(false);
+  protected readonly saving = signal(false);
+  protected readonly nopolConflict = signal(false);
 
-  private readonly komponenList = signal<Komponen[]>([]);
-
-  protected readonly activeKomponen = computed(() =>
-    this.komponenList().filter((k) => !k.isDeleted),
-  );
-
-  protected readonly dialogVisible = signal(false);
-  protected readonly editingKomponenId = signal<string | null>(null);
-
-  protected readonly komponenForm = this.fb.group({
-    namaKomponen: ['', [Validators.required, Validators.minLength(2)]],
-    tanggalPasang: [null as Date | null, Validators.required],
-    umurEstimasiBulan: [12, [Validators.required, Validators.min(1), Validators.max(360)]],
-    kmGantiEstimasi: [10000, [Validators.required, Validators.min(1)]],
+  protected readonly form = this.fb.group({
+    nomorPolisi: ['', [Validators.required, Validators.minLength(4)]],
+    merk: ['', Validators.required],
+    tipe: ['', Validators.required],
+    tahun: [
+      this.currentYear,
+      [Validators.required, Validators.min(1990), Validators.max(this.currentYear)],
+    ],
+    jenisKendaraan: ['mobil', Validators.required],
+    odometerCurrent: [0, [Validators.required, Validators.min(0)]],
+    status: ['active', Validators.required],
+    unitKerja: ['', Validators.required],
+    nomorInventaris: [''],
+    nomorRangka: [''],
+    nomorMesin: [''],
+    tanggalHabisPajak: [null as Date | null],
+    tanggalHabisSTNK: [null as Date | null],
+    intervalServisHari: [null as number | null, [Validators.min(1)]],
+    intervalServisKm: [null as number | null, [Validators.min(1)]],
+    odometerServisTerakhir: [null as number | null, [Validators.min(0)]],
+    paguTahunan: [null as number | null, [Validators.min(0)]],
   });
+
+  get f(): { [k: string]: AbstractControl } {
+    return this.form.controls;
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
+
+    // Mode create — route /vehicles/new
+    if (!id || id === 'new') {
+      this.isCreateMode.set(true);
+      this.isEditMode.set(true);
+      this.form.enable();
+      return;
+    }
+
     this.vehicleId.set(id);
-    const v = this.store.selectSnapshot(
+
+    const cached = this.store.selectSnapshot(
       (state: { vehicles: { list: Vehicle[] } }) =>
         state.vehicles.list.find((x) => x.id === id),
     );
-    if (v) {
-      this.vehicle.set(v);
+    if (cached) {
+      this.vehicle.set(cached);
+      this.patchForm(cached);
     } else {
       this.dataPort.getById(id).subscribe({
-        next: (res) => this.vehicle.set(res),
-        error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Kendaraan tidak ditemukan.' })
+        next: (res) => {
+          this.vehicle.set(res);
+          this.patchForm(res);
+        },
+        error: () =>
+          this.msg.add({ severity: 'error', summary: 'Error', detail: 'Kendaraan tidak ditemukan.' }),
       });
     }
-
-    this.loadKomponen(id);
   }
 
-  private loadKomponen(id: string): void {
-    if (this.env.previewMode) {
-      this.komponenList.set([
-        {
-          id: 'kom-1',
-          kendaraanId: id,
-          namaKomponen: 'Kampas Rem Depan',
-          tanggalPasang: '2026-01-14',
-          umurEstimasiBulan: 12,
-          kmGantiEstimasi: 15000,
-          eweStatus: 'KUNING',
-        },
-        {
-          id: 'kom-2',
-          kendaraanId: id,
-          namaKomponen: 'Oli Mesin',
-          tanggalPasang: '2026-04-01',
-          umurEstimasiBulan: 6,
-          kmGantiEstimasi: 10000,
-          eweStatus: 'HIJAU',
-        },
-      ]);
-      return;
-    }
-
-    this.http.get<any[]>(`${this.env.apiBaseUrl}/vehicles/${id}/komponen`).subscribe({
-      next: (res) => {
-        const mapped = res.map((r) => ({
-          id: String(r.id),
-          kendaraanId: String(r.kendaraanId),
-          namaKomponen: r.namaKomponen,
-          tanggalPasang: r.tanggalPasang.split('T')[0],
-          umurEstimasiBulan: r.umurEstimasiBulan,
-          kmGantiEstimasi: r.kmGantiEstimasi,
-          isDeleted: r.isDeleted,
-          eweStatus: this.calcEwe(r.umurEstimasiBulan, r.tanggalPasang),
-        }));
-        this.komponenList.set(mapped);
-      },
-      error: () => this.msg.add({ severity: 'error', summary: 'Gagal memuat komponen' }),
+  private patchForm(v: Vehicle & { tanggalHabisPajak?: string; tanggalHabisSTNK?: string }): void {
+    this.form.patchValue({
+      nomorPolisi: v.nomorPolisi,
+      merk: v.merk,
+      tipe: v.tipe,
+      tahun: v.tahun,
+      jenisKendaraan: v.jenisKendaraan,
+      odometerCurrent: v.odometerCurrent,
+      status: v.status,
+      unitKerja: v.unitKerja,
+      nomorInventaris: v.nomorInventaris,
+      nomorRangka: v.nomorRangka,
+      nomorMesin: v.nomorMesin,
+      tanggalHabisPajak: v.tanggalHabisPajak ? new Date(v.tanggalHabisPajak) : null,
+      tanggalHabisSTNK: v.tanggalHabisSTNK ? new Date(v.tanggalHabisSTNK) : null,
+      intervalServisHari: v.intervalServisHari ?? null,
+      intervalServisKm: v.intervalServisKm ?? null,
+      odometerServisTerakhir: v.odometerServisTerakhir ?? null,
+      paguTahunan: v.paguTahunan ?? null,
     });
+    // Start in read-only mode
+    this.form.disable();
   }
 
-  protected openAddDialog(): void {
-    this.editingKomponenId.set(null);
-    this.komponenForm.reset({ umurEstimasiBulan: 12, kmGantiEstimasi: 10000 });
-    this.dialogVisible.set(true);
-  }
-
-  protected openEditDialog(k: Komponen): void {
-    this.editingKomponenId.set(k.id);
-    this.komponenForm.patchValue({
-      namaKomponen: k.namaKomponen,
-      tanggalPasang: new Date(k.tanggalPasang),
-      umurEstimasiBulan: k.umurEstimasiBulan,
-      kmGantiEstimasi: k.kmGantiEstimasi,
-    });
-    this.dialogVisible.set(true);
-  }
-
-  protected saveKomponen(): void {
-    if (this.komponenForm.invalid) {
-      this.komponenForm.markAllAsTouched();
-      return;
-    }
-    const raw = this.komponenForm.getRawValue();
-    const tanggal = (raw.tanggalPasang as Date).toISOString().slice(0, 10);
-    const editId = this.editingKomponenId();
-    const vehicleId = this.vehicleId();
-
-    const payload = {
-      namaKomponen: raw.namaKomponen!,
-      tanggalPasang: tanggal,
-      umurEstimasiBulan: raw.umurEstimasiBulan!,
-      kmGantiEstimasi: raw.kmGantiEstimasi!,
-    };
-
-    if (this.env.previewMode) {
-      if (editId) {
-        this.komponenList.update((list) =>
-          list.map((k) =>
-            k.id === editId
-              ? { ...k, ...payload, eweStatus: this.calcEwe(payload.umurEstimasiBulan, payload.tanggalPasang) }
-              : k,
-          ),
-        );
-        this.msg.add({ severity: 'success', summary: 'Komponen diperbarui.' });
-      } else {
-        const newK: Komponen = {
-          id: `kom-${Date.now()}`,
-          kendaraanId: vehicleId,
-          ...payload,
-          eweStatus: this.calcEwe(payload.umurEstimasiBulan, payload.tanggalPasang),
-        };
-        this.komponenList.update((list) => [newK, ...list]);
-        this.msg.add({ severity: 'success', summary: 'Komponen ditambahkan.' });
-      }
-      this.dialogVisible.set(false);
-      return;
-    }
-
-    if (editId) {
-      this.http.patch(`${this.env.apiBaseUrl}/vehicles/${vehicleId}/komponen/${editId}`, payload).subscribe({
-        next: () => {
-          this.loadKomponen(vehicleId);
-          this.msg.add({ severity: 'success', summary: 'Komponen diperbarui.' });
-          this.dialogVisible.set(false);
-        },
-        error: () => this.msg.add({ severity: 'error', summary: 'Gagal memperbarui komponen' })
-      });
+  protected toggleEdit(): void {
+    if (this.isEditMode()) {
+      // Cancel — revert to saved state
+      this.patchForm(this.vehicle()!);
+      this.isEditMode.set(false);
+      this.nopolConflict.set(false);
     } else {
-      this.http.post(`${this.env.apiBaseUrl}/vehicles/${vehicleId}/komponen`, payload).subscribe({
-        next: () => {
-          this.loadKomponen(vehicleId);
-          this.msg.add({ severity: 'success', summary: 'Komponen ditambahkan.' });
-          this.dialogVisible.set(false);
-        },
-        error: () => this.msg.add({ severity: 'error', summary: 'Gagal menambahkan komponen' })
-      });
+      this.form.enable();
+      this.isEditMode.set(true);
     }
   }
 
-  protected confirmDelete(k: Komponen): void {
-    this.confirm.confirm({
-      message: `Hapus komponen "${k.namaKomponen}"? Data riwayat tetap tersimpan.`,
-      header: 'Hapus Komponen',
-      icon: 'pi pi-trash',
-      acceptLabel: 'Hapus',
-      rejectLabel: 'Batal',
-      accept: () => {
-        if (this.env.previewMode) {
-          this.komponenList.update((list) =>
-            list.map((item) => (item.id === k.id ? { ...item, isDeleted: true } : item)),
-          );
-          this.msg.add({ severity: 'info', summary: 'Komponen dihapus.' });
-          return;
-        }
+  protected onNopolInput(event: Event): void {
+    const el = event.target as HTMLInputElement;
+    this.form.get('nomorPolisi')!.setValue(el.value.toUpperCase(), { emitEvent: false });
+    this.nopolConflict.set(false);
+  }
 
-        this.http.delete(`${this.env.apiBaseUrl}/vehicles/${this.vehicleId()}/komponen/${k.id}`).subscribe({
-          next: () => {
-            this.loadKomponen(this.vehicleId());
-            this.msg.add({ severity: 'info', summary: 'Komponen dihapus.' });
-          },
-          error: () => this.msg.add({ severity: 'error', summary: 'Gagal menghapus komponen' })
-        });
+  protected onSave(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.saving.set(true);
+    const rawFormValue = this.form.getRawValue();
+    const raw = {
+      ...rawFormValue,
+      tanggalHabisPajak: rawFormValue.tanggalHabisPajak
+        ? (rawFormValue.tanggalHabisPajak as Date).toISOString()
+        : undefined,
+      tanggalHabisSTNK: rawFormValue.tanggalHabisSTNK
+        ? (rawFormValue.tanggalHabisSTNK as Date).toISOString()
+        : undefined,
+    } as unknown as Partial<Vehicle>;
+
+    if (this.isCreateMode()) {
+      this.store.dispatch(new CreateVehicle({ ...(raw as Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>), baselinePhotos: [] })).subscribe({
+        next: () => {
+          this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Kendaraan berhasil ditambahkan.' });
+          this.saving.set(false);
+          setTimeout(() => this.router.navigate(['/vehicles']), 1500);
+        },
+        error: (err: Error) => {
+          this.saving.set(false);
+          if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('duplikat')) {
+            this.nopolConflict.set(true);
+          } else {
+            this.msg.add({ severity: 'error', summary: 'Error', detail: err?.message ?? 'Gagal menyimpan.' });
+          }
+        },
+      });
+      return;
+    }
+
+    this.store.dispatch(new UpdateVehicle(this.vehicleId(), raw)).subscribe({
+      next: () => {
+        this.msg.add({ severity: 'success', summary: 'Berhasil', detail: 'Data kendaraan berhasil diperbarui.' });
+        this.saving.set(false);
+        this.isEditMode.set(false);
+        this.form.disable();
+        // Update local vehicle signal
+        this.vehicle.set({ ...this.vehicle()!, ...raw } as Vehicle);
+      },
+      error: (err: Error) => {
+        this.saving.set(false);
+        if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('duplikat')) {
+          this.nopolConflict.set(true);
+        } else {
+          this.msg.add({ severity: 'error', summary: 'Error', detail: err?.message ?? 'Gagal menyimpan.' });
+        }
       },
     });
   }
 
-  private calcEwe(umurBulan: number, tanggalPasang: string): KomponenEweStatus {
-    const pasang = new Date(tanggalPasang);
-    const now = new Date();
-    const bulanTerpakai =
-      (now.getFullYear() - pasang.getFullYear()) * 12 + (now.getMonth() - pasang.getMonth());
-    const sisa = umurBulan - bulanTerpakai;
-    if (sisa <= 0) return 'MERAH';
-    if (sisa <= 3) return 'KUNING';
-    return 'HIJAU';
+  protected onNonaktifkan(): void {
+    this.confirm.confirm({
+      message: 'Kendaraan ini akan dinonaktifkan dan tidak dapat menerima pengajuan baru. Lanjutkan?',
+      header: 'Nonaktifkan Kendaraan',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Nonaktifkan',
+      rejectLabel: 'Batal',
+      acceptButtonStyleClass: 'danger',
+      accept: () => {
+        this.store.dispatch(new RetireVehicle(this.vehicleId()));
+        this.msg.add({ severity: 'warn', summary: 'Kendaraan dinonaktifkan.' });
+        this.router.navigate(['/vehicles']);
+      },
+    });
   }
 
-  protected eweSeverity(status: KomponenEweStatus): 'success' | 'warn' | 'danger' {
-    return status === 'HIJAU' ? 'success' : status === 'KUNING' ? 'warn' : 'danger';
+  protected statusSeverity(s: VehicleStatus): 'success' | 'warn' | 'secondary' {
+    return s === 'active' ? 'success' : s === 'in_repair' ? 'warn' : 'secondary';
   }
 
-  protected eweLabel(status: KomponenEweStatus): string {
-    return status === 'HIJAU' ? 'Normal' : status === 'KUNING' ? 'Mendekati Batas' : 'Melewati Batas';
-  }
-
-  protected sisaBulan(k: Komponen): number {
-    const pasang = new Date(k.tanggalPasang);
-    const now = new Date();
-    return k.umurEstimasiBulan -
-      ((now.getFullYear() - pasang.getFullYear()) * 12 + (now.getMonth() - pasang.getMonth()));
-  }
-
-  protected sisaKm(k: Komponen): number {
-    return k.kmGantiEstimasi - (this.vehicle()?.odometerCurrent ?? 0);
-  }
-
-  protected formatDate(iso: string): string {
-    return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
+  protected statusLabel(s: VehicleStatus): string {
+    return s === 'active' ? 'Aktif' : s === 'in_repair' ? 'Dalam Perbaikan' : 'Nonaktif';
   }
 }

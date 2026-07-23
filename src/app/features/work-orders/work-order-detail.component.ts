@@ -25,6 +25,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import {
   WorkOrdersState,
@@ -105,6 +106,7 @@ interface ShsItemLocal extends ShsItemInput {
     TextareaModule,
     TimelineModule,
     ToastModule,
+    TooltipModule,
   ],
   providers: [MessageService],
   templateUrl: './work-order-detail.component.html',
@@ -145,6 +147,13 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly isVendor = computed(() => this.user()?.roles?.includes('vendor'));
   protected readonly isVerifikator = computed(() => this.user()?.roles?.includes('verifikator'));
   protected readonly isBendahara = computed(() => this.user()?.roles?.includes('bendahara'));
+
+  // PB tidak perlu lihat draft yang masih DRAFT (belum dikirim)
+  protected readonly visibleDrafts = computed(() => {
+    const list = this.drafts();
+    if (this.isPB()) return list.filter((d) => d.status !== 'DRAFT');
+    return list;
+  });
 
   // ─── Step D: SHS Mapping State ───────────────────────────────────────────
   private itemKey = 0;
@@ -396,6 +405,37 @@ export class WorkOrderDetailComponent implements OnInit {
   }
 
   // ─── Legacy Draft Actions ─────────────────────────────────────────────────
+  protected draftStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      DRAFT: 'Draft',
+      DIKIRIM: 'Dikirim',
+      DISETUJUI: 'Disetujui',
+      DITOLAK: 'Ditolak',
+    };
+    return map[status] ?? status;
+  }
+
+  protected draftStatusSeverity(status: string): 'secondary' | 'info' | 'success' | 'danger' {
+    switch (status) {
+      case 'DRAFT': return 'secondary';
+      case 'DIKIRIM': return 'info';
+      case 'DISETUJUI': return 'success';
+      case 'DITOLAK': return 'danger';
+      default: return 'secondary';
+    }
+  }
+
+  protected readonly canCreateDraft = computed(() => {
+    if (!this.isVendor()) return false;
+    const wo = this.detail();
+    if (!wo) return false;
+    // Vendor bisa buat draft baru jika WO sudah assign vendor, atau draft terakhir ditolak
+    if (wo.status === 'VENDOR_DITUGASKAN') return true;
+    const latest = this.latestDraft();
+    if (latest?.status === 'DITOLAK') return true;
+    return false;
+  });
+
   protected approve() {
     const draft = this.latestDraft();
     if (!draft) return;

@@ -63,7 +63,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
 
     const jenisRaw = (raw['jenis'] as string | undefined) ?? (raw['jenisPengajuan'] as string | undefined);
 
-    const odometer = raw['kendaraan'] ? Number(raw['kendaraan']['odometerSaatIni']) : 0;
+    const odometer = Number(raw['odometerSaatPengajuan'] ?? (raw['kendaraan'] ? Number(raw['kendaraan']['odometerSaatIni']) : 0));
 
     return {
       id,
@@ -74,6 +74,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
       vehicleMerk: String((raw['kendaraan'] as { merk?: string } | undefined)?.merk ?? '-'),
       vehicleModel: String((raw['kendaraan'] as { model?: string } | undefined)?.model ?? '-'),
       vehicleTahun: Number((raw['kendaraan'] as { tahun?: number } | undefined)?.tahun ?? 0),
+      vehicleUnitKerja: String((raw['kendaraan'] as { unitKerja?: string } | undefined)?.unitKerja ?? '-'),
       regulationVersionId: String(raw['regulationVersionId'] ?? raw['regulasiVersiId'] ?? '-'),
       judul: String(raw['judul'] ?? raw['deskripsiKerusakan'] ?? 'Pengajuan Pemeliharaan'),
       deskripsi: String(raw['deskripsi'] ?? raw['deskripsiKerusakan'] ?? '-'),
@@ -99,6 +100,19 @@ export class ApiPengajuanData implements PengajuanDataPort {
       komentarVerifikasi: (raw['komentarVerifikasi'] as string | null | undefined) ?? null,
       alasanPenolakan: (raw['alasanPenolakan'] as string | null | undefined) ?? null,
       warnings,
+      workOrder: raw['workOrder']
+        ? {
+            id: Number((raw['workOrder'] as any)['id']),
+            nomorWo: String((raw['workOrder'] as any)['nomorWo'] ?? '-'),
+            status: String((raw['workOrder'] as any)['status'] ?? '-'),
+            vendorNama: String((raw['workOrder'] as any)?.['vendor']?.['namaVendor'] ?? '-'),
+            createdAt: String((raw['workOrder'] as any)['createdAt'] ?? ''),
+            selesaiAt: (raw['workOrder'] as any)?.['pembayaran']?.['paidAt'] ?? null,
+            nominal: (raw['workOrder'] as any)?.['pembayaran']?.['totalDibayar']
+              ? Number((raw['workOrder'] as any)['pembayaran']['totalDibayar'])
+              : null,
+          }
+        : null,
     };
   }
 
