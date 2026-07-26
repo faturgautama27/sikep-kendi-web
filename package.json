@@ -8,6 +8,7 @@
     "start:mobile": "lsof -ti :4500 | xargs kill -9; ng serve --configuration=mobile --port 4500",
     "build": "ng build",
     "build:preview": "ng build --configuration=preview",
+    "build:cpanel": "ng build --configuration=production --base-href /sikepkendi/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",

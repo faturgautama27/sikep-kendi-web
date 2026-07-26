@@ -9,7 +9,7 @@ import {
 import { registerLocaleData } from '@angular/common';
 import localeId from '@angular/common/locales/id';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withHashLocation } from '@angular/router';
 
 import { definePreset } from '@primeng/themes';
 import Aura from '@primeng/themes/aura';
@@ -99,7 +99,7 @@ const SIKEP_KENDI_STATES = [
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withHashLocation()),
     provideAnimationsAsync(),
     provideHttpClient(
       withInterceptors([
