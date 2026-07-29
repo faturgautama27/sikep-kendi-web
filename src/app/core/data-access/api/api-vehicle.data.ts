@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, of } from 'rxjs';
-import type { Vehicle, VehicleDocument, OdometerReading } from '@shared/models';
+import type { Vehicle, VehicleDocument, OdometerReading, ServisInfo } from '@shared/models';
 import type { VehicleDataPort } from '../ports/vehicle-data.port';
 import { APP_ENV } from '../app-env.token';
 
@@ -177,5 +177,17 @@ export class ApiVehicleData implements VehicleDataPort {
     return this.http
       .post<ApiOdometerReading>(this.url(`/vehicles/${vehicleId}/odometer`), reading)
       .pipe(map((row) => this.mapOdometer(row, vehicleId)));
+  }
+
+  getServisInfo(vehicleId: string): Observable<ServisInfo> {
+    return this.http
+      .get<{ data?: ServisInfo } | ServisInfo>(this.url(`/vehicles/${vehicleId}/servis-info`))
+      .pipe(
+        map((resp) => {
+          // Unwrap envelope if present
+          const raw = (resp as { data?: ServisInfo }).data ?? (resp as ServisInfo);
+          return raw;
+        }),
+      );
   }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import type { Vehicle, VehicleDocument, OdometerReading } from '@shared/models';
+import type { Vehicle, VehicleDocument, OdometerReading, ServisInfo } from '@shared/models';
 import type { VehicleDataPort } from '../ports/vehicle-data.port';
 
 /**
@@ -57,5 +57,17 @@ export class PreviewVehicleData implements VehicleDataPort {
     reading: Omit<OdometerReading, 'id'>,
   ): Observable<OdometerReading> {
     return of({ ...reading, id: 'preview' } as unknown as OdometerReading);
+  }
+
+  getServisInfo(vehicleId: string): Observable<ServisInfo> {
+    return of({
+      kendaraanId: Number(vehicleId),
+      odometerSaatIni: 0,
+      intervalServisHari: null,
+      intervalServisKm: null,
+      sudahWaktunya: true,
+      alasanBelumWaktunya: [],
+      lastServis: null,
+    });
   }
 }

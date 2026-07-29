@@ -16,6 +16,8 @@ import {
   type PengajuanDataPort,
 } from '@core/data-access/ports/pengajuan-data.port';
 import { AdminDataPort } from '@core/data-access/ports/admin-data.port';
+import { VEHICLE_DATA } from '@core/data-access/ports/vehicle-data.port';
+import type { VehicleDataPort } from '@core/data-access/ports/vehicle-data.port';
 import { APP_ENV } from '@core/data-access/app-env.token';
 
 import { ButtonModule } from 'primeng/button';
@@ -29,7 +31,7 @@ import { MessageService } from 'primeng/api';
 import { PageHeaderComponent } from '@core/layout';
 import { PengajuanState } from './state/pengajuan.state';
 import { ApprovePengajuan, RejectPengajuan } from './state/pengajuan.actions';
-import type { Pengajuan, PengajuanJenis, PengajuanStatus, User } from '@shared/models';
+import type { Pengajuan, PengajuanJenis, PengajuanStatus, ServisInfo, User } from '@shared/models';
 import { CommonModule } from '@angular/common';
 
 const STATUS_LABEL: Record<PengajuanStatus, string> = {
@@ -68,12 +70,15 @@ export class PengajuanDetailComponent implements OnInit {
   private readonly msg = inject(MessageService);
   private readonly dataPort = inject<PengajuanDataPort>(PENGAJUAN_DATA);
   private readonly adminDataPort = inject(AdminDataPort);
+  private readonly vehicleDataPort = inject<VehicleDataPort>(VEHICLE_DATA);
   protected readonly env = inject(APP_ENV);
   private readonly location = inject(Location);
 
   protected readonly pengajuanId = signal<string>('');
   protected readonly pengajuan = signal<Pengajuan | null>(null);
   protected readonly vendorOpts = signal<{ label: string; value: string | number }[]>([]);
+  protected readonly servisInfo = signal<ServisInfo | null>(null);
+  protected readonly servisInfoLoading = signal(false);
 
   protected readonly approveDialogVisible = signal(false);
   protected readonly rejectDialogVisible = signal(false);
@@ -119,6 +124,20 @@ export class PengajuanDetailComponent implements OnInit {
           },
           error: (err) => console.error('Gagal mengambil daftar vendor', err),
         });
+        // Fetch servis info when jenis is SERVIS_RUTIN
+        if (res.jenis === 'SERVIS_RUTIN' && res.vehicleId) {
+          this.servisInfoLoading.set(true);
+          this.vehicleDataPort.getServisInfo(res.vehicleId).subscribe({
+            next: (info) => {
+              this.servisInfo.set(info);
+              this.servisInfoLoading.set(false);
+            },
+            error: (err) => {
+              console.error('Gagal mengambil info servis', err);
+              this.servisInfoLoading.set(false);
+            },
+          });
+        }
       },
       error: () =>
         this.msg.add({ severity: 'error', summary: 'Error', detail: 'Pengajuan tidak ditemukan.' }),
@@ -230,6 +249,15 @@ export class PengajuanDetailComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(iso));
+  }
+
+  protected formatCurrency(amount: number | null): string {
+    if (amount === null || amount === undefined) return '—';
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
   }
 
   protected goBack(): void {

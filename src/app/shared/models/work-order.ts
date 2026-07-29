@@ -75,6 +75,9 @@ export interface WorkOrder {
   pengajuanNomor: string;
   vehicleId: Uuid;
   vehiclePlate: string;
+  vehicleMerk?: string | null;
+  vehicleModel?: string | null;
+  vehicleUnitKerja?: string | null;
   vendorId: Uuid;
   vendorNama: string;
   status: WorkOrderStatus;

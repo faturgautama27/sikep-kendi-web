@@ -16,3 +16,4 @@ export * from './audit';
 export * from './dashboard';
 export * from './kartu-pemeliharaan';
 export * from './pengajuan';
+export * from './servis-info';

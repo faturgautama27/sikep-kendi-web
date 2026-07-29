@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
-import type { Vehicle, VehicleDocument, OdometerReading } from '@shared/models';
+import type { Vehicle, VehicleDocument, OdometerReading, ServisInfo } from '@shared/models';
 
 export interface VehicleDataPort {
   list(): Observable<Vehicle[]>;
@@ -15,6 +15,7 @@ export interface VehicleDataPort {
     vehicleId: string,
     reading: Omit<OdometerReading, 'id'>,
   ): Observable<OdometerReading>;
+  getServisInfo(vehicleId: string): Observable<ServisInfo>;
 }
 
 export const VEHICLE_DATA = new InjectionToken<VehicleDataPort>('VEHICLE_DATA');

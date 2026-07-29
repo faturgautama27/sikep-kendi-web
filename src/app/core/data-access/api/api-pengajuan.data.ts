@@ -74,11 +74,18 @@ export class ApiPengajuanData implements PengajuanDataPort {
       vehicleMerk: String((raw['kendaraan'] as { merk?: string } | undefined)?.merk ?? '-'),
       vehicleModel: String((raw['kendaraan'] as { model?: string } | undefined)?.model ?? '-'),
       vehicleTahun: Number((raw['kendaraan'] as { tahun?: number } | undefined)?.tahun ?? 0),
+      vehicleUnitKerja: (raw['kendaraan'] as { unitKerja?: string | null } | undefined)?.unitKerja ?? null,
       regulationVersionId: String(raw['regulationVersionId'] ?? raw['regulasiVersiId'] ?? '-'),
       judul: String(raw['judul'] ?? raw['deskripsiKerusakan'] ?? 'Pengajuan Pemeliharaan'),
       deskripsi: String(raw['deskripsi'] ?? raw['deskripsiKerusakan'] ?? '-'),
       kategoriKerusakan: (raw['kategoriKerusakan'] as string | null | undefined) ?? null,
-      totalEstimasi: Number(raw['totalEstimasi'] ?? 0),
+      totalEstimasi: (() => {
+        // Prefer explicit totalEstimasi, fall back to latest penawaran totalBiaya
+        if (raw['totalEstimasi']) return Number(raw['totalEstimasi']);
+        const wo = raw['workOrder'] as { penawaran?: Array<{ totalBiaya?: number }> } | undefined;
+        const latestBiaya = wo?.penawaran?.[0]?.totalBiaya;
+        return latestBiaya ? Number(latestBiaya) : 0;
+      })(),
       odometerSaatPengajuan: odometer,
       status: this.mapStatus(raw['status'] as string | undefined),
       createdBy: String(raw['createdBy'] ?? raw['pengemudiId'] ?? 'system'),

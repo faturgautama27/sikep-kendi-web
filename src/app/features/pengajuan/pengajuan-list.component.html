@@ -204,9 +204,11 @@
           <tr>
             <th class="w-40">Nomor</th>
             <th class="w-32">Jenis</th>
-            <th class="w-28">Kendaraan</th>
+            <th class="w-32">Kendaraan</th>
+            <th class="w-40">Merk / Tipe</th>
+            <th class="w-40">Unit Kerja</th>
             <th>Judul</th>
-            <th class="w-40 text-right">Total Estimasi</th>
+
             <th class="w-52">Status</th>
             <th class="w-28">Dibuat</th>
             <th class="w-24 text-center">Aksi</th>
@@ -231,11 +233,11 @@
                 [rounded]="true"
               ></p-tag>
             </td>
-            <td class="font-mono text-xs text-slate-700">{{ p.vehiclePlate }}</td>
+            <td class="font-mono text-xs font-semibold text-slate-700">{{ p.vehiclePlate }}</td>
+            <td class="text-xs text-slate-600">{{ p.vehicleMerk }} {{ p.vehicleModel }}</td>
+            <td class="text-xs text-slate-600">{{ p.vehicleUnitKerja || '—' }}</td>
             <td class="text-slate-700" [title]="p.judul">{{ truncate(p.judul, 60) }}</td>
-            <td class="text-right font-medium text-slate-800">
-              {{ formatRupiah(p.totalEstimasi) }}
-            </td>
+
             <td>
               <p-tag
                 [value]="statusLabel(p.status)"
@@ -262,7 +264,7 @@
 
         <ng-template #emptymessage>
           <tr>
-            <td colspan="8" class="py-10 text-center text-sm text-slate-500">
+            <td colspan="9" class="py-10 text-center text-sm text-slate-500">
               Tidak ada pengajuan yang cocok dengan filter saat ini.
             </td>
           </tr>

@@ -38,6 +38,7 @@ export interface Pengajuan {
   vehicleMerk?: string;
   vehicleModel?: string;
   vehicleTahun?: number;
+  vehicleUnitKerja?: string | null;
   odometerSaatPengajuan?: number;
   odometerSaatIni?: number;
   verifikasiOlehId?: string | null;

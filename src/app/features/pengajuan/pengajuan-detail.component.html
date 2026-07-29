@@ -143,6 +143,132 @@
 
       <!-- Mobile extra cards (photos, rejection, work order) -->
       <div class="mx-4 mt-3 flex flex-col gap-3">
+        <!-- Servis Rutin: Info & Validasi -->
+        @if (p.jenis === 'SERVIS_RUTIN') {
+          @if (servisInfoLoading()) {
+            <div class="rounded-2xl bg-white shadow-sm border border-slate-100 px-5 py-4 flex items-center gap-3 text-slate-400 text-sm">
+              <i class="pi pi-spin pi-spinner text-base"></i>
+              <span>Memuat info servis rutin...</span>
+            </div>
+          }
+          @if (servisInfo(); as info) {
+            <!-- Peringatan: belum waktunya servis -->
+            @if (!info.sudahWaktunya) {
+              <div class="rounded-2xl bg-amber-50 border border-amber-200 overflow-hidden">
+                <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-amber-100">
+                  <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500">
+                    <i class="pi pi-exclamation-triangle text-xs text-white"></i>
+                  </div>
+                  <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Belum Waktunya Servis</span>
+                </div>
+                <div class="px-5 py-4 flex flex-col gap-2">
+                  @for (alasan of info.alasanBelumWaktunya; track alasan) {
+                    <p class="text-sm text-amber-800 leading-relaxed">• {{ alasan }}</p>
+                  }
+                  <p class="text-xs text-amber-600 mt-1">Pengajuan tetap dapat diajukan, namun memerlukan persetujuan tambahan.</p>
+                </div>
+              </div>
+            }
+            <!-- Kartu servis terakhir -->
+            <div class="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+              <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-50">
+                <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600">
+                  <i class="pi pi-history text-xs text-white"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Servis Rutin Terakhir</span>
+                @if (info.sudahWaktunya) {
+                  <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    <i class="pi pi-check text-[9px]"></i> Sudah waktunya
+                  </span>
+                }
+              </div>
+              @if (info.lastServis) {
+                <div class="divide-y divide-slate-50 text-sm">
+                  <div class="flex flex-col px-5 py-3">
+                    <span class="text-xs text-slate-500 mb-0.5">Nomor WO</span>
+                    <span class="font-medium text-slate-800">{{ info.lastServis.nomorWo || '—' }}</span>
+                  </div>
+                  <div class="flex flex-col px-5 py-3">
+                    <span class="text-xs text-slate-500 mb-0.5">Tanggal Servis</span>
+                    <span class="font-medium text-slate-800">{{ formatDate(info.lastServis.servisAt) }}</span>
+                  </div>
+                  <div class="flex flex-col px-5 py-3">
+                    <span class="text-xs text-slate-500 mb-0.5">Odometer saat servis</span>
+                    <span class="font-medium text-slate-800">{{ info.lastServis.odometerSaatServis | number }} km</span>
+                  </div>
+                  @if (info.lastServis.hariSejak !== null) {
+                    <div class="flex flex-col px-5 py-3">
+                      <span class="text-xs text-slate-500 mb-0.5">Sejak servis terakhir</span>
+                      <span class="font-medium text-slate-800">
+                        {{ info.lastServis.hariSejak }} hari
+                        @if (info.lastServis.kmSejak !== null) { · {{ info.lastServis.kmSejak | number }} km }
+                      </span>
+                    </div>
+                  }
+                  <div class="flex flex-col px-5 py-3">
+                    <span class="text-xs text-slate-500 mb-0.5">Vendor</span>
+                    <span class="font-medium text-slate-800">{{ info.lastServis.vendor || '—' }}</span>
+                  </div>
+                  <div class="flex flex-col px-5 py-3">
+                    <span class="text-xs text-slate-500 mb-0.5">Total Biaya</span>
+                    <span class="font-semibold text-slate-800">{{ formatCurrency(info.lastServis.totalDibayar) }}</span>
+                  </div>
+                  @if (info.lastServis.items.length > 0) {
+                    <div class="flex flex-col px-5 py-3 gap-2">
+                      <span class="text-xs text-slate-500">Rincian Pekerjaan</span>
+                      <div class="flex flex-col gap-2 mt-1">
+                        @for (item of info.lastServis.items; track item.namaKerusakan) {
+                          <div class="rounded-lg bg-slate-50 px-3 py-2.5 text-xs">
+                            <p class="font-medium text-slate-700">{{ item.tindakanPerbaikan }}</p>
+                            @if (item.namaSparepart) {
+                              <p class="text-slate-500 mt-0.5">Sparepart: {{ item.namaSparepart }}</p>
+                            }
+                            <p class="text-slate-500 mt-0.5 text-right font-semibold">{{ formatCurrency(item.hargaItem) }}</p>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (info.lastServis.workOrderId) {
+                    <div class="px-5 py-3 border-t border-slate-50">
+                      <a [routerLink]="['/work-orders', info.lastServis.workOrderId]"
+                         class="flex items-center justify-between rounded-xl bg-teal-50 border border-teal-100 px-4 py-3 active:opacity-80 transition">
+                        <div class="flex items-center gap-2">
+                          <div class="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-600">
+                            <i class="pi pi-wrench text-[10px] text-white"></i>
+                          </div>
+                          <span class="text-sm font-semibold text-teal-800">Lihat Detail WO</span>
+                        </div>
+                        <i class="pi pi-chevron-right text-sm text-teal-400"></i>
+                      </a>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="px-5 py-4 text-sm text-slate-400 italic">
+                  Belum ada riwayat servis rutin yang terbayar untuk kendaraan ini.
+                </div>
+              }
+              <!-- Interval konfigurasi -->
+              @if (info.intervalServisHari || info.intervalServisKm) {
+                <div class="flex gap-4 px-5 py-3 bg-slate-50 border-t border-slate-100">
+                  @if (info.intervalServisHari) {
+                    <div class="flex flex-col">
+                      <span class="text-[10px] text-slate-400 uppercase tracking-wide">Interval Hari</span>
+                      <span class="text-sm font-semibold text-slate-700">{{ info.intervalServisHari }} hari</span>
+                    </div>
+                  }
+                  @if (info.intervalServisKm) {
+                    <div class="flex flex-col">
+                      <span class="text-[10px] text-slate-400 uppercase tracking-wide">Interval KM</span>
+                      <span class="text-sm font-semibold text-slate-700">{{ info.intervalServisKm | number }} km</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
         @if (p.photos && p.photos.length > 0) {
           <div class="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
             <div class="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-50">
@@ -170,7 +296,7 @@
               <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Alasan Penolakan</span>
             </div>
             <div class="px-5 py-4">
-              <p class="text-sm text-red-700 leading-relaxed">{{ p.kategoriKerusakan || '—' }}</p>
+              <p class="text-sm text-red-700 leading-relaxed">{{ p.alasanPenolakan || '—' }}</p>
             </div>
           </div>
         }
@@ -241,10 +367,130 @@
               {{ p.deskripsi }}
             </p>
           </div>
+          <!-- Desktop: Servis Rutin info block -->
+          @if (p.jenis === 'SERVIS_RUTIN') {
+            @if (servisInfoLoading()) {
+              <div class="flex items-center gap-2 px-5 py-3 text-slate-400 text-sm border-t border-slate-50">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Memuat info servis rutin...</span>
+              </div>
+            }
+            @if (servisInfo(); as info) {
+              <!-- Peringatan belum waktunya -->
+              @if (!info.sudahWaktunya) {
+                <div class="flex flex-col gap-1 px-5 py-3 bg-amber-50 border-t border-amber-100">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-exclamation-triangle text-amber-500"></i>
+                    <span class="text-amber-700 font-semibold text-sm">Belum Waktunya Servis Rutin</span>
+                  </div>
+                  @for (alasan of info.alasanBelumWaktunya; track alasan) {
+                    <p class="text-sm text-amber-700 ml-5">• {{ alasan }}</p>
+                  }
+                  <p class="text-xs text-amber-500 ml-5 mt-0.5">Pengajuan tetap dapat diajukan, namun memerlukan persetujuan tambahan.</p>
+                </div>
+              }
+              <!-- Servis terakhir -->
+              <div class="flex flex-col gap-1 px-5 py-3 border-t border-slate-50">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-slate-500 font-medium">Servis Rutin Terakhir</span>
+                  @if (info.sudahWaktunya) {
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                      <i class="pi pi-check text-[10px]"></i> Sudah waktunya servis
+                    </span>
+                  }
+                </div>
+                @if (info.lastServis) {
+                  <div class="rounded-lg border border-teal-100 bg-teal-50 overflow-hidden">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-0 divide-x divide-teal-100 text-sm">
+                      <div class="flex flex-col px-4 py-3">
+                        <span class="text-xs text-teal-600 mb-0.5">Nomor WO</span>
+                        <span class="font-medium text-slate-800">{{ info.lastServis.nomorWo || '—' }}</span>
+                      </div>
+                      <div class="flex flex-col px-4 py-3">
+                        <span class="text-xs text-teal-600 mb-0.5">Tanggal Servis</span>
+                        <span class="font-medium text-slate-800">{{ formatDate(info.lastServis.servisAt) }}</span>
+                      </div>
+                      <div class="flex flex-col px-4 py-3">
+                        <span class="text-xs text-teal-600 mb-0.5">Vendor</span>
+                        <span class="font-medium text-slate-800">{{ info.lastServis.vendor || '—' }}</span>
+                      </div>
+                      <div class="flex flex-col px-4 py-3">
+                        <span class="text-xs text-teal-600 mb-0.5">Odometer saat servis</span>
+                        <span class="font-medium text-slate-800">{{ info.lastServis.odometerSaatServis | number }} km</span>
+                      </div>
+                      @if (info.lastServis.hariSejak !== null) {
+                        <div class="flex flex-col px-4 py-3">
+                          <span class="text-xs text-teal-600 mb-0.5">Sejak servis</span>
+                          <span class="font-medium text-slate-800">
+                            {{ info.lastServis.hariSejak }} hari
+                            @if (info.lastServis.kmSejak !== null) { / {{ info.lastServis.kmSejak | number }} km }
+                          </span>
+                        </div>
+                      }
+                      <div class="flex flex-col px-4 py-3">
+                        <span class="text-xs text-teal-600 mb-0.5">Total Biaya</span>
+                        <span class="font-semibold text-slate-800">{{ formatCurrency(info.lastServis.totalDibayar) }}</span>
+                      </div>
+                    </div>
+                    @if (info.lastServis.items.length > 0) {
+                      <div class="border-t border-teal-100 px-4 py-3">
+                        <p class="text-xs text-teal-600 mb-2">Rincian Pekerjaan</p>
+                        <table class="w-full text-xs">
+                          <thead>
+                            <tr class="text-left text-slate-500">
+                              <th class="pb-1 font-medium">Tindakan</th>
+                              <th class="pb-1 font-medium">Sparepart</th>
+                              <th class="pb-1 font-medium text-right">Biaya</th>
+                            </tr>
+                          </thead>
+                          <tbody class="divide-y divide-teal-50">
+                            @for (item of info.lastServis.items; track item.namaKerusakan) {
+                              <tr>
+                                <td class="py-1.5 text-slate-700 pr-3">{{ item.tindakanPerbaikan }}</td>
+                                <td class="py-1.5 text-slate-500 pr-3">{{ item.namaSparepart || '—' }}</td>
+                                <td class="py-1.5 text-slate-700 text-right font-medium">{{ formatCurrency(item.hargaItem) }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                    @if (info.intervalServisHari || info.intervalServisKm) {
+                      <div class="border-t border-teal-100 px-4 py-2 flex gap-6 bg-white/50">
+                        @if (info.intervalServisHari) {
+                          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <i class="pi pi-calendar text-teal-500"></i>
+                            Interval: <strong class="text-slate-700">{{ info.intervalServisHari }} hari</strong>
+                          </div>
+                        }
+                        @if (info.intervalServisKm) {
+                          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <i class="pi pi-gauge text-teal-500"></i>
+                            Interval: <strong class="text-slate-700">{{ info.intervalServisKm | number }} km</strong>
+                          </div>
+                        }
+                      </div>
+                    }
+                    @if (info.lastServis.workOrderId) {
+                      <div class="border-t border-teal-100 px-4 py-2.5 flex justify-end bg-white/50">
+                        <a [routerLink]="['/work-orders', info.lastServis.workOrderId]"
+                           class="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-900 transition">
+                          <i class="pi pi-wrench text-xs"></i>
+                          Lihat Detail WO
+                          <i class="pi pi-arrow-right text-xs"></i>
+                        </a>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <p class="text-sm text-slate-400 italic">Belum ada riwayat servis rutin yang terbayar untuk kendaraan ini.</p>
+                }
+              </div>
+            }
+          }
           @if (p.photos && p.photos.length > 0) {
             <div class="flex flex-col gap-2 px-5 py-3">
-              <span class="text-slate-500">Foto Bukti Kerusakan</span>
-              <div class="flex flex-wrap gap-3 mt-2">
+              <span class="text-slate-500">Foto Bukti Kerusakan</span>              <div class="flex flex-wrap gap-3 mt-2">
                 @for (foto of p.photos; track foto.id) {
                   <div class="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm cursor-pointer hover:opacity-90 transition-opacity">
                     <img [src]="foto.url" alt="Foto Pengajuan" class="w-full h-full object-cover" />
@@ -256,10 +502,9 @@
           @if (p.status === 'ditolak') {
             <div class="flex flex-col gap-1 px-5 py-3 bg-red-50">
               <span class="text-red-600 font-medium">Alasan Penolakan</span>
-              <p class="text-red-700">{{ p.kategoriKerusakan || '—' }}</p>
+              <p class="text-red-700">{{ p.alasanPenolakan || '—' }}</p>
             </div>
-          }
-          @if (p.workOrderId) {
+          }          @if (p.workOrderId) {
             <div class="flex flex-col md:flex-row px-5 py-3 bg-green-50 gap-1 md:gap-0">
               <span class="w-full md:w-40 text-slate-500">Work Order</span>
               <a [routerLink]="['/work-orders', p.workOrderId]" class="text-blue-600 font-medium underline">

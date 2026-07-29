@@ -121,6 +121,7 @@ interface BackendKendaraan {
   nomorPolisi: string;
   merk?: string;
   model?: string;
+  unitKerja?: string | null;
   odometerSaatIni?: number;
 }
 
@@ -373,6 +374,9 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
     pengajuanNomor: `PENGAJUAN-${raw.pengajuan.id}`,
     vehicleId: String(raw.pengajuan.kendaraanId),
     vehiclePlate: raw.pengajuan.kendaraan.nomorPolisi,
+    vehicleMerk: raw.pengajuan.kendaraan.merk ?? null,
+    vehicleModel: raw.pengajuan.kendaraan.model ?? null,
+    vehicleUnitKerja: raw.pengajuan.kendaraan.unitKerja ?? null,
     vendorId: String(raw.vendorId ?? 0),
     vendorNama: raw.vendor?.namaVendor ?? 'Belum ditugaskan',
     status: mappedStatus,

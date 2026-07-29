@@ -23,7 +23,12 @@ export interface DraftChecklistItem {
   namaKerusakan?: string;
   namaSparepart?: string;
   tindakanPerbaikan?: string;
-  hargaItem: number;
+  uraian?: string;
+  qty?: number;
+  harga?: number;
+  diskon?: number;
+  subTotal?: number;
+  hargaItem: number;        // backward-compat / display value
   fotoIds?: number[];
   fotos?: {
     imageId: number;
@@ -43,6 +48,8 @@ export interface DraftChecklistRecord {
   notesRejection?: string;
   items: DraftChecklistItem[];
   createdAt: string;
+  scanDraftImageId?: number | null;
+  scanDraftImageUrl?: string | null;
 }
 
 export interface DraftChecklistStateModel {
@@ -110,7 +117,15 @@ export class DraftChecklistState {
     const items = ((action.payload['items'] as DraftChecklistItem[]) ?? []).map((item) => ({
       ...item,
     }));
-    const totalHarga = items.reduce((sum, item) => sum + Number(item.hargaItem ?? 0), 0);
+    const totalHargaManual = action.payload['totalHargaManual'] as number | undefined;
+    const totalHarga = items.length > 0
+      ? items.reduce((sum, item) => {
+          const h = item.harga ?? item.hargaItem ?? 0;
+          const q = item.qty ?? 1;
+          const d = item.diskon ?? 0;
+          return sum + (item.subTotal ?? h * q * (1 - d / 100));
+        }, 0)
+      : (totalHargaManual ?? 0);
     const next: DraftChecklistRecord = {
       id: `dc-${action.workOrderId}-${nextVersion}`,
       workOrderId: action.workOrderId,
@@ -119,6 +134,7 @@ export class DraftChecklistState {
       totalHarga,
       items,
       createdAt: new Date().toISOString(),
+      scanDraftImageId: (action.payload['scanDraftImageId'] as number | undefined) ?? null,
     };
     ctx.patchState({ list: [next, ...ctx.getState().list] });
     return;

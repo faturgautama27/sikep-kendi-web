@@ -89,7 +89,9 @@
         <tr>
           <th class="w-40">Nomor WO</th>
           <th class="w-40">Pengajuan</th>
-          <th class="w-28">Kendaraan</th>
+          <th class="w-36">Nomor Polisi</th>
+          <th class="w-40">Merk / Tipe</th>
+          <th class="w-40">Unit Kerja</th>
           <th>Vendor</th>
           <th class="text-center">Status</th>
           <th class="w-32">Tgl Dibuat</th>
@@ -110,7 +112,9 @@
             </a>
           </td>
           <td class="text-slate-700">{{ wo.pengajuanNomor }}</td>
-          <td class="font-mono text-xs text-slate-700">{{ wo.vehiclePlate }}</td>
+          <td class="font-mono text-xs font-semibold text-slate-700">{{ wo.vehiclePlate }}</td>
+          <td class="text-xs text-slate-600">{{ wo.vehicleMerk }} {{ wo.vehicleModel }}</td>
+          <td class="text-xs text-slate-600">{{ wo.vehicleUnitKerja || '—' }}</td>
           <td class="text-slate-700">{{ wo.vendorNama }}</td>
           <td>
             <p-tag
@@ -140,7 +144,7 @@
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="10" class="py-10 text-center text-sm text-slate-500">
+          <td colspan="11" class="py-10 text-center text-sm text-slate-500">
             Tidak ada work order yang cocok dengan filter saat ini.
           </td>
         </tr>

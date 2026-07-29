@@ -95,6 +95,7 @@
           <th class="w-40">Nomor Polisi</th>
           <th class="w-32">Jenis</th>
           <th>Merk / Tipe</th>
+          <th class="w-44">Unit Kerja</th>
           <th class="w-32">Tahun</th>
           <th class="w-40 text-right">Odometer</th>
           <th class="w-40">Status EWS</th>
@@ -116,6 +117,7 @@
           </td>
           <td class="capitalize">{{ row.jenisKendaraan }}</td>
           <td class="text-slate-700">{{ row.merk }} {{ row.tipe }}</td>
+          <td class="text-xs text-slate-600">{{ row.unitKerja || '—' }}</td>
           <td>{{ row.tahunPembuatan || row.tahun }}</td>
           <td class="text-right text-slate-700">{{ formatKm(row.odometerCurrent) }}</td>
           <td>
@@ -155,7 +157,7 @@
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="8" class="py-10 text-center text-sm text-slate-500">
+          <td colspan="9" class="py-10 text-center text-sm text-slate-500">
             Tidak ada kendaraan yang cocok dengan filter saat ini.
           </td>
         </tr>
