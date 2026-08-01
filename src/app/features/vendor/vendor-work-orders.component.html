@@ -59,6 +59,7 @@
           <th class="w-32">Status</th>
           <th class="w-36 text-right">Nominal</th>
           <th class="w-32">Ditugaskan</th>
+          <th class="w-48">Catatan</th>
           <th class="w-52 text-right">Aksi</th>
         </tr>
       </ng-template>
@@ -84,6 +85,9 @@
           </td>
           <td class="text-right font-medium text-slate-800">{{ formatCurrency(row.totalNominal) }}</td>
           <td class="text-xs text-slate-500">{{ formatDate(row.assignedAt) }}</td>
+          <td class="text-xs text-slate-600 max-w-[12rem] truncate" [title]="row.status === 'VENDOR_DITUGASKAN' ? (row.komentarVerifikasi || '') : ''">
+            {{ row.status === 'VENDOR_DITUGASKAN' ? (row.komentarVerifikasi || '—') : '' }}
+          </td>
           <td>
             <div class="flex justify-end gap-1">
               @if (currentView === 'notifikasi' || currentView === 'draft') {
@@ -113,7 +117,7 @@
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="9" class="py-10 text-center text-sm text-slate-500">
+          <td colspan="10" class="py-10 text-center text-sm text-slate-500">
             <i class="pi pi-inbox text-3xl mb-2 block text-slate-300"></i>
             {{ emptyMessage() }}
           </td>

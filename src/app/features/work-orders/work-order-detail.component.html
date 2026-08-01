@@ -222,7 +222,7 @@
                 </p>
               </div>
 
-              @if (latestDraft()?.items?.length) {
+              @if (false && latestDraft()?.items?.length) {
                 <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div class="mb-3 flex items-center justify-between">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -260,19 +260,25 @@
               <div class="overflow-x-auto rounded-xl border border-slate-200">
                 <table class="w-full table-fixed border-collapse bg-white text-sm">
                   <colgroup>
-                    <col class="w-[28%]" />
-                    <col class="w-[15%]" />
-                    <col class="w-[34%]" />
-                    <col class="w-[11%]" />
-                    <col class="w-[8%]" />
-                    <col class="w-[4%]" />
+                    <col class="w-[22%]" /><!-- SHS Referensi -->
+                    <col class="w-[10%]" /><!-- SHS Maks -->
+                    <col class="w-[22%]" /><!-- Nama Item -->
+                    <col class="w-[6%]"  /><!-- QTY -->
+                    <col class="w-[12%]" /><!-- Harga -->
+                    <col class="w-[8%]"  /><!-- Diskon -->
+                    <col class="w-[12%]" /><!-- Subtotal -->
+                    <col class="w-[5%]"  /><!-- Status -->
+                    <col class="w-[3%]"  /><!-- Hapus -->
                   </colgroup>
                   <thead>
                     <tr class="bg-slate-100 text-xs uppercase text-slate-500">
-                      <th class="p-3 text-left">Nama Item</th>
-                      <th class="p-3 text-right">Harga Vendor</th>
                       <th class="p-3 text-left">SHS Referensi</th>
                       <th class="p-3 text-right">SHS Maks</th>
+                      <th class="p-3 text-left">Nama Item</th>
+                      <th class="p-3 text-right">QTY</th>
+                      <th class="p-3 text-right">Harga</th>
+                      <th class="p-3 text-right">Diskon (%)</th>
+                      <th class="p-3 text-right">Subtotal</th>
                       <th class="p-3 text-center">Status</th>
                       <th class="p-3"></th>
                     </tr>
@@ -280,27 +286,7 @@
                   <tbody>
                     @for (item of shsItems(); track item._key) {
                       <tr class="border-t border-slate-100 align-top">
-                        <td class="p-2">
-                          <input
-                            pInputText
-                            class="w-full"
-                            [value]="item.namaItem"
-                            (change)="
-                              updateShsItemField(item._key, 'namaItem', $any($event.target).value)
-                            "
-                            placeholder="Nama item..."
-                          />
-                        </td>
-                        <td class="p-2">
-                          <p-inputnumber
-                            styleClass="w-full"
-                            inputStyleClass="w-full text-right"
-                            [ngModel]="item.hargaVendor"
-                            (ngModelChange)="updateShsItemField(item._key, 'hargaVendor', $event)"
-                            mode="decimal"
-                            placeholder="0"
-                          ></p-inputnumber>
-                        </td>
+                        <!-- SHS Referensi -->
                         <td class="p-2">
                           <p-select
                             class="w-full"
@@ -312,13 +298,64 @@
                             [showClear]="true"
                             [ngModel]="item.shsMasterId"
                             (ngModelChange)="onShsMasterSelect(item._key, $event)"
-                            placeholder="Pilih SHS referensi"
+                            placeholder="Pilih SHS..."
                             appendTo="body"
                           ></p-select>
                         </td>
-                        <td class="p-3 text-right text-base font-semibold text-slate-600">
+                        <!-- SHS Maks -->
+                        <td class="p-3 text-right font-semibold text-slate-600">
                           {{ item.hargaShs ? formatRupiah(item.hargaShs) : '—' }}
                         </td>
+                        <!-- Nama Item -->
+                        <td class="p-2">
+                          <input
+                            pInputText
+                            class="w-full"
+                            [value]="item.namaItem"
+                            (change)="updateShsItemField(item._key, 'namaItem', $any($event.target).value)"
+                            placeholder="Nama item..."
+                          />
+                        </td>
+                        <!-- QTY -->
+                        <td class="p-2">
+                          <p-inputnumber
+                            styleClass="w-full"
+                            inputStyleClass="w-full text-right"
+                            [ngModel]="item.qty ?? item.jumlah ?? 1"
+                            (ngModelChange)="updateShsItemField(item._key, 'qty', $event)"
+                            [min]="1"
+                            placeholder="1"
+                          ></p-inputnumber>
+                        </td>
+                        <!-- Harga -->
+                        <td class="p-2">
+                          <p-inputnumber
+                            styleClass="w-full"
+                            inputStyleClass="w-full text-right"
+                            [ngModel]="item.hargaVendor"
+                            (ngModelChange)="updateShsItemField(item._key, 'hargaVendor', $event)"
+                            mode="decimal"
+                            placeholder="0"
+                          ></p-inputnumber>
+                        </td>
+                        <!-- Diskon (%) -->
+                        <td class="p-2">
+                          <p-inputnumber
+                            styleClass="w-full"
+                            inputStyleClass="w-full text-right"
+                            [ngModel]="item.diskon ?? 0"
+                            (ngModelChange)="updateShsItemField(item._key, 'diskon', $event)"
+                            [min]="0"
+                            [max]="100"
+                            [maxFractionDigits]="2"
+                            placeholder="0"
+                          ></p-inputnumber>
+                        </td>
+                        <!-- Subtotal -->
+                        <td class="p-3 text-right font-semibold text-slate-700">
+                          {{ formatRupiah(subtotalItem(item)) }}
+                        </td>
+                        <!-- Status -->
                         <td class="p-3 text-center">
                           @if (item.melebihiShs) {
                             <p-tag value="Melebihi" severity="danger"></p-tag>
@@ -328,6 +365,7 @@
                             <span class="text-xs text-slate-400">-</span>
                           }
                         </td>
+                        <!-- Hapus -->
                         <td class="p-2 text-right">
                           <p-button
                             icon="pi pi-trash"
@@ -372,13 +410,24 @@
               <div
                 class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3"
               >
-                <p-button
-                  label="Tambah Item"
-                  icon="pi pi-plus"
-                  severity="secondary"
-                  [outlined]="true"
-                  (onClick)="addShsItem()"
-                ></p-button>
+                <div class="flex flex-wrap gap-2">
+                  <p-button
+                    label="Tambah Item"
+                    icon="pi pi-plus"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="addShsItem()"
+                  ></p-button>
+                  @if (latestDraft()?.items?.length) {
+                    <p-button
+                      label="Input dari Draft Checklist"
+                      icon="pi pi-download"
+                      severity="info"
+                      [outlined]="true"
+                      (onClick)="fillFromDraft()"
+                    ></p-button>
+                  }
+                </div>
                 <div class="flex flex-wrap gap-2">
                   <p-button
                     label="Simpan SHS"
@@ -439,15 +488,15 @@
                     <td>{{ s.namaItem }}</td>
                     <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
                     <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
-                    <td class="text-right" [class.text-red-600]="s.selisih > 0">
-                      {{ formatRupiah(s.selisih) }}
-                    </td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            </div>
-          </p-card>
-        }
+                     <td class="text-right" [class.text-red-600]="+s.hargaStandart - +s.hargaVendor < 0">
+                       {{ formatRupiah(+s.hargaStandart - +s.hargaVendor) }}
+                     </td>
+                   </tr>
+                 </ng-template>
+               </p-table>
+             </div>
+           </p-card>
+         }
 
         @if (wo.status === 'MENUNGGU_INVOICE_VENDOR' && isVendor()) {
           <div
@@ -507,8 +556,8 @@
                         <td>{{ s.namaItem }}</td>
                         <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
                         <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
-                        <td class="text-right" [class.text-red-600]="s.selisih > 0">
-                          {{ formatRupiah(s.selisih) }}
+                        <td class="text-right" [class.text-red-600]="+s.hargaStandart - +s.hargaVendor < 0">
+                          {{ formatRupiah(+s.hargaStandart - +s.hargaVendor) }}
                         </td>
                       </tr>
                     </ng-template>
@@ -547,8 +596,9 @@
                   <ng-template #header>
                     <tr>
                       <th>Item</th>
-                      <th class="text-right">Harga</th>
+                      <th class="text-right">Harga Vendor</th>
                       <th class="text-right">SHS Maks</th>
+                      <th class="text-right">Selisih</th>
                     </tr>
                   </ng-template>
                   <ng-template #body let-s>
@@ -556,6 +606,9 @@
                       <td>{{ s.namaItem }}</td>
                       <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
                       <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
+                      <td class="text-right" [class.text-red-600]="+s.hargaStandart - +s.hargaVendor < 0">
+                        {{ formatRupiah(+s.hargaStandart - +s.hargaVendor) }}
+                      </td>
                     </tr>
                   </ng-template>
                 </p-table>

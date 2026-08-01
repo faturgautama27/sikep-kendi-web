@@ -1,11 +1,22 @@
 <!-- REPORT BUILDER -->
 <div class="flex flex-col gap-5">
   <!-- Header -->
-  <header class="flex flex-col gap-1">
-    <h1 class="text-2xl font-bold text-primary-900">Report Builder</h1>
-    <p class="text-sm text-slate-500">
-      Pilih jenis laporan, atur periode dan filter, lalu generate dan export ke PDF atau Excel.
-    </p>
+  <header class="flex items-start justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl font-bold text-primary-900">Report Builder</h1>
+      <p class="text-sm text-slate-500">
+        Pilih jenis laporan, atur periode dan filter, lalu generate dan export ke PDF atau Excel.
+      </p>
+    </div>
+    <a routerLink="/laporan/kartu-pemeliharaan">
+      <p-button
+        label="Kartu Pemeliharaan Kendaraan"
+        icon="pi pi-id-card"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+      ></p-button>
+    </a>
   </header>
 
   <!-- Builder controls -->

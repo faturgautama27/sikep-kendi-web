@@ -51,11 +51,11 @@ export class AdminDataPort {
     return this.http.get<VendorAdmin[]>(`${this.baseUrl}/vendors`);
   }
 
-  createVendor(payload: { namaVendor: string; alamat: string; kontak: string; email: string }): Observable<VendorAdmin> {
+  createVendor(payload: { namaVendor: string; alamat: string; kontak: string; email: string; npwp?: string | null; namaPimpinan?: string | null }): Observable<VendorAdmin> {
     return this.http.post<VendorAdmin>(`${this.baseUrl}/vendors`, payload);
   }
 
-  updateVendor(id: string | number, payload: { namaVendor?: string; alamat?: string; kontak?: string; email?: string; isAktif?: boolean }): Observable<VendorAdmin> {
+  updateVendor(id: string | number, payload: { namaVendor?: string; alamat?: string; kontak?: string; email?: string; isAktif?: boolean; npwp?: string | null; namaPimpinan?: string | null }): Observable<VendorAdmin> {
     return this.http.patch<VendorAdmin>(`${this.baseUrl}/vendors/${id}`, payload);
   }
 

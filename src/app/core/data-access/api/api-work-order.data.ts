@@ -14,8 +14,11 @@ import { APP_ENV } from '../app-env.token';
 interface BackendImageRef {
   id: number;
   signedUrl?: string;
+  signed_url?: string;
   mimeType?: string;
   originalFilename?: string;
+  r2ObjectKey?: string;
+  r2_object_key?: string;
 }
 
 interface BackendDraftChecklistFoto {
@@ -138,6 +141,7 @@ interface BackendPengajuan {
   odometerSaatPengajuan?: number;
   jenisPengajuan?: string;
   deskripsiKerusakan?: string;
+  komentarVerifikasi?: string | null;
   pengemudi?: BackendPengemudi;
   kendaraan: BackendKendaraan;
   fotos?: any[];
@@ -238,7 +242,7 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
             workOrderId: String(raw.id),
             kategori,
             imageId: String(imageId),
-            image: emptyImage(imageId, foto.image?.signedUrl, caption),
+            image: emptyImage(imageId, foto.image?.signedUrl ?? (foto.image as any)?.signed_url, caption),
             uploadedAt: latestDraft.updatedAt,
             uploadedBy: String(raw.vendorId ?? 0),
           } satisfies WorkOrderEvidence,
@@ -255,7 +259,7 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
           imageId: String(raw.pembayaran.buktiTransfer.imageId),
           image: emptyImage(
             raw.pembayaran.buktiTransfer.imageId,
-            raw.pembayaran.buktiTransfer.image?.signedUrl,
+            raw.pembayaran.buktiTransfer.image?.signedUrl ?? raw.pembayaran.buktiTransfer.image?.signed_url,
           ),
           uploadedAt: raw.pembayaran.paidAt ?? raw.pembayaran.updatedAt,
           uploadedBy: String(raw.pembayaran.bendaharaId),
@@ -270,7 +274,7 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
     imageId: String(dok.imageId),
     image: emptyImage(
       dok.imageId,
-      dok.image?.signedUrl,
+      dok.image?.signedUrl ?? dok.image?.signed_url,
       dok.kategori === 'IN_PROGRESS' ? 'In Progress' : 'Setelah Perbaikan',
     ),
     uploadedAt: dok.createdAt,
@@ -463,26 +467,27 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
       deskripsiKerusakan: raw.pengajuan.deskripsiKerusakan,
       fotos: raw.pengajuan.fotos ?? [],
     },
+    komentarVerifikasi: raw.pengajuan.komentarVerifikasi ?? null,
     vendor: raw.vendor ?? null,
     // Dokumen invoice & faktur pajak
     invoiceImage: raw.invoiceImage
       ? emptyImage(
           raw.invoiceImage.id,
-          raw.invoiceImage.signedUrl,
+          raw.invoiceImage.signedUrl ?? (raw.invoiceImage as any).signed_url,
           raw.invoiceImage.originalFilename,
         )
       : null,
     invoiceDraft: raw.invoiceDraft
       ? emptyImage(
           raw.invoiceDraft.id,
-          raw.invoiceDraft.signedUrl,
+          raw.invoiceDraft.signedUrl ?? (raw.invoiceDraft as any).signed_url,
           raw.invoiceDraft.originalFilename,
         )
       : null,
     fakturPajakFile: raw.fakturPajakFile
       ? emptyImage(
           raw.fakturPajakFile.id,
-          raw.fakturPajakFile.signedUrl,
+          raw.fakturPajakFile.signedUrl ?? (raw.fakturPajakFile as any).signed_url,
           raw.fakturPajakFile.originalFilename,
         )
       : null,

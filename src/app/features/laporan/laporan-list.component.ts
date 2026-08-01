@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 
 import { ButtonModule } from 'primeng/button';
@@ -71,6 +72,7 @@ const REPORT_TYPES: ReportTypeOption[] = [
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     ButtonModule,
     CardModule,
     SelectModule,

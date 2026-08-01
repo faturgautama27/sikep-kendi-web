@@ -1,0 +1,232 @@
+<div class="print-container" #printContainer>
+
+  <!-- ══ PAGE HEADER (no-print) ══ -->
+  <div class="no-print flex flex-col gap-1 mb-4">
+    <h1 class="text-2xl font-bold text-primary-900">Daftar Barang Milik Daerah (Kendaraan Dinas)</h1>
+    <p class="text-sm text-slate-500">Acuan: Perda No. 3 Tahun 2025 Pasal 152 Ayat 1 Huruf e</p>
+  </div>
+
+  <!-- ══ TOOLBAR (no-print) ══ -->
+  <div class="no-print p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-3 mb-4">
+    <button
+      class="px-4 py-2 bg-white border border-slate-300 rounded shadow-sm text-sm font-medium hover:bg-slate-50"
+      (click)="goBack()"
+    >
+      Kembali
+    </button>
+
+    <div class="flex items-center gap-3 flex-1">
+      <div class="flex flex-col gap-1 w-36">
+        <p-select
+          [options]="tahunOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="selectedTahun()"
+          (ngModelChange)="selectedTahun.set($event)"
+          styleClass="w-full"
+          appendTo="body"
+        ></p-select>
+      </div>
+      <p-button
+        label="Generate"
+        icon="pi pi-search"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loading()"
+        (onClick)="generate()"
+        size="small"
+      ></p-button>
+    </div>
+
+    @if (data()) {
+      <button
+        class="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        (click)="exportPdf()"
+        [disabled]="isExporting()"
+      >
+        @if (isExporting()) {
+          <span class="animate-spin text-sm">⏳</span> Mengekspor PDF...
+        } @else {
+          Export PDF Daftar Barang
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="no-print m-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="no-print flex items-center justify-center py-20 text-slate-500">
+      <i class="pi pi-spin pi-spinner mr-2"></i> Memuat data...
+    </div>
+  }
+
+  <!-- ══ PRINT PAGE ══ -->
+  @if (data(); as d) {
+    <div class="print-page bg-white p-8 max-w-[297mm] mx-auto min-h-[210mm] shadow-sm">
+
+      <!-- KOP SURAT -->
+      <div class="border-b-4 border-double border-slate-800 pb-4 mb-4 flex items-center gap-4">
+        <img src="/logo_for_light.png" alt="Logo" class="w-20 h-20 shrink-0 object-contain" />
+        <div class="flex-1 text-center">
+          <h1 class="text-base font-black uppercase tracking-wider">PEMERINTAH PROVINSI JAWA TENGAH</h1>
+          <h2 class="text-lg font-black uppercase tracking-wide">DINAS PERINDUSTRIAN DAN PERDAGANGAN</h2>
+          <h3 class="text-sm font-bold uppercase">PROVINSI JAWA TENGAH</h3>
+          <p class="text-xs mt-1">Jl. Pahlawan No. 4, Semarang 50241, Jawa Tengah</p>
+          <p class="text-xs">Telp. (024) 8311712 &bull; Fax. (024) 8311713 &bull; Website: disperindag.jatengprov.go.id</p>
+        </div>
+      </div>
+
+      <!-- JUDUL -->
+      <div class="text-center mb-4">
+        <h3 class="text-base font-bold uppercase underline tracking-wide">
+          DAFTAR BARANG MILIK DAERAH (KENDARAAN DINAS)
+        </h3>
+        <p class="text-xs text-slate-600 mt-1">Periode : Tahun {{ d.tahun }}</p>
+      </div>
+
+      <!-- TABEL DAFTAR BARANG -->
+      <div class="mb-5">
+        <table class="w-full border border-slate-300 text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 text-center">
+              <th class="border border-slate-300 px-2 py-2 w-8">No</th>
+              <th class="border border-slate-300 px-2 py-2">Nomor Inventaris</th>
+              <th class="border border-slate-300 px-2 py-2 w-24">Nopol</th>
+              <th class="border border-slate-300 px-2 py-2">Merk / Tipe</th>
+              <th class="border border-slate-300 px-2 py-2 w-14">Tahun</th>
+              <th class="border border-slate-300 px-2 py-2">Pengguna</th>
+              <th class="border border-slate-300 px-2 py-2 w-24">Kondisi</th>
+              <th class="border border-slate-300 px-2 py-2 w-36 text-right">Nilai Perolehan</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of d.items; track $index) {
+              <tr [class.bg-slate-50]="$index % 2 === 1">
+                <td class="border border-slate-200 px-2 py-1.5 text-center">{{ $index + 1 }}</td>
+                <td class="border border-slate-200 px-2 py-1.5 text-[10px]">{{ item.nomorInventaris }}</td>
+                <td class="border border-slate-200 px-2 py-1.5 text-center font-semibold">{{ item.nomorPolisi }}</td>
+                <td class="border border-slate-200 px-2 py-1.5">{{ item.merkTipe }}</td>
+                <td class="border border-slate-200 px-2 py-1.5 text-center">{{ item.tahun }}</td>
+                <td class="border border-slate-200 px-2 py-1.5">{{ item.pengguna }}</td>
+                <td class="border border-slate-200 px-2 py-1.5 text-center" [class]="kondisiClass(item.kondisi)">
+                  {{ item.kondisi }}
+                </td>
+                <td class="border border-slate-200 px-2 py-1.5 text-right">
+                  {{ item.nilaiPerolehan > 0 ? formatRupiah(item.nilaiPerolehan) : '-' }}
+                </td>
+              </tr>
+            }
+            @empty {
+              <tr>
+                <td colspan="8" class="border border-slate-200 px-2 py-6 text-center text-slate-400">
+                  Tidak ada data kendaraan.
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="bg-slate-100 font-bold">
+              <td colspan="7" class="border border-slate-300 px-2 py-1.5 text-right">Total Nilai Perolehan</td>
+              <td class="border border-slate-300 px-2 py-1.5 text-right">{{ formatRupiah(d.rekapitulasi.totalNilai) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- REKAPITULASI -->
+      <div class="mb-6">
+        <h4 class="font-bold text-sm mb-2 bg-slate-100 px-3 py-1 rounded">Rekapitulasi</h4>
+        <table class="border border-slate-300 text-xs">
+          <thead>
+            <tr class="bg-slate-100 text-center font-semibold">
+              <th class="border border-slate-300 px-4 py-1.5">Kondisi</th>
+              <th class="border border-slate-300 px-4 py-1.5">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-slate-200 px-4 py-1.5">Baik</td>
+              <td class="border border-slate-200 px-4 py-1.5 text-center text-green-700 font-semibold">{{ d.rekapitulasi.baik }}</td>
+            </tr>
+            <tr class="bg-slate-50">
+              <td class="border border-slate-200 px-4 py-1.5">Rusak Ringan</td>
+              <td class="border border-slate-200 px-4 py-1.5 text-center text-orange-600 font-semibold">{{ d.rekapitulasi.rusakRingan }}</td>
+            </tr>
+            <tr>
+              <td class="border border-slate-200 px-4 py-1.5">Rusak Berat</td>
+              <td class="border border-slate-200 px-4 py-1.5 text-center text-red-600 font-semibold">{{ d.rekapitulasi.rusakBerat }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-slate-100 font-bold">
+              <td class="border border-slate-300 px-4 py-1.5">Total</td>
+              <td class="border border-slate-300 px-4 py-1.5 text-center">{{ d.rekapitulasi.total }}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="mt-2 text-xs space-y-0.5">
+          <p><span class="font-medium">Total Kendaraan</span> : {{ d.rekapitulasi.total }} Unit</p>
+          <p><span class="font-medium">Total Nilai Perolehan</span> : {{ formatRupiah(d.rekapitulasi.totalNilai) }}</p>
+        </div>
+      </div>
+
+      <!-- PENGESAHAN -->
+      <div>
+        <p class="text-xs text-right mb-4">Semarang, {{ d.tahun }}</p>
+        <table class="w-full text-xs border border-slate-300">
+          <thead>
+            <tr class="bg-slate-100 text-center font-semibold">
+              <th class="border border-slate-300 px-3 py-2">Dibuat Oleh</th>
+              <th class="border border-slate-300 px-3 py-2">Diperiksa Oleh</th>
+              <th class="border border-slate-300 px-3 py-2">Mengetahui</th>
+            </tr>
+            <tr class="text-center text-slate-500 text-[11px]">
+              <td class="border border-slate-300 px-3 py-1">Pengurus Barang</td>
+              <td class="border border-slate-300 px-3 py-1">Kasubbag Umum</td>
+              <td class="border border-slate-300 px-3 py-1">Kepala Dinas</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
+                (Tanda Tangan &amp; Stempel)
+              </td>
+              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
+                (Tanda Tangan)
+              </td>
+              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
+                (Tanda Tangan &amp; Stempel)
+              </td>
+            </tr>
+            <tr class="text-center">
+              <td class="border border-slate-300 px-3 py-1.5">
+                <p>Nama : ................................</p>
+                <p>NIP &nbsp;&nbsp;: ................................</p>
+                <p>Tanggal : ...............................</p>
+              </td>
+              <td class="border border-slate-300 px-3 py-1.5">
+                <p>Nama : ................................</p>
+                <p>NIP &nbsp;&nbsp;: ................................</p>
+                <p>Tanggal : ...............................</p>
+              </td>
+              <td class="border border-slate-300 px-3 py-1.5">
+                <p>Nama : ................................</p>
+                <p>NIP &nbsp;&nbsp;: ................................</p>
+                <p>Tanggal : ...............................</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  }
+
+</div>

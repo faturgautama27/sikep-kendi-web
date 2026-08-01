@@ -1,0 +1,320 @@
+<div class="print-container" #printContainer>
+
+  <!-- ══ PAGE HEADER (no-print) ══ -->
+  <div class="no-print flex flex-col gap-1 mb-4">
+    <h1 class="text-2xl font-bold text-primary-900">Kartu Pemeliharaan / Perawatan Kendaraan Dinas</h1>
+    <p class="text-sm text-slate-500">Acuan: Perda No. 3 Tahun 2025 Pasal 1 Huruf d</p>
+  </div>
+
+  <!-- ══ TOOLBAR (no-print) ══ -->
+  <div class="no-print p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-3">
+    <button
+      class="px-4 py-2 bg-white border border-slate-300 rounded shadow-sm text-sm font-medium hover:bg-slate-50"
+      (click)="goBack()"
+    >
+      Kembali
+    </button>
+
+    <!-- Filter -->
+    <div class="flex flex-wrap items-center gap-3 flex-1">
+      <div class="flex flex-col gap-1 min-w-[260px]">
+        <p-select
+          [options]="vehicleOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="selectedVehicleId()"
+          (ngModelChange)="selectedVehicleId.set($event)"
+          placeholder="Pilih kendaraan..."
+          styleClass="w-full"
+          [filter]="true"
+          filterBy="label"
+          appendTo="body"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1 w-32">
+        <p-select
+          [options]="tahunOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="selectedTahun()"
+          (ngModelChange)="selectedTahun.set($event)"
+          styleClass="w-full"
+          appendTo="body"
+        ></p-select>
+      </div>
+      <p-button
+        label="Generate"
+        icon="pi pi-search"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loading()"
+        [disabled]="!selectedVehicleId()"
+        (onClick)="generate()"
+        size="small"
+      ></p-button>
+    </div>
+
+    <!-- Export PDF -->
+    @if (data()) {
+      <button
+        class="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        (click)="exportPdf()"
+        [disabled]="isExporting()"
+      >
+        @if (isExporting()) {
+          <span class="animate-spin text-sm">⏳</span> Mengekspor PDF...
+        } @else {
+          Export PDF Kartu Pemeliharaan
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="no-print m-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="no-print flex items-center justify-center py-20 text-slate-500">
+      <i class="pi pi-spin pi-spinner mr-2"></i> Memuat data...
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!data() && !loading() && !error()) {
+    <div class="no-print flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
+      <i class="pi pi-car text-4xl"></i>
+      <p class="text-sm">Pilih kendaraan dan tahun, lalu klik Generate.</p>
+    </div>
+  }
+
+  <!-- ══ PRINT PAGE ══ -->
+  @if (data(); as d) {
+    <div class="print-page bg-white p-10 max-w-[210mm] mx-auto min-h-[297mm] mt-4 shadow-sm">
+
+      <!-- KOP SURAT -->
+      <div class="border-b-4 border-double border-slate-800 pb-4 mb-4 flex items-center gap-4">
+        <img src="/logo_for_light.png" alt="Logo" class="w-20 h-20 shrink-0 object-contain" />
+        <div class="flex-1 text-center">
+          <h1 class="text-base font-black uppercase tracking-wider">PEMERINTAH PROVINSI JAWA TENGAH</h1>
+          <h2 class="text-lg font-black uppercase tracking-wide">DINAS PERINDUSTRIAN DAN PERDAGANGAN</h2>
+          <h3 class="text-sm font-bold uppercase">PROVINSI JAWA TENGAH</h3>
+          <p class="text-xs mt-1">Jl. Pahlawan No. 4, Semarang 50241, Jawa Tengah</p>
+          <p class="text-xs">Telp. (024) 8311712 &bull; Fax. (024) 8311713 &bull; Website: disperindag.jatengprov.go.id</p>
+        </div>
+      </div>
+
+      <!-- JUDUL -->
+      <div class="text-center mb-5">
+        <h3 class="text-base font-bold uppercase underline tracking-wide">
+          KARTU PEMELIHARAAN / PERAWATAN KENDARAAN DINAS
+        </h3>
+        <p class="text-xs text-slate-500 mt-1">Tahun Anggaran {{ d.tahun }}</p>
+      </div>
+
+      <!-- A. IDENTITAS KENDARAAN -->
+      <div class="mb-5">
+        <h4 class="font-bold text-sm mb-2 bg-slate-100 px-3 py-1 rounded">A. Identitas Kendaraan</h4>
+        <table class="w-full border border-slate-300 text-xs">
+          <tbody>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 w-48 font-medium bg-slate-50">Nama Barang</td>
+              <td class="px-3 py-1.5 w-4">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.namaBarang }}</td>
+              <td class="px-3 py-1.5 w-48 font-medium bg-slate-50">Nomor Polisi</td>
+              <td class="px-3 py-1.5 w-4">:</td>
+              <td class="px-3 py-1.5 font-bold">{{ d.identitas.nomorPolisi }}</td>
+            </tr>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Nomor Register / Inventaris</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.nomorRegister || '-' }}</td>
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Merk / Tipe</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.merkTipe }}</td>
+            </tr>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Tahun Perolehan</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.tahunPerolehan }}</td>
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Nomor Mesin</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.nomorMesin || '-' }}</td>
+            </tr>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Nomor Rangka</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.nomorRangka || '-' }}</td>
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Warna</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.warna || '-' }}</td>
+            </tr>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 font-medium bg-slate-50">OPD / Unit Kerja</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.unitKerja || '-' }}</td>
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Pengguna Kendaraan</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5">{{ d.identitas.pengguna || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Kondisi Awal</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5 font-semibold">{{ d.identitas.kondisiAwal }}</td>
+              <td colspan="3" class="px-3 py-1.5"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- B. RIWAYAT PEMELIHARAAN -->
+      <div class="mb-5">
+        <h4 class="font-bold text-sm mb-2 bg-slate-100 px-3 py-1 rounded">B. Riwayat Pemeliharaan / Perawatan</h4>
+        @if (d.riwayat.length === 0) {
+          <div class="text-center text-slate-400 py-6 border border-dashed border-slate-200 rounded text-xs">
+            Tidak ada riwayat pemeliharaan pada tahun {{ d.tahun }}.
+          </div>
+        } @else {
+          <table class="w-full border border-slate-300 text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700">
+                <th class="border border-slate-300 px-2 py-1.5 text-center w-8">No</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-center w-28">Tanggal</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-center w-20">KM</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-left">Jenis Pemeliharaan</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-left">Barang/Bahan</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-right w-32">Total Biaya</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-left w-32">Pelaksana/Bengkel</th>
+                <th class="border border-slate-300 px-2 py-1.5 text-left w-24">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of d.riwayat; track $index) {
+                <tr [class.bg-slate-50]="$index % 2 === 1">
+                  <td class="border border-slate-200 px-2 py-1.5 text-center">{{ $index + 1 }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5 text-center">{{ formatTanggal(item.tanggal) }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5 text-center">{{ formatKm(item.kilometer) }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5">{{ item.jenisPemeliharaan }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5">{{ item.bahanDigunakan }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5 text-right font-semibold">{{ formatRupiah(item.totalBiaya) }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5">{{ item.pelaksana }}</td>
+                  <td class="border border-slate-200 px-2 py-1.5 text-slate-500">{{ item.keterangan }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-100 font-bold">
+                <td colspan="5" class="border border-slate-300 px-2 py-1.5 text-right">Total</td>
+                <td class="border border-slate-300 px-2 py-1.5 text-right">{{ formatRupiah(d.rekapitulasi.totalKeseluruhan) }}</td>
+                <td colspan="2" class="border border-slate-300"></td>
+              </tr>
+            </tfoot>
+          </table>
+        }
+      </div>
+
+      <!-- C. REKAPITULASI -->
+      <div class="mb-5">
+        <h4 class="font-bold text-sm mb-2 bg-slate-100 px-3 py-1 rounded">C. Rekapitulasi Pemeliharaan</h4>
+        <table class="w-full border border-slate-300 text-xs">
+          <tbody>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 w-64 font-medium bg-slate-50">Jumlah Kegiatan Pemeliharaan</td>
+              <td class="px-3 py-1.5 w-4">:</td>
+              <td class="px-3 py-1.5 font-semibold">{{ d.rekapitulasi.totalKegiatan }} Kali</td>
+            </tr>
+            <tr class="border-b border-slate-200">
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Total Biaya Pemeliharaan</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5 font-bold">{{ formatRupiah(d.rekapitulasi.totalKeseluruhan) }}</td>
+            </tr>
+            @if (d.rekapitulasi.paguTahunan !== null) {
+              <tr class="border-b border-slate-200">
+                <td class="px-3 py-1.5 font-medium bg-slate-50">Pagu Tahunan</td>
+                <td class="px-3 py-1.5">:</td>
+                <td class="px-3 py-1.5">{{ formatRupiah(d.rekapitulasi.paguTahunan!) }}</td>
+              </tr>
+              <tr class="border-b border-slate-200">
+                <td class="px-3 py-1.5 font-medium bg-slate-50">Sisa Pagu</td>
+                <td class="px-3 py-1.5">:</td>
+                <td class="px-3 py-1.5" [class.text-red-600]="(d.rekapitulasi.sisaPagu ?? 0) < 0">
+                  {{ formatRupiah(d.rekapitulasi.sisaPagu ?? 0) }}
+                </td>
+              </tr>
+            }
+            <tr>
+              <td class="px-3 py-1.5 font-medium bg-slate-50">Kondisi Kendaraan Akhir</td>
+              <td class="px-3 py-1.5">:</td>
+              <td class="px-3 py-1.5 font-semibold">{{ d.identitas.kondisiAwal }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- D. CATATAN -->
+      <div class="mb-5">
+        <h4 class="font-bold text-sm mb-2 bg-slate-100 px-3 py-1 rounded">D. Catatan</h4>
+        <div class="border border-slate-300 rounded px-3 py-3 text-xs text-slate-600 min-h-[80px] space-y-1">
+          <p>* Kendaraan telah menjalani pemeliharaan rutin sesuai jadwal selama Tahun Anggaran {{ d.tahun }}.</p>
+          <p>* Seluruh kegiatan pemeliharaan dilaksanakan oleh bengkel/vendor yang telah ditunjuk.</p>
+          <p>* Dokumen pendukung tersimpan di sistem informasi pemeliharaan kendaraan dinas (SiKeP KenDI).</p>
+        </div>
+      </div>
+
+      <!-- E. PENGESAHAN -->
+      <div>
+        <h4 class="font-bold text-sm mb-3 bg-slate-100 px-3 py-1 rounded">E. Pengesahan</h4>
+        <table class="w-full text-xs border border-slate-300">
+          <thead>
+            <tr class="bg-slate-100 text-center font-semibold">
+              <th class="border border-slate-300 px-3 py-2">Dibuat Oleh</th>
+              <th class="border border-slate-300 px-3 py-2">Diperiksa Oleh</th>
+              <th class="border border-slate-300 px-3 py-2">Mengetahui</th>
+            </tr>
+            <tr class="text-center text-slate-500 text-[11px]">
+              <td class="border border-slate-300 px-3 py-1">Pengurus Barang</td>
+              <td class="border border-slate-300 px-3 py-1">Kasubbag Umum</td>
+              <td class="border border-slate-300 px-3 py-1">Kepala Dinas</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
+                (Tanda Tangan &amp; Stempel)
+              </td>
+              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
+                (Tanda Tangan)
+              </td>
+              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
+                (Tanda Tangan &amp; Stempel)
+              </td>
+            </tr>
+            <tr class="text-center">
+              <td class="border border-slate-300 px-3 py-1.5">
+                <p>Nama : ................................</p>
+                <p>NIP &nbsp;&nbsp;: ................................</p>
+                <p>Tanggal : ...............................</p>
+              </td>
+              <td class="border border-slate-300 px-3 py-1.5">
+                <p>Nama : ................................</p>
+                <p>NIP &nbsp;&nbsp;: ................................</p>
+                <p>Tanggal : ...............................</p>
+              </td>
+              <td class="border border-slate-300 px-3 py-1.5">
+                <p>Nama : ................................</p>
+                <p>NIP &nbsp;&nbsp;: ................................</p>
+                <p>Tanggal : ...............................</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  }
+
+</div>

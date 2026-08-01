@@ -44,6 +44,8 @@ export interface VendorAdmin {
   alamat: string;
   kontak: string;
   email: string;
+  npwp?: string | null;
+  namaPimpinan?: string | null;
   isAktif: boolean;
   createdAt?: string;
 }

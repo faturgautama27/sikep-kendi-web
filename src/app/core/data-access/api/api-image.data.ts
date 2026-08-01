@@ -51,7 +51,10 @@ export class ApiImageData implements ImageDataPort {
     const form = new FormData();
     form.append('file', file);
     return this.http.post<any>(this.url('/images'), form).pipe(
-      map(res => ({ id: String(res.imageId), url: res.signedUrl } as unknown as Image))
+      map(res => {
+        const data = res?.data ?? res;
+        return { id: String(data.imageId), url: data.url } as unknown as Image;
+      })
     );
   }
 }

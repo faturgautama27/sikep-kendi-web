@@ -430,27 +430,33 @@
           <ng-template #header>
             <tr>
               <th class="w-10">No</th>
-              <th>Kerusakan</th>
               <th>Tindakan</th>
-              <th class="w-36 text-right">Harga Estimasi</th>
+              <th class="w-28">Jenis</th>
+              <th class="w-16 text-right">Qty</th>
+              <th class="w-36 text-right">Harga</th>
+              <th class="w-24 text-right">Diskon</th>
+              <th class="w-36 text-right">Subtotal</th>
             </tr>
           </ng-template>
           <ng-template #body let-item let-i="rowIndex">
             <tr>
               <td>{{ i + 1 }}</td>
               <td>
-                <div class="font-medium text-slate-700">{{ item.namaKerusakan }}</div>
+                <div class="font-medium text-slate-700">{{ item.tindakanPerbaikan || item.namaKerusakan }}</div>
                 @if (item.namaSparepart) {
                   <div class="text-xs text-slate-400">Sparepart: {{ item.namaSparepart }}</div>
                 }
               </td>
-              <td class="text-xs text-slate-600">{{ item.tindakanPerbaikan }}</td>
-              <td class="text-right">{{ formatCurrency(item.hargaItem) }}</td>
+              <td class="text-xs text-slate-600">{{ item.jenis || '-' }}</td>
+              <td class="text-right">{{ item.qty ?? '-' }}</td>
+              <td class="text-right">{{ item.harga != null ? formatCurrency(+item.harga) : formatCurrency(+item.hargaItem) }}</td>
+              <td class="text-right">{{ item.diskon != null ? formatCurrency(+item.diskon) : '-' }}</td>
+              <td class="text-right font-medium">{{ formatCurrency(+(item.subTotal ?? item.hargaItem ?? 0)) }}</td>
             </tr>
             @if (item.fotos?.length) {
               <tr class="bg-slate-50/70">
                 <td></td>
-                <td colspan="3" class="py-3">
+                <td colspan="6" class="py-3">
                   <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Bukti pada Draft
                   </div>
@@ -475,13 +481,13 @@
           </ng-template>
           <ng-template #footer>
             <tr class="bg-slate-50 font-semibold">
-              <td colspan="3" class="text-right">Total Draft:</td>
+              <td colspan="6" class="text-right">Total:</td>
               <td class="text-right">{{ formatCurrency(draftTotalHarga()) }}</td>
             </tr>
           </ng-template>
           <ng-template #emptymessage>
             <tr>
-              <td colspan="4" class="text-center text-slate-400 py-4">
+              <td colspan="7" class="text-center text-slate-400 py-4">
                 Draft checklist belum disetujui. Pastikan draft sudah diverifikasi terlebih dahulu.
               </td>
             </tr>

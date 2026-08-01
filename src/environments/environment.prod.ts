@@ -3,7 +3,7 @@ import type { AppEnvironment } from '@core/data-access/app-env.token';
 export const environment: AppEnvironment = {
   production: true,
   previewMode: false,
-  apiBaseUrl: 'https://apidev-sikepkendi.darmamulticorp.com/api',
+  apiBaseUrl: 'https://disperindag.jatengprov.go.id/sikepapi/public/api',
   appName: 'SiKeP KenDI',
   tagline: 'Sistem Kendali Pemeliharaan Kendaraan Dinas',
   defaultLocale: 'id-ID',

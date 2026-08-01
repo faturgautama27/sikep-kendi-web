@@ -37,6 +37,7 @@ type DraftStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK';
 export interface EditableRow {
   _key: number;
   tindakanPerbaikan: string;
+  jenis: string;
   uraian: string;
   qty: number;
   harga: number;
@@ -94,6 +95,7 @@ export class VendorDraftChecklistComponent implements OnInit {
     (this.activeDraft()?.items ?? []).map((item, idx) => ({
       _key: idx,
       tindakanPerbaikan: item.tindakanPerbaikan ?? '',
+      jenis: item.jenis ?? '',
       uraian: item.uraian ?? '',
       qty: Number(item.qty ?? 1),
       harga: Number(item.harga ?? item.hargaItem ?? 0),
@@ -128,6 +130,7 @@ export class VendorDraftChecklistComponent implements OnInit {
         const mapped: EditableRow[] = draft.items.map((item) => ({
           _key: this.nextKey++,
           tindakanPerbaikan: item.tindakanPerbaikan ?? '',
+          jenis: item.jenis ?? '',
           uraian: item.uraian ?? '',
           qty: Number(item.qty ?? 1),
           harga: Number(item.harga ?? item.hargaItem ?? 0),
@@ -169,6 +172,7 @@ export class VendorDraftChecklistComponent implements OnInit {
     const row: EditableRow = {
       _key: this.nextKey++,
       tindakanPerbaikan: '',
+      jenis: '',
       uraian: '',
       qty: 1,
       harga: 0,
@@ -227,10 +231,6 @@ export class VendorDraftChecklistComponent implements OnInit {
 
   protected simpanDraft(): void {
     const items = this.toPayload();
-    if (items.length === 0 && this.totalManual <= 0) {
-      this.msg.add({ severity: 'warn', summary: 'Minimal 1 item atau isi Total Harga manual.' });
-      return;
-    }
     this.saving.set(true);
     this.store
       .dispatch(new CreateDraftChecklist(this.workOrderId, this.buildPayload(items)))
@@ -248,10 +248,6 @@ export class VendorDraftChecklistComponent implements OnInit {
 
   protected kirimDraft(): void {
     const items = this.toPayload();
-    if (items.length === 0 && this.totalManual <= 0) {
-      this.msg.add({ severity: 'warn', summary: 'Minimal 1 item atau isi Total Harga manual.' });
-      return;
-    }
     this.confirm.confirm({
       message: 'Draft akan dikirim ke Pengurus Barang. Setelah dikirim tidak bisa diubah. Lanjutkan?',
       header: 'Konfirmasi Pengiriman',
@@ -297,6 +293,7 @@ export class VendorDraftChecklistComponent implements OnInit {
     const mapped: EditableRow[] = draft.items.map((item) => ({
       _key: this.nextKey++,
       tindakanPerbaikan: item.tindakanPerbaikan ?? '',
+      jenis: item.jenis ?? '',
       uraian: item.uraian ?? '',
       qty: Number(item.qty ?? 1),
       harga: Number(item.harga ?? item.hargaItem ?? 0),
@@ -310,6 +307,7 @@ export class VendorDraftChecklistComponent implements OnInit {
   private toPayload(): DraftChecklistItem[] {
     return this.rows().map((r) => ({
       tindakanPerbaikan: r.tindakanPerbaikan || '-',
+      jenis: r.jenis || undefined,
       uraian: r.uraian || undefined,
       qty: r.qty,
       harga: r.harga,

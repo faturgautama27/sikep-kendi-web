@@ -63,6 +63,8 @@
           <th>Nama Vendor</th>
           <th>Email</th>
           <th>Kontak</th>
+          <th>NPWP</th>
+          <th>Nama Pimpinan</th>
           <th class="w-24 text-center">Status</th>
           <th class="w-32 text-right">Aksi</th>
         </tr>
@@ -75,6 +77,8 @@
           </td>
           <td class="text-slate-600">{{ v.email }}</td>
           <td class="font-mono text-xs text-slate-600">{{ v.kontak }}</td>
+          <td class="text-xs text-slate-600 font-mono">{{ v.npwp || '—' }}</td>
+          <td class="text-xs text-slate-600">{{ v.namaPimpinan || '—' }}</td>
           <td class="text-center">
             <p-tag [value]="v.isAktif ? 'Aktif' : 'Nonaktif'" [severity]="v.isAktif ? 'success' : 'secondary'" [rounded]="true" />
           </td>
@@ -89,7 +93,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="5" class="py-10 text-center text-sm text-slate-500">
+          <td colspan="7" class="py-10 text-center text-sm text-slate-500">
             Tidak ada vendor yang cocok dengan filter saat ini.
           </td>
         </tr>
@@ -119,6 +123,16 @@
         <input pInputText formControlName="email" type="email" placeholder="vendor@domain.com" />
         @if (emailConflict()) { <small class="text-red-500">Email vendor sudah terdaftar.</small> }
         @if (form.get('email')!.invalid && form.get('email')!.touched && !emailConflict()) { <small class="text-red-500">Format email tidak valid.</small> }
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">NPWP</label>
+        <input pInputText formControlName="npwp" placeholder="00.000.000.0-000.000" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Nama Pimpinan</label>
+        <input pInputText formControlName="namaPimpinan" placeholder="Nama direktur / pemilik" />
       </div>
     </div>
   </form>

@@ -13,6 +13,8 @@ export interface ShsItemInput {
   namaItem: string;
   hargaVendor: number;
   hargaStandart: number;
+  qty?: number;
+  diskon?: number;
   shsMasterId?: number;
   keterangan?: string;
 }

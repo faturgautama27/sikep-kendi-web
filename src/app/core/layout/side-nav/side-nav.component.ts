@@ -61,12 +61,6 @@ export class SideNavComponent {
           route: '/darurat',
           permission: 'darurat.read',
         },
-        {
-          label: 'Laporan',
-          icon: 'pi pi-chart-pie',
-          route: '/laporan/report-builder',
-          permission: 'laporan.read',
-        },
         { label: 'Audit Log', icon: 'pi pi-shield', route: '/audit', permission: 'audit_log.read' },
         {
           label: 'SHS Master',
@@ -75,6 +69,35 @@ export class SideNavComponent {
           permission: 'user.manage',
         },
         { label: 'Pengaturan', icon: 'pi pi-cog', route: '/admin', permission: 'user.manage' },
+      ],
+    },
+    {
+      label: 'Laporan',
+      items: [
+        {
+          label: 'Report Builder',
+          icon: 'pi pi-chart-pie',
+          route: '/laporan/report-builder',
+          permission: 'laporan.read',
+        },
+        {
+          label: 'Kartu Pemeliharaan Kendaraan',
+          icon: 'pi pi-id-card',
+          route: '/laporan/kartu-pemeliharaan',
+          permission: 'laporan.read',
+        },
+        {
+          label: 'Daftar Barang Kendaraan',
+          icon: 'pi pi-list',
+          route: '/laporan/daftar-barang',
+          permission: 'laporan.read',
+        },
+        {
+          label: 'Hasil Pemeliharaan Barang',
+          icon: 'pi pi-clipboard',
+          route: '/laporan/hasil-pemeliharaan',
+          permission: 'laporan.read',
+        },
       ],
     },
     {

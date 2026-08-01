@@ -218,6 +218,33 @@ export const routes: Routes = [
         data: { title: 'Laporan Biaya Perbaikan', requiredPermissions: ['laporan.read'] },
       },
       {
+        path: 'laporan/kartu-pemeliharaan',
+        loadComponent: () =>
+          import('@features/laporan/kartu-pemeliharaan.component').then(
+            (m) => m.KartuPemeliharaanComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Kartu Pemeliharaan Kendaraan', requiredPermissions: ['laporan.read'] },
+      },
+      {
+        path: 'laporan/daftar-barang',
+        loadComponent: () =>
+          import('@features/laporan/daftar-barang.component').then(
+            (m) => m.DaftarBarangComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Daftar Barang Kendaraan Dinas', requiredPermissions: ['laporan.read'] },
+      },
+      {
+        path: 'laporan/hasil-pemeliharaan',
+        loadComponent: () =>
+          import('@features/laporan/hasil-pemeliharaan.component').then(
+            (m) => m.HasilPemeliharaanComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'Daftar Hasil Pemeliharaan Barang', requiredPermissions: ['laporan.read'] },
+      },
+      {
         path: 'work-orders/:id',
         loadComponent: () =>
           import('@features/work-orders/work-order-detail.component').then(

@@ -106,6 +106,7 @@
                 <tr class="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                   <th class="px-3 py-2.5 w-10 text-center">No</th>
                   <th class="px-3 py-2.5 min-w-[200px]">Tindakan</th>
+                  <th class="px-3 py-2.5 w-32">Jenis</th>
                   <th class="px-3 py-2.5 w-24 text-right">Qty</th>
                   <th class="px-3 py-2.5 w-40 text-right">Harga (Rp)</th>
                   <th class="px-3 py-2.5 w-28 text-right">Diskon (%)</th>
@@ -134,6 +135,19 @@
                           [ngModel]="row.tindakanPerbaikan"
                           (ngModelChange)="setField(row._key, 'tindakanPerbaikan', $event)"
                         />
+                      </td>
+
+                      <!-- Jenis -->
+                      <td class="px-2 py-1.5">
+                        <select
+                          class="w-full text-sm border border-slate-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          [ngModel]="row.jenis"
+                          (ngModelChange)="setField(row._key, 'jenis', $event)"
+                        >
+                          <option value="">—</option>
+                          <option value="jasa">Jasa</option>
+                          <option value="spare part">Spare Part</option>
+                        </select>
                       </td>
 
                       <!-- Qty -->
@@ -193,7 +207,7 @@
 
                   @if (rows().length === 0) {
                     <tr>
-                      <td colspan="7" class="py-10 text-center text-slate-400 text-sm">
+                      <td colspan="8" class="py-10 text-center text-slate-400 text-sm">
                         <i class="pi pi-inbox text-3xl block mb-2 text-slate-200"></i>
                         Belum ada item. Klik <strong>+ Tambah Item</strong> di atas.
                       </td>
@@ -207,6 +221,7 @@
                     <tr class="hover:bg-slate-50">
                       <td class="px-3 py-2.5 text-center text-slate-400 text-xs">{{ i + 1 }}</td>
                       <td class="px-3 py-2.5 text-slate-800">{{ row.tindakanPerbaikan || '—' }}</td>
+                      <td class="px-3 py-2.5 text-slate-600 text-xs">{{ row.jenis || '—' }}</td>
                       <td class="px-3 py-2.5 text-right">{{ row.qty }}</td>
                       <td class="px-3 py-2.5 text-right text-slate-700">{{ fmt(row.harga) }}</td>
                       <td class="px-3 py-2.5 text-right text-slate-500">{{ row.diskon }}%</td>
@@ -216,7 +231,7 @@
 
                   @if (readOnlyRows().length === 0) {
                     <tr>
-                      <td colspan="6" class="py-8 text-center text-slate-400 text-sm italic">
+                      <td colspan="7" class="py-8 text-center text-slate-400 text-sm italic">
                         Tidak ada item checklist.
                       </td>
                     </tr>
@@ -228,7 +243,7 @@
               <!-- Footer: Total Harga -->
               <tfoot class="bg-slate-50 border-t-2 border-slate-200">
                 <tr>
-                  <td [colSpan]="canEdit() ? 6 : 6"
+                  <td [colSpan]="canEdit() ? 7 : 7"
                       class="px-3 py-3 text-right font-semibold text-slate-600 text-sm">
                     Total Harga:
                   </td>

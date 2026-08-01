@@ -99,6 +99,7 @@ export interface WorkOrder {
   totalBiaya?: number;
   createdAt?: string;
   updatedAt?: string;
+  komentarVerifikasi?: string | null;
   pbCatatan?: string | null;
   pbVerifikasiAt?: string | null;
   pbAlasanPenolakan?: string | null;

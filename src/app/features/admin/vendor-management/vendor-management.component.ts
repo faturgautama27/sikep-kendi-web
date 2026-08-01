@@ -67,11 +67,13 @@ export class VendorManagementComponent implements OnInit {
   protected readonly editingId = signal<string | null>(null);
   protected readonly emailConflict = signal(false);
   protected readonly form = this.fb.group({
-    namaVendor: ['', [Validators.required, Validators.maxLength(100)]],
-    alamat: ['', Validators.required],
-    kontak: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    isAktif: [true],
+    namaVendor:   ['', [Validators.required, Validators.maxLength(100)]],
+    alamat:       ['', Validators.required],
+    kontak:       ['', Validators.required],
+    email:        ['', [Validators.required, Validators.email]],
+    npwp:         [''],
+    namaPimpinan: [''],
+    isAktif:      [true],
   });
   protected readonly activeCount = computed(() => this.vendors().filter(v => v.isAktif).length);
 
@@ -91,7 +93,8 @@ export class VendorManagementComponent implements OnInit {
 
     if (!this.editingId()) {
       this.adminPort.createVendor({
-        namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!
+        namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!,
+        npwp: raw.npwp || null, namaPimpinan: raw.namaPimpinan || null,
       }).subscribe({
         next: (newVendor) => {
           this.vendors.update(l => [newVendor, ...l]);
@@ -105,7 +108,8 @@ export class VendorManagementComponent implements OnInit {
       });
     } else {
       this.adminPort.updateVendor(this.editingId()!, {
-        namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!, isAktif: raw.isAktif ?? true
+        namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!, isAktif: raw.isAktif ?? true,
+        npwp: raw.npwp || null, namaPimpinan: raw.namaPimpinan || null,
       }).subscribe({
         next: (updated) => {
           this.vendors.update(l => l.map(v => v.id === this.editingId() ? updated : v));

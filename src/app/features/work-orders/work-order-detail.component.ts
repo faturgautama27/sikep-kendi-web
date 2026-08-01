@@ -83,6 +83,8 @@ interface ShsItemLocal extends ShsItemInput {
   hargaShs?: number;
   melebihiShs: boolean;
   jumlah?: number;
+  qty?: number;
+  diskon?: number;
 }
 
 @Component({
@@ -138,6 +140,12 @@ export class WorkOrderDetailComponent implements OnInit {
     return list.sort((a, b) => b.versi - a.versi)[0];
   });
 
+  protected readonly draftToReview = computed(() => {
+    const list = this.drafts();
+    // Cari draft DIKIRIM untuk di-approve/reject oleh PB
+    return list.find(d => d.status === 'DIKIRIM') ?? null;
+  });
+
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly isPPTK = computed(() => this.user()?.roles?.includes('pptk'));
   protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin_sistem'));
@@ -156,7 +164,7 @@ export class WorkOrderDetailComponent implements OnInit {
     this.shsItems().some((i) => i.melebihiShs),
   );
   protected readonly shsTotal = computed(() =>
-    this.shsItems().reduce((sum, i) => sum + i.hargaVendor * (i.jumlah ?? 1), 0),
+    this.shsItems().reduce((sum, i) => sum + this.subtotalItem(i), 0),
   );
 
   // ─── Step D: PB Review Dialog ─────────────────────────────────────────────
@@ -397,7 +405,7 @@ export class WorkOrderDetailComponent implements OnInit {
 
   // ─── Legacy Draft Actions ─────────────────────────────────────────────────
   protected approve() {
-    const draft = this.latestDraft();
+    const draft = this.draftToReview();
     if (!draft) return;
     this.store.dispatch(new ApproveDraft(draft.id)).subscribe(() => {
       this.store.dispatch(new GetWorkOrderDetail(this.id));
@@ -406,7 +414,7 @@ export class WorkOrderDetailComponent implements OnInit {
   }
 
   protected reject() {
-    const draft = this.latestDraft();
+    const draft = this.draftToReview();
     if (!draft) return;
     this.store
       .dispatch(new RejectDraft(draft.id, this.catatan || 'Perlu koreksi item dan harga.'))
@@ -456,6 +464,45 @@ export class WorkOrderDetailComponent implements OnInit {
     ]);
   }
 
+  /** Isi otomatis baris SHS dari item draft checklist terbaru */
+  protected fillFromDraft() {
+    const draft = this.latestDraft();
+    if (!draft?.items?.length) {
+      this.msg.add({ severity: 'warn', summary: 'Tidak ada item draft checklist' });
+      return;
+    }
+
+    this.itemKey = 0;
+    const mapped: ShsItemLocal[] = draft.items.map((item) => {
+      const harga  = Number(item.harga ?? item.hargaItem ?? 0);
+      const qty    = Number(item.qty ?? 1);
+      const diskon = Number(item.diskon ?? 0);
+      return {
+        _key:          this.itemKey++,
+        namaItem:      item.tindakanPerbaikan || item.namaSparepart || item.namaKerusakan || '',
+        hargaVendor:   harga,
+        hargaStandart: 0,
+        jumlah:        qty,
+        qty,
+        diskon,
+        melebihiShs:   false,
+      };
+    });
+
+    this.shsItems.set(mapped);
+    this.msg.add({
+      severity: 'info',
+      summary: `${mapped.length} item diisi dari draft checklist`,
+      detail: 'Pilih SHS referensi untuk setiap item.',
+    });
+  }
+
+  protected subtotalItem(item: ShsItemLocal): number {
+    const qty    = item.qty ?? item.jumlah ?? 1;
+    const diskon = item.diskon ?? 0;
+    return item.hargaVendor * qty * (1 - diskon / 100);
+  }
+
   protected removeShsItem(key: number) {
     this.shsItems.update((items) => items.filter((i) => i._key !== key));
   }
@@ -499,12 +546,16 @@ export class WorkOrderDetailComponent implements OnInit {
     this.shsItems.update((items) =>
       items.map((item) => {
         if (item._key !== key) return item;
+        const numericFields = ['hargaVendor', 'jumlah', 'qty', 'diskon'];
         const updated = {
           ...item,
-          [field]: field === 'hargaVendor' || field === 'jumlah' ? Number(value) : value,
+          [field]: numericFields.includes(field as string) ? Number(value) : value,
         };
+        // Sync jumlah <-> qty
+        if (field === 'qty')    updated.jumlah = Number(value);
+        if (field === 'jumlah') updated.qty    = Number(value);
         // Recheck melebihi SHS jika harga berubah
-        if (field === 'hargaVendor' && item.hargaShs) {
+        if ((field === 'hargaVendor') && item.hargaShs) {
           updated.melebihiShs = Number(value) > item.hargaShs;
         }
         return updated;
@@ -527,7 +578,11 @@ export class WorkOrderDetailComponent implements OnInit {
     }
 
     const payload: ShsItemInput[] = this.shsItems().map(
-      ({ _key, hargaShs, melebihiShs, jumlah, ...item }) => item,
+      ({ _key, hargaShs, melebihiShs, jumlah, ...item }) => ({
+        ...item,
+        qty:    item.qty    ?? jumlah ?? 1,
+        diskon: item.diskon ?? 0,
+      }),
     );
     this.savingShsMappingLoading.set(true);
     this.store.dispatch(new SaveShsMapping(this.id, payload)).subscribe({

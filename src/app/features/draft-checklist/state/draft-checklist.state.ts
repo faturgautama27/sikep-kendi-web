@@ -23,6 +23,7 @@ export interface DraftChecklistItem {
   namaKerusakan?: string;
   namaSparepart?: string;
   tindakanPerbaikan?: string;
+  jenis?: string | null;
   uraian?: string;
   qty?: number;
   harga?: number;
