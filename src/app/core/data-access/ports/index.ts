@@ -14,3 +14,4 @@ export * from './dashboard-data.port';
 export * from './admin-data.port';
 export * from './shs-master-data.port';
 export * from './laporan-data.port';
+export * from './bast-data.port';

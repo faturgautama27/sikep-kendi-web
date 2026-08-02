@@ -47,6 +47,13 @@ export interface VendorAdmin {
   npwp?: string | null;
   namaPimpinan?: string | null;
   isAktif: boolean;
+  // Fitur 6 — Info Pembayaran
+  namaPenerimaTunai?: string | null;
+  namaBank?: string | null;
+  nomorRekening?: string | null;
+  namaPemilikRekening?: string | null;
+  qrCodeImageId?: number | null;
+  qrCodeImageUrl?: string | null;
   createdAt?: string;
 }
 

@@ -25,6 +25,9 @@ export interface Vehicle {
   intervalServisKm?: number | null; // jarak km antar servis berkala
   odometerServisTerakhir?: number | null; // odometer saat servis terakhir
   paguTahunan?: number | null; // pagu anggaran tahunan kendaraan (Rp)
+  // Fitur 8 — diupdate otomatis saat WO status DIBAYAR
+  kondisiTerakhir?: 'Baik' | 'Rusak Ringan' | 'Rusak Berat' | null;
+  kondisiUpdatedAt?: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

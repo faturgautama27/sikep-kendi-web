@@ -53,11 +53,41 @@ export class ApiDraftChecklistData implements DraftChecklistDataPort {
     return this.http.post<unknown>(this.url(`/draft-checklist/${id}/submit`), {});
   }
 
+  /** backward-compat alias → approvePb */
   approve(id: string): Observable<unknown> {
     return this.http.post<unknown>(this.url(`/draft-checklist/${id}/approve`), {});
   }
 
+  approvePb(woId: string, id: string): Observable<unknown> {
+    return this.http.post<unknown>(
+      this.url(`/work-orders/${woId}/draft-checklist/${id}/approve-pb`), {},
+    );
+  }
+
+  /** backward-compat alias → rejectPb */
   reject(id: string, payload: { notesRejection: string }): Observable<unknown> {
     return this.http.post<unknown>(this.url(`/draft-checklist/${id}/reject`), payload);
+  }
+
+  rejectPb(woId: string, id: string, payload: { notesRejection: string }): Observable<unknown> {
+    return this.http.post<unknown>(
+      this.url(`/work-orders/${woId}/draft-checklist/${id}/reject-pb`), payload,
+    );
+  }
+
+  approvePptk(woId: string, id: string, payload?: { pptkCatatan?: string }): Observable<unknown> {
+    return this.http.post<unknown>(
+      this.url(`/work-orders/${woId}/draft-checklist/${id}/approve-pptk`), payload ?? {},
+    );
+  }
+
+  rejectPptk(
+    woId: string,
+    id: string,
+    payload: { pptkAlasanPenolakan: string },
+  ): Observable<unknown> {
+    return this.http.post<unknown>(
+      this.url(`/work-orders/${woId}/draft-checklist/${id}/reject-pptk`), payload,
+    );
   }
 }

@@ -106,6 +106,14 @@ export interface WorkOrder {
   invoiceImage?: Image | null;
   invoiceDraft?: Image | null;
   fakturPajakFile?: Image | null;
+  // Fitur 3 — Foto Sebelum Pengerjaan
+  fotoSebelumPengerjaanImageId?: number | null;
+  fotoSebelumPengerjaan?: Image | null;
+  fotoSebelumAt?: string | null;
+  // Fitur 8 — Kondisi Kendaraan
+  kondisiKendaraan?: 'Baik' | 'Rusak Ringan' | 'Rusak Berat' | null;
+  kondisiDinilaiOlehId?: string | null;
+  kondisiDinilaiAt?: string | null;
 }
 
 export interface WorkOrderProgress {

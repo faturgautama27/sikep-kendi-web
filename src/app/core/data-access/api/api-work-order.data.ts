@@ -624,19 +624,17 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 
-  // Step G: PPTK unified approve/reject
-  pptkApprove(
-    workOrderId: string,
-    approved: boolean,
-    komentar?: string,
-    alasan?: string,
-  ): Observable<WorkOrder> {
+  // Fitur 3: Vendor upload foto sebelum pengerjaan (mandatory)
+  uploadFotoSebelum(workOrderId: string, imageId: number): Observable<WorkOrder> {
     return this.http
-      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pptk-approve`), {
-        approved,
-        komentar,
-        alasan,
-      })
+      .post<any>(this.url(`/work-orders/${workOrderId}/foto-sebelum`), { imageId })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
+
+  // Fitur 8: PB input kondisi kendaraan saat penawaran masuk
+  inputKondisi(workOrderId: string, kondisiKendaraan: string): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/kondisi-kendaraan`), { kondisiKendaraan })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
 }

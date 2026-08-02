@@ -1,4 +1,4 @@
-import type { ShsItemInput } from '@core/data-access/ports/work-order-data.port';
+import type { ShsItemInput, KondisiKendaraan } from '@core/data-access/ports/work-order-data.port';
 
 export class LoadWorkOrders {
   static readonly type = '[WorkOrders] Load List';
@@ -95,5 +95,25 @@ export class PptkDecision {
     public readonly approved: boolean,
     public readonly komentar?: string,
     public readonly alasan?: string,
+  ) {}
+}
+
+// Fitur 3: Vendor upload foto sebelum pengerjaan (mandatory)
+export class UploadFotoSebelum {
+  static readonly type = '[WorkOrders] Upload Foto Sebelum';
+  readonly type = UploadFotoSebelum.type;
+  constructor(
+    public readonly workOrderId: string,
+    public readonly imageId: number,
+  ) {}
+}
+
+// Fitur 8: PB input kondisi kendaraan saat penawaran masuk
+export class InputKondisiKendaraan {
+  static readonly type = '[WorkOrders] Input Kondisi Kendaraan';
+  readonly type = InputKondisiKendaraan.type;
+  constructor(
+    public readonly workOrderId: string,
+    public readonly kondisiKendaraan: KondisiKendaraan,
   ) {}
 }

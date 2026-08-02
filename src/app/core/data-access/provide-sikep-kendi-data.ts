@@ -17,6 +17,7 @@ import {
   DASHBOARD_DATA,
   SHS_MASTER_DATA,
   LAPORAN_DATA,
+  BAST_DATA,
 } from './ports';
 
 import {
@@ -53,6 +54,7 @@ import {
   ApiDashboardData,
   ApiShsMasterData,
   ApiLaporanData,
+  ApiBastData,
 } from './api';
 
 /**
@@ -142,6 +144,11 @@ export function provideSikepKendiData(): EnvironmentProviders {
       provide: LAPORAN_DATA,
       useFactory: chooseAdapter<PreviewLaporanData, ApiLaporanData>(),
       deps: [APP_ENV, PreviewLaporanData, ApiLaporanData],
+    },
+    // BAST tidak punya preview mode — selalu pakai API adapter
+    {
+      provide: BAST_DATA,
+      useClass: ApiBastData,
     },
   ]);
 }

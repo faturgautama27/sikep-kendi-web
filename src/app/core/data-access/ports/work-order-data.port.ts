@@ -19,6 +19,8 @@ export interface ShsItemInput {
   keterangan?: string;
 }
 
+export type KondisiKendaraan = 'Baik' | 'Rusak Ringan' | 'Rusak Berat';
+
 export interface WorkOrderDataPort {
   list(filter?: WorkOrderFilter): Observable<WorkOrder[]>;
   getById(id: string): Observable<WorkOrder>;
@@ -57,6 +59,10 @@ export interface WorkOrderDataPort {
     komentar?: string,
     alasan?: string,
   ): Observable<WorkOrder>;
+  // Fitur 3: Vendor upload foto sebelum pengerjaan (mandatory)
+  uploadFotoSebelum(workOrderId: string, imageId: number): Observable<WorkOrder>;
+  // Fitur 8: PB input kondisi kendaraan saat penawaran masuk
+  inputKondisi(workOrderId: string, kondisiKendaraan: KondisiKendaraan): Observable<WorkOrder>;
 }
 
 export const WORKORDER_DATA = new InjectionToken<WorkOrderDataPort>('WORKORDER_DATA');

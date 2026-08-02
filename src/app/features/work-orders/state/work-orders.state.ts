@@ -21,6 +21,8 @@ import {
   SubmitInvoice,
   VerifikatorReview,
   PptkDecision,
+  UploadFotoSebelum,
+  InputKondisiKendaraan,
 } from './work-orders.actions';
 
 export interface WorkOrdersStateModel {
@@ -253,6 +255,60 @@ export class WorkOrdersState {
     if (currentDetail && currentDetail.id === action.workOrderId) {
       ctx.patchState({
         detail: { ...currentDetail, status: action.approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK' },
+      });
+    }
+    return;
+  }
+
+  // Fitur 3: Vendor upload foto sebelum pengerjaan (mandatory)
+  @Action(UploadFotoSebelum)
+  uploadFotoSebelum(ctx: StateContext<WorkOrdersStateModel>, action: UploadFotoSebelum) {
+    if (!this.env.previewMode) {
+      return this.data
+        .uploadFotoSebelum(action.workOrderId, action.imageId)
+        .pipe(tap((updated) => {
+          const current = ctx.getState();
+          ctx.patchState({
+            list: current.list.map((wo) => wo.id === updated.id ? updated : wo),
+            detail: current.detail?.id === updated.id ? updated : current.detail,
+          });
+        }));
+    }
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({
+        detail: {
+          ...currentDetail,
+          fotoSebelumPengerjaanImageId: action.imageId,
+          fotoSebelumAt: new Date().toISOString(),
+        },
+      });
+    }
+    return;
+  }
+
+  // Fitur 8: PB input kondisi kendaraan saat penawaran masuk
+  @Action(InputKondisiKendaraan)
+  inputKondisi(ctx: StateContext<WorkOrdersStateModel>, action: InputKondisiKendaraan) {
+    if (!this.env.previewMode) {
+      return this.data
+        .inputKondisi(action.workOrderId, action.kondisiKendaraan)
+        .pipe(tap((updated) => {
+          const current = ctx.getState();
+          ctx.patchState({
+            list: current.list.map((wo) => wo.id === updated.id ? updated : wo),
+            detail: current.detail?.id === updated.id ? updated : current.detail,
+          });
+        }));
+    }
+    const currentDetail = ctx.getState().detail;
+    if (currentDetail && currentDetail.id === action.workOrderId) {
+      ctx.patchState({
+        detail: {
+          ...currentDetail,
+          kondisiKendaraan: action.kondisiKendaraan,
+          kondisiDinilaiAt: new Date().toISOString(),
+        },
       });
     }
     return;

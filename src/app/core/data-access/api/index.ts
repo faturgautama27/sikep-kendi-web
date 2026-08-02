@@ -13,3 +13,4 @@ export * from './api-audit.data';
 export * from './api-dashboard.data';
 export * from './api-shs-master.data';
 export * from './api-laporan.data';
+export * from './api-bast.data';
