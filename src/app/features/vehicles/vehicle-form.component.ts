@@ -94,6 +94,8 @@ export class VehicleFormComponent implements OnInit {
     intervalServisKm: [null as number | null, [Validators.min(1)]],
     odometerServisTerakhir: [null as number | null, [Validators.min(0)]],
     paguTahunan: [null as number | null, [Validators.min(0)]],
+    // RKBMD Pemeliharaan — kontrol eligibility pengajuan servis
+    rkbmdPemeliharaan: [true],
   });
 
   ngOnInit(): void {
@@ -139,6 +141,7 @@ export class VehicleFormComponent implements OnInit {
       intervalServisKm: v.intervalServisKm ?? null,
       odometerServisTerakhir: v.odometerServisTerakhir ?? null,
       paguTahunan: v.paguTahunan ?? null,
+      rkbmdPemeliharaan: v.rkbmdPemeliharaan ?? true,
     });
   }
 

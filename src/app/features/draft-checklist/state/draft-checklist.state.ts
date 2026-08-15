@@ -42,6 +42,7 @@ export interface DraftChecklistItem {
   diskon?: number;
   subTotal?: number;
   hargaItem: number;        // backward-compat / display value
+  nomorSeri?: string | null;
   fotoIds?: number[];
   fotos?: {
     imageId: number;

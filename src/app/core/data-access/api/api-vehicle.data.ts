@@ -32,6 +32,8 @@ interface ApiVehicle {
   intervalServisKm?: number | null;
   odometerServisTerakhir?: number | null;
   paguTahunan?: number | null;
+  // RKBMD Pemeliharaan
+  rkbmdPemeliharaan?: boolean | null;
 }
 
 interface ApiOdometerReading {
@@ -108,6 +110,8 @@ export class ApiVehicleData implements VehicleDataPort {
       intervalServisKm: raw.intervalServisKm ?? null,
       odometerServisTerakhir: raw.odometerServisTerakhir ?? null,
       paguTahunan: raw.paguTahunan ?? null,
+      // RKBMD Pemeliharaan — default true if not provided (backward compat)
+      rkbmdPemeliharaan: raw.rkbmdPemeliharaan ?? true,
     };
   }
 

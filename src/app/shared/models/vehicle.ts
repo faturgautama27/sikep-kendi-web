@@ -28,6 +28,8 @@ export interface Vehicle {
   // Fitur 8 — diupdate otomatis saat WO status DIBAYAR
   kondisiTerakhir?: 'Baik' | 'Rusak Ringan' | 'Rusak Berat' | null;
   kondisiUpdatedAt?: string | null;
+  // RKBMD Pemeliharaan — kontrol eligibility pengajuan servis
+  rkbmdPemeliharaan?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

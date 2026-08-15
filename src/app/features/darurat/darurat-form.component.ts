@@ -19,11 +19,11 @@ import { DARURAT_DATA } from '@core/data-access/ports/darurat-data.port';
 import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
 import { catchError, forkJoin, of } from 'rxjs';
 import { APP_ENV } from '@core/data-access/app-env.token';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { OfflineQueueDbService } from '@core/data-access/offline-queue-db.service';
 import { SelectModule } from 'primeng/select';
+import { CameraService } from '@core/services/camera.service';
 
 @Component({
   selector: 'app-darurat-form',
@@ -53,6 +53,7 @@ export class DaruratFormComponent implements OnInit {
   private readonly imageData = inject(IMAGE_DATA);
   protected readonly env = inject(APP_ENV);
   private readonly offlineQueue = inject(OfflineQueueDbService);
+  private readonly cameraService = inject(CameraService);
 
   protected readonly submitting = signal(false);
   protected readonly daruratId = signal<string | null>(null);
@@ -145,29 +146,24 @@ export class DaruratFormComponent implements OnInit {
 
   protected async takePhotoKerusakan() {
     try {
-      const image = await Camera.getPhoto({
-        quality: 60,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
+      // Use CameraService for geotagging watermark support
+      const result = await this.cameraService.captureWithWatermark();
+      if (!result) return; // user cancelled
+
+      this.submitting.set(true);
+      this.imageData.upload(result.file).subscribe({
+        next: (res: any) => {
+          this.submitting.set(false);
+          this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), { id: String(res.id), url: result.dataUrl }]);
+          this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto' });
+        },
       });
-      if (image.dataUrl) {
-        this.submitting.set(true);
-        const file = this.dataUrlToFile(image.dataUrl, `kerusakan_${Date.now()}.jpg`);
-        this.imageData.upload(file).subscribe({
-          next: (res: any) => {
-            this.submitting.set(false);
-            this.fotoKerusakanIds.set([...this.fotoKerusakanIds(), { id: String(res.id), url: res.url }]);
-            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
-          },
-          error: () => {
-            this.submitting.set(false);
-            this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto' });
-          }
-        });
-      }
     } catch (e) {
-      console.error(e);
+      console.error('takePhotoKerusakan error:', e);
     }
   }
 

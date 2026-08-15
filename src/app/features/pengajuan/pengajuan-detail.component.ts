@@ -29,8 +29,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { PageHeaderComponent } from '@core/layout';
-import { PengajuanState } from './state/pengajuan.state';
-import { ApprovePengajuan, RejectPengajuan } from './state/pengajuan.actions';
+import { ApprovePengajuan, RejectPengajuan, LoadPengajuan } from './state/pengajuan.actions';
 import type { Pengajuan, PengajuanJenis, PengajuanStatus, ServisInfo, User } from '@shared/models';
 import { CommonModule } from '@angular/common';
 
@@ -191,22 +190,27 @@ export class PengajuanDetailComponent implements OnInit {
     this.processing.set(true);
     const { vendorId, komentarVerifikasi } = this.approveForm.getRawValue();
     this.store
-      .dispatch(
-        new ApprovePengajuan(this.pengajuanId(), vendorId!, komentarVerifikasi ?? undefined),
-      )
+      .dispatch(new ApprovePengajuan(this.pengajuanId(), vendorId!, komentarVerifikasi ?? undefined))
       .subscribe(() => {
-        this.processing.set(false);
-        this.approveDialogVisible.set(false);
-        this.msg.add({
-          severity: 'success',
-          summary: 'Pengajuan disetujui',
-          detail: 'Work Order telah dibuat dan vendor diberitahu.',
+        // Reload from backend to ensure UI reflects latest status after approval
+        this.store.dispatch(new LoadPengajuan()).subscribe(() => {
+          this.dataPort.getById(this.pengajuanId()).subscribe({
+            next: (updated) => {
+              this.pengajuan.set(updated);
+              this.processing.set(false);
+              this.approveDialogVisible.set(false);
+              this.msg.add({
+                severity: 'success',
+                summary: 'Pengajuan disetujui',
+                detail: 'Work Order telah dibuat dan vendor diberitahu.',
+              });
+            },
+            error: () => {
+              this.processing.set(false);
+              this.approveDialogVisible.set(false);
+            },
+          });
         });
-        // Re-load pengajuan from state
-        const updated = this.store
-          .selectSnapshot(PengajuanState.list)
-          .find((p) => p.id === this.pengajuanId());
-        if (updated) this.pengajuan.set({ ...updated });
       });
   }
 
@@ -222,17 +226,25 @@ export class PengajuanDetailComponent implements OnInit {
     this.processing.set(true);
     const { alasanPenolakan } = this.rejectForm.getRawValue();
     this.store.dispatch(new RejectPengajuan(this.pengajuanId(), alasanPenolakan!)).subscribe(() => {
-      this.processing.set(false);
-      this.rejectDialogVisible.set(false);
-      this.msg.add({
-        severity: 'warn',
-        summary: 'Pengajuan ditolak',
-        detail: 'Pengemudi akan diberitahu.',
+      // Reload from backend to ensure UI reflects latest status after rejection
+      this.store.dispatch(new LoadPengajuan()).subscribe(() => {
+        this.dataPort.getById(this.pengajuanId()).subscribe({
+          next: (updated) => {
+            this.pengajuan.set(updated);
+            this.processing.set(false);
+            this.rejectDialogVisible.set(false);
+            this.msg.add({
+              severity: 'warn',
+              summary: 'Pengajuan ditolak',
+              detail: 'Pengemudi akan diberitahu.',
+            });
+          },
+          error: () => {
+            this.processing.set(false);
+            this.rejectDialogVisible.set(false);
+          },
+        });
       });
-      const updated = this.store
-        .selectSnapshot(PengajuanState.list)
-        .find((p) => p.id === this.pengajuanId());
-      if (updated) this.pengajuan.set({ ...updated });
     });
   }
 

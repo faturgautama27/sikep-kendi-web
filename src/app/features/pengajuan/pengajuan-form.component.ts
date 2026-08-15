@@ -33,9 +33,9 @@ import type { Vehicle } from '@shared/models';
 
 import { catchError, forkJoin, of } from 'rxjs';
 import { APP_ENV } from '@core/data-access/app-env.token';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Network } from '@capacitor/network';
 import { OfflineQueueDbService } from '@core/data-access/offline-queue-db.service';
+import { CameraService } from '@core/services/camera.service';
 
 type Step = 0 | 1 | 2;
 
@@ -70,13 +70,14 @@ export class PengajuanFormComponent implements OnInit {
   private readonly imageData = inject(IMAGE_DATA);
   protected readonly env = inject(APP_ENV);
   private readonly offlineQueue = inject(OfflineQueueDbService);
+  private readonly cameraService = inject(CameraService);
 
   protected readonly step = signal<Step>(0);
   protected readonly submitting = signal(false);
   protected readonly clientUuid = crypto.randomUUID();
   protected readonly pengajuanId = signal<string | null>(null);
   protected readonly isEditMode = computed(() => !!this.pengajuanId());
-  protected readonly photos = signal<{ id?: string, dataUrl: string }[]>([]);
+  protected readonly photos = signal<{ id?: string, dataUrl: string, mimeType?: string }[]>([]);
   protected readonly warningDialogVisible = signal(false);
   protected readonly submissionWarnings = signal<string[]>([]);
 
@@ -166,34 +167,33 @@ export class PengajuanFormComponent implements OnInit {
 
   protected async takePhoto() {
     if (this.photos().length >= 5) {
-      this.msg.add({ severity: 'warn', summary: 'Batas Foto', detail: 'Maksimal 5 foto' });
+      this.msg.add({ severity: 'warn', summary: 'Batas Foto', detail: 'Maksimal 5 foto/video' });
       return;
     }
-    
+
     try {
-      const image = await Camera.getPhoto({
-        quality: 60,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
+      // Use CameraService for geotagging watermark support
+      const result = await this.cameraService.captureWithWatermark();
+      if (!result) return; // user cancelled
+
+      this.submitting.set(true);
+      this.imageData.upload(result.file).subscribe({
+        next: (res: any) => {
+          this.submitting.set(false);
+          this.photos.update(p => [...p, {
+            id: String(res.id),
+            dataUrl: result.dataUrl,
+            mimeType: result.mimeType,
+          }]);
+          this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto' });
+        },
       });
-      if (image.dataUrl) {
-        this.submitting.set(true);
-        const file = this.dataUrlToFile(image.dataUrl, `pengajuan_${Date.now()}.jpg`);
-        this.imageData.upload(file).subscribe({
-          next: (res: any) => {
-            this.submitting.set(false);
-            this.photos.set([...this.photos(), { id: String(res.id), dataUrl: res.url }]);
-            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
-          },
-          error: () => {
-            this.submitting.set(false);
-            this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload foto' });
-          }
-        });
-      }
     } catch (e) {
-      console.error(e);
+      console.error('takePhoto error:', e);
     }
   }
   
@@ -204,19 +204,25 @@ export class PengajuanFormComponent implements OnInit {
   protected onUploadPhoto(event: { files: File[] }, uploader: unknown) {
     const files: File[] = event.files;
     this.submitting.set(true);
+    // Track mimeType per file for video/image display differentiation
+    const fileMimeTypes = files.map((f: File) => f.type);
     const uploads = files.map((f: File) => this.imageData.upload(f));
-    
+
     forkJoin(uploads).pipe(
       catchError(() => {
-        this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload foto pengajuan' });
+        this.msg.add({ severity: 'error', summary: 'Upload Gagal', detail: 'Gagal mengupload foto/video pengajuan' });
         return of([]);
       })
     ).subscribe(images => {
       this.submitting.set(false);
-      const newItems = images.map((img: { id: string, url?: string }) => ({ id: String(img.id), dataUrl: img.url ?? '' }));
+      const newItems = images.map((img: { id: string, url?: string }, idx: number) => ({
+        id: String(img.id),
+        dataUrl: img.url ?? '',
+        mimeType: fileMimeTypes[idx] ?? 'image/jpeg',
+      }));
       this.photos.update(p => [...p, ...newItems]);
       (uploader as { clear: () => void }).clear();
-      this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto berhasil diupload' });
+      this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'File berhasil diupload' });
     });
   }
 

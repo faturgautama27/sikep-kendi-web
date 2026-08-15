@@ -43,6 +43,7 @@ export interface EditableRow {
   harga: number;
   diskon: number;
   subTotal: number;
+  nomorSeri: string;
 }
 
 @Component({
@@ -101,6 +102,7 @@ export class VendorDraftChecklistComponent implements OnInit {
       harga: Number(item.harga ?? item.hargaItem ?? 0),
       diskon: Number(item.diskon ?? 0),
       subTotal: Number(item.subTotal ?? item.hargaItem ?? 0),
+      nomorSeri: item.nomorSeri ?? '',
     })),
   );
 
@@ -136,6 +138,7 @@ export class VendorDraftChecklistComponent implements OnInit {
           harga: Number(item.harga ?? item.hargaItem ?? 0),
           diskon: Number(item.diskon ?? 0),
           subTotal: Number(item.subTotal ?? item.hargaItem ?? 0),
+          nomorSeri: item.nomorSeri ?? '',
         }));
         untracked(() => {
           this.rows.set(mapped);
@@ -178,6 +181,7 @@ export class VendorDraftChecklistComponent implements OnInit {
       harga: 0,
       diskon: 0,
       subTotal: 0,
+      nomorSeri: '',
     };
     this.rows.update((rs) => [...rs, row]);
   }
@@ -314,6 +318,7 @@ export class VendorDraftChecklistComponent implements OnInit {
       diskon: r.diskon,
       subTotal: r.subTotal,
       hargaItem: r.subTotal,
+      nomorSeri: r.nomorSeri || undefined,
     }));
   }
 

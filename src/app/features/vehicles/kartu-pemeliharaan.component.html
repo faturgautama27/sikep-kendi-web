@@ -50,13 +50,12 @@
       </app-page-header>
     </div>
 
-    <!-- Judul cetak -->
+    <!-- Judul cetak — Permendagri 47 compliant -->
     <div class="print-only text-center mb-4">
-      <p class="text-xs uppercase tracking-wide">Pemerintah Provinsi Jawa Tengah</p>
-      <p class="text-xs">{{ k.identitas.opd }}</p>
-      <h2 class="text-base font-bold uppercase mt-1">Kartu Pemeliharaan / Perawatan Kendaraan Dinas</h2>
-      <p class="text-xs">Tahun Anggaran {{ k.tahun }}</p>
-      <p class="text-xs italic">Peraturan Daerah Nomor 3 Tahun 2025 — Pasal 152 Ayat (1) Huruf d</p>
+      <p class="text-sm font-bold uppercase tracking-wide">PEMERINTAH PROVINSI JAWA TENGAH</p>
+      <p class="text-sm font-bold uppercase">DINAS PERINDUSTRIAN DAN PERDAGANGAN</p>
+      <h2 class="text-base font-black uppercase mt-2 underline">KARTU PEMELIHARAAN KENDARAAN DINAS</h2>
+      <p class="text-xs mt-1">Tahun Anggaran {{ k.tahun }}</p>
     </div>
 
     <!-- Section Identitas Kendaraan -->
@@ -125,7 +124,7 @@
       </div>
     </div>
 
-    <!-- Section Riwayat Pemeliharaan -->
+    <!-- Section Riwayat Pemeliharaan — Permendagri 47 format -->
     <div class="kartu-section rounded-xl border border-slate-200 bg-white p-5">
       <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
         II. Riwayat Pemeliharaan Tahun {{ k.tahun }}
@@ -139,20 +138,19 @@
         <p-table
           [value]="k.riwayat"
           styleClass="p-datatable-sm p-datatable-gridlines"
-          [tableStyle]="{ 'min-width': '900px' }"
+          [tableStyle]="{ 'min-width': '1100px' }"
         >
           <ng-template #header>
             <tr class="text-xs">
               <th class="text-center w-8">No.</th>
-              <th>Tanggal</th>
-              <th class="text-right">Kilometer</th>
-              <th>Jenis Pemeliharaan</th>
-              <th>Barang / Bahan</th>
-              <th class="text-right">Biaya Jasa</th>
-              <th class="text-right">Biaya Sparepart</th>
-              <th class="text-right">Total Biaya</th>
-              <th>Pelaksana / Bengkel</th>
-              <th>Keterangan</th>
+              <th class="w-28">Tanggal</th>
+              <th class="text-right w-24">KM</th>
+              <th>Jenis Pemeliharaan / Perbaikan</th>
+              <th class="text-right w-36">Biaya (Rp)</th>
+              <th class="w-36">Pelaksana / Vendor</th>
+              <th class="w-40">Keterangan</th>
+              <th class="text-center w-28">Paraf Pengemudi</th>
+              <th class="text-center w-28">Paraf Pengurus Barang</th>
             </tr>
           </ng-template>
           <ng-template #body let-row let-i="rowIndex">
@@ -161,12 +159,11 @@
               <td class="whitespace-nowrap">{{ formatDate(row.tanggal) }}</td>
               <td class="text-right whitespace-nowrap">{{ formatKm(row.kilometer) }}</td>
               <td>{{ row.jenisPemeliharaan }}</td>
-              <td>{{ row.bahanDigunakan }}</td>
-              <td class="text-right whitespace-nowrap">{{ formatRupiah(row.biayaJasa) }}</td>
-              <td class="text-right whitespace-nowrap">{{ formatRupiah(row.biayaSparepart) }}</td>
               <td class="text-right whitespace-nowrap font-medium">{{ formatRupiah(row.totalBiaya) }}</td>
               <td>{{ row.pelaksana }}</td>
-              <td class="text-slate-500">{{ row.keterangan }}</td>
+              <td class="text-slate-500 text-xs">{{ row.keterangan }}</td>
+              <td class="text-center text-slate-300 text-xs">( ............... )</td>
+              <td class="text-center text-slate-300 text-xs">( ............... )</td>
             </tr>
           </ng-template>
         </p-table>
@@ -233,27 +230,18 @@
       <h2 class="text-sm font-bold uppercase text-slate-700 mb-4 border-b pb-2">
         V. Pengesahan
       </h2>
-      <div class="grid grid-cols-2 gap-6 sm:grid-cols-4 text-sm text-center">
+      <!-- Permendagri 47: tempat + tanggal cetak, 2 pihak pengesahan -->
+      <p class="text-sm text-slate-600 mb-6">
+        Semarang, {{ today | date: 'dd MMMM yyyy' : '' : 'id-ID' }}
+      </p>
+      <div class="grid grid-cols-2 gap-6 text-sm text-center">
         <div class="flex flex-col gap-2">
-          <p class="font-medium text-slate-700">Pengemudi / Pengguna</p>
+          <p class="font-medium text-slate-700">Pengguna Kendaraan</p>
           <div class="h-20 border-b border-slate-400 mt-2"></div>
-          <p class="text-slate-500">( _________________________ )</p>
-          <p class="text-xs text-slate-400">NIP. ____________________</p>
+          <p class="text-slate-500">( {{ k.identitas.pengguna ?? '_________________________ ' }} )</p>
         </div>
         <div class="flex flex-col gap-2">
           <p class="font-medium text-slate-700">Pengurus Barang</p>
-          <div class="h-20 border-b border-slate-400 mt-2"></div>
-          <p class="text-slate-500">( _________________________ )</p>
-          <p class="text-xs text-slate-400">NIP. ____________________</p>
-        </div>
-        <div class="flex flex-col gap-2">
-          <p class="font-medium text-slate-700">Verifikator</p>
-          <div class="h-20 border-b border-slate-400 mt-2"></div>
-          <p class="text-slate-500">( _________________________ )</p>
-          <p class="text-xs text-slate-400">NIP. ____________________</p>
-        </div>
-        <div class="flex flex-col gap-2">
-          <p class="font-medium text-slate-700">Kepala OPD</p>
           <div class="h-20 border-b border-slate-400 mt-2"></div>
           <p class="text-slate-500">( _________________________ )</p>
           <p class="text-xs text-slate-400">NIP. ____________________</p>

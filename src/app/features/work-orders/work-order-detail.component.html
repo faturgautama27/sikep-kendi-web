@@ -58,9 +58,9 @@
               </span>
             </div>
             <div>
-              <span class="block text-xs font-medium text-slate-500">Odometer Saat Ini</span>
+              <span class="block text-xs font-medium text-slate-500">Odometer Saat Pengajuan</span>
               <span class="block text-sm font-semibold text-slate-800">
-                {{ (wo.pengajuan?.kendaraan?.odometerSaatIni | number) ?? '-' }}
+                {{ (wo.pengajuan?.odometerSaatPengajuan | number) ?? '-' }} km
               </span>
             </div>
             <div>
@@ -143,6 +143,7 @@
                   <tr class="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                     <th class="px-3 py-2.5 w-10 text-center">No</th>
                     <th class="px-3 py-2.5">Tindakan</th>
+                    <th class="px-3 py-2.5 w-36">No. Seri</th>
                     <th class="px-3 py-2.5 w-20 text-right">Qty</th>
                     <th class="px-3 py-2.5 w-40 text-right">Harga (Rp)</th>
                     <th class="px-3 py-2.5 w-28 text-right">Diskon (%)</th>
@@ -154,6 +155,7 @@
                     <tr class="hover:bg-slate-50">
                       <td class="px-3 py-2.5 text-center text-slate-400 text-xs">{{ i + 1 }}</td>
                       <td class="px-3 py-2.5 text-slate-800">{{ item.tindakanPerbaikan || '—' }}</td>
+                      <td class="px-3 py-2.5 text-slate-500 text-xs">{{ item.nomorSeri || '—' }}</td>
                       <td class="px-3 py-2.5 text-right">{{ item.qty ?? 1 }}</td>
                       <td class="px-3 py-2.5 text-right text-slate-700">{{ formatRupiah(item.harga ?? item.hargaItem) }}</td>
                       <td class="px-3 py-2.5 text-right text-slate-500">{{ item.diskon ?? 0 }}%</td>
@@ -454,6 +456,66 @@
                   ></p-button>
                 </div>
               </div>
+            </div>
+          </p-card>
+        }
+
+        <!-- ══ Foto Parts Verification ══ -->
+        @if (fotoParts().length > 0 || canUploadFotoParts()) {
+          <p-card header="Foto Parts Verification">
+            <div class="flex flex-col gap-4">
+              @if (fotoPartsLoading()) {
+                <p class="text-sm text-slate-400">Memuat foto parts...</p>
+              } @else if (fotoParts().length === 0 && canUploadFotoParts()) {
+                <p class="text-sm text-slate-400 italic">Belum ada foto parts diupload. Upload foto parts aktual yang digunakan per item untuk verifikasi SKU.</p>
+              }
+
+              @for (itemGroup of fotoParts(); track itemGroup.itemId) {
+                <div class="border border-slate-200 rounded-lg p-3 flex flex-col gap-2">
+                  <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                    {{ itemGroup.namaSparepart || itemGroup.tindakanPerbaikan }}
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    @for (foto of itemGroup.fotoParts; track foto.id) {
+                      <div class="relative group">
+                        <img
+                          [src]="foto.url"
+                          class="w-24 h-20 object-cover rounded border border-slate-200"
+                          [alt]="foto.keterangan || 'Foto parts'"
+                        />
+                        @if (canUploadFotoParts()) {
+                          <button
+                            type="button"
+                            class="absolute top-1 right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                            (click)="deleteFotoPart(foto.id)"
+                          >×</button>
+                        }
+                        @if (foto.keterangan) {
+                          <p class="text-xs text-slate-400 mt-0.5 truncate w-24">{{ foto.keterangan }}</p>
+                        }
+                      </div>
+                    }
+                    @if (canUploadFotoParts() && itemGroup.fotoParts.length < 5) {
+                      <label
+                        class="w-24 h-20 border-2 border-dashed border-slate-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition text-slate-400"
+                      >
+                        <i class="pi pi-plus text-lg"></i>
+                        <span class="text-xs mt-1">Foto</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          class="hidden"
+                          (change)="onFotoPartsFileSelected($event, itemGroup.itemId)"
+                        />
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (canUploadFotoParts() && fotoParts().length === 0) {
+                <p class="text-xs text-slate-400">Upload foto parts melalui masing-masing item di atas setelah draft checklist disetujui PPTK.</p>
+              }
             </div>
           </p-card>
         }

@@ -154,6 +154,83 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly isVerifikator = computed(() => this.user()?.roles?.includes('verifikator'));
   protected readonly isBendahara = computed(() => this.user()?.roles?.includes('bendahara'));
 
+  // ─── Foto Parts Verification ──────────────────────────────────────────────
+  protected readonly fotoParts = signal<Array<{
+    itemId: number;
+    tindakanPerbaikan: string;
+    namaSparepart: string | null;
+    fotoParts: Array<{ id: number; keterangan: string | null; imageId: number; url: string }>;
+  }>>([]);
+  protected readonly fotoPartsLoading = signal(false);
+  protected readonly fotoPartsUploading = signal(false);
+
+  protected readonly canUploadFotoParts = computed(() => {
+    const wo = this.detail();
+    if (!wo) return false;
+    const uploadableStatuses = ['DISETUJUI_PPTK', 'MENUNGGU_PEMBAYARAN', 'VERIFIKASI_HARGA'];
+    return this.isVendor() && uploadableStatuses.includes(wo.status) && wo.status !== 'DIBAYAR';
+  });
+
+  protected loadFotoParts(): void {
+    this.fotoPartsLoading.set(true);
+    this.http.get<any[]>(`${this.env.apiBaseUrl}/work-orders/${this.id}/foto-parts`).subscribe({
+      next: (data) => {
+        this.fotoParts.set(data ?? []);
+        this.fotoPartsLoading.set(false);
+      },
+      error: () => this.fotoPartsLoading.set(false),
+    });
+  }
+
+  protected uploadFotoPart(itemId: number, file: File, keterangan?: string): void {
+    this.fotoPartsUploading.set(true);
+    this.imageData.upload(file).subscribe({
+      next: (img: any) => {
+        this.http.post(`${this.env.apiBaseUrl}/work-orders/${this.id}/draft-checklist-items/${itemId}/foto-parts`, {
+          imageId: img.id ?? img.imageId,
+          keterangan: keterangan ?? null,
+        }).subscribe({
+          next: () => {
+            this.fotoPartsUploading.set(false);
+            this.loadFotoParts();
+            this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Foto parts berhasil diupload' });
+          },
+          error: (err: any) => {
+            this.fotoPartsUploading.set(false);
+            this.msg.add({ severity: 'error', summary: 'Gagal', detail: err?.error?.message ?? 'Gagal upload foto parts' });
+          },
+        });
+      },
+      error: () => {
+        this.fotoPartsUploading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload gambar' });
+      },
+    });
+  }
+
+  protected deleteFotoPart(fotoId: number): void {
+    this.http.delete(`${this.env.apiBaseUrl}/work-orders/${this.id}/foto-parts/${fotoId}`).subscribe({
+      next: () => {
+        this.loadFotoParts();
+        this.msg.add({ severity: 'success', summary: 'Dihapus', detail: 'Foto parts dihapus' });
+      },
+      error: () => this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal menghapus foto parts' }),
+    });
+  }
+
+  protected onFotoPartsFileSelected(event: Event, itemId: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    // Max 5MB per photo
+    if (file.size > 5 * 1024 * 1024) {
+      this.msg.add({ severity: 'warn', summary: 'File terlalu besar', detail: 'Maksimal 5MB per foto' });
+      return;
+    }
+    this.uploadFotoPart(itemId, file);
+    input.value = '';
+  }
+
   // ─── Step D: SHS Mapping State ───────────────────────────────────────────
   private itemKey = 0;
   protected readonly shsItems = signal<ShsItemLocal[]>([]);
@@ -229,6 +306,7 @@ export class WorkOrderDetailComponent implements OnInit {
       this.store.dispatch(new LoadDraftChecklist(this.id));
     }
     this.loadShsMasterOptions();
+    this.loadFotoParts();
   }
 
   private loadShsMasterOptions() {

@@ -246,6 +246,33 @@
           >Digunakan untuk notifikasi saat realisasi mendekati batas pagu.</small
         >
       </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">RKBMD Pemeliharaan</label>
+        <div class="flex gap-4 mt-1">
+          <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              formControlName="rkbmdPemeliharaan"
+              [value]="true"
+              class="accent-primary-600"
+            />
+            Ya
+          </label>
+          <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              formControlName="rkbmdPemeliharaan"
+              [value]="false"
+              class="accent-primary-600"
+            />
+            Tidak
+          </label>
+        </div>
+        <small class="text-slate-400 text-xs"
+          >Kendaraan yang tidak termasuk RKBMD tidak dapat mengajukan servis.</small
+        >
+      </div>
     </div>
 
     <!-- Action buttons -->

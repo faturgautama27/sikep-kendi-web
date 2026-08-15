@@ -194,21 +194,30 @@
         </table>
       </div>
 
-      <!-- ── BAGIAN 3: Foto Bukti ── -->
+      <!-- ── BAGIAN 3: Foto / Video Bukti ── -->
       @if (d.fotos && d.fotos.length > 0) {
         <div class="mb-6">
           <h4 class="font-bold text-sm uppercase border-b border-slate-400 pb-1 mb-3">
-            3. Foto Bukti Kerusakan
+            3. Foto / Video Bukti Kerusakan
           </h4>
           <div class="flex flex-wrap gap-3">
             @for (foto of d.fotos; track foto.urutan) {
               <div class="flex flex-col items-center gap-1">
-                <img
-                  [src]="foto.image.url"
-                  [alt]="'Foto ' + foto.urutan"
-                  class="w-36 h-28 object-cover border border-slate-300 rounded"
-                />
-                <span class="text-xs text-slate-500">Foto {{ foto.urutan }}</span>
+                @if (isVideo(foto.image.url)) {
+                  <!-- Video placeholder for PDF — cannot embed video in PDF -->
+                  <div class="w-36 h-28 border border-slate-300 rounded bg-slate-100 flex flex-col items-center justify-center gap-1">
+                    <i class="pi pi-video text-slate-400 text-2xl"></i>
+                    <span class="text-xs text-slate-400 text-center px-1">Video — lihat di aplikasi</span>
+                  </div>
+                } @else {
+                  <img
+                    [src]="foto.image.url"
+                    [attr.data-image-id]="foto.image.id"
+                    [alt]="'Foto ' + foto.urutan"
+                    class="w-36 h-28 object-cover border border-slate-300 rounded"
+                  />
+                }
+                <span class="text-xs text-slate-500">{{ isVideo(foto.image.url) ? 'Video' : 'Foto' }} {{ foto.urutan }}</span>
               </div>
             }
           </div>
@@ -507,6 +516,7 @@
                     <div class="flex flex-col items-center gap-1">
                       <img
                         [src]="item.image.url"
+                        [attr.data-image-id]="item.image.id"
                         [alt]="kategori.label"
                         class="w-36 h-28 object-cover border border-slate-300 rounded"
                       />

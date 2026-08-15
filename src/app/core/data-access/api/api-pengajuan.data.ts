@@ -54,16 +54,29 @@ export class ApiPengajuanData implements PengajuanDataPort {
   private mapPengajuan(raw: any, warnings?: string[]): Pengajuan {
     const id = String(raw['id'] ?? '');
     const createdAt = String(raw['createdAt'] ?? new Date().toISOString());
+    // BUG-1 fix: fotos from create/list response may come as flat {url} objects
+    // or as nested {image: {id, url}} objects — handle both formats safely.
     const fotos = Array.isArray(raw['fotos'])
-      ? (raw['fotos'] as Array<{ image?: any }>).map((row) => ({
-          ...row.image,
-          url: row.image.url
-        })).filter(Boolean)
+      ? (raw['fotos'] as Array<any>)
+          .map((row) => {
+            if (row?.image?.url) {
+              return { ...row.image, url: row.image.url };
+            }
+            if (row?.url) {
+              return { url: row.url, id: row.id };
+            }
+            return null;
+          })
+          .filter(Boolean)
       : [];
 
     const jenisRaw = (raw['jenis'] as string | undefined) ?? (raw['jenisPengajuan'] as string | undefined);
 
-    const odometer = raw['kendaraan'] ? Number(raw['kendaraan']['odometerSaatIni']) : 0;
+    // BUG-2 fix: odometerSaatPengajuan is a root field on the pengajuan record,
+    // not the vehicle's current odometer (odometerSaatIni).
+    const odometer = raw['odometerSaatPengajuan'] != null
+      ? Number(raw['odometerSaatPengajuan'])
+      : (raw['kendaraan'] ? Number((raw['kendaraan'] as any)['odometerSaatPengajuan']) : 0);
 
     return {
       id,
@@ -155,11 +168,12 @@ export class ApiPengajuanData implements PengajuanDataPort {
   create(input: PengajuanCreateInput): Observable<Pengajuan> {
     return this.http
       .post<ApiPengajuanRow | ApiEnvelope<ApiPengajuanRow>>(this.url('/pengajuan'), {
-        clientUuid: crypto.randomUUID(),
+        // BUG-1 fix: use clientUuid from input for idempotency — do not re-generate here
+        clientUuid: (input as any).clientUuid ?? crypto.randomUUID(),
         kendaraanId: Number(input.vehicleId),
         jenisPengajuan: input.jenis.toUpperCase(),
         deskripsiKerusakan: input.deskripsi || input.judul,
-        odometerSaatPengajuan: input.odometerSaatPengajuan ? Number(input.odometerSaatPengajuan) : 0,
+        odometerSaatPengajuan: input.odometerSaatPengajuan != null ? Number(input.odometerSaatPengajuan) : 0,
         fotoIds: input.fotoIds || [],
       })
       .pipe(

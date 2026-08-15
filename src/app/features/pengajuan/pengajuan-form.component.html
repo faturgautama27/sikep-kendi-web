@@ -237,10 +237,10 @@
         </div>
       </div>
 
-      <!-- Upload Foto -->
+      <!-- Upload Foto & Video -->
       <div class="flex flex-col gap-2 mt-3">
         <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
-          >Foto Kendaraan / Kerusakan (Maksimal 5)</label
+          >Foto / Video Kendaraan / Kerusakan (Maksimal 5)</label
         >
 
         @if (photos().length > 0) {
@@ -249,7 +249,14 @@
               <div
                 class="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-sm"
               >
-                <img [src]="img.dataUrl" class="w-full h-full object-cover" />
+                @if (img.mimeType && img.mimeType.startsWith('video/')) {
+                  <video [src]="img.dataUrl" class="w-full h-full object-cover" preload="metadata" muted></video>
+                  <div class="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <i class="pi pi-play-circle text-white text-3xl"></i>
+                  </div>
+                } @else {
+                  <img [src]="img.dataUrl" class="w-full h-full object-cover" />
+                }
                 <button
                   type="button"
                   (click)="removePhoto(idx)"
@@ -277,9 +284,9 @@
               #fuPhoto
               mode="advanced"
               [multiple]="true"
-              accept="image/*"
-              [maxFileSize]="10000000"
-              chooseLabel="Pilih Tambahan Foto"
+              accept="image/*,video/mp4,video/quicktime,video/x-msvideo,video/3gpp,video/x-matroska"
+              [maxFileSize]="20971520"
+              chooseLabel="Pilih Foto / Video"
               uploadLabel="Upload"
               cancelLabel="Batal"
               [customUpload]="true"
