@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { map, tap } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs';
 
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { HydrateFromFixtures } from '@core/data-access/fixtures.action';
@@ -19,6 +19,7 @@ import {
   RejectDraftPb,
   RejectDraftPptk,
   SubmitDraft,
+  UpdateDraftChecklist,
 } from './draft-checklist.actions';
 
 export type DraftChecklistStatus =
@@ -125,11 +126,11 @@ export class DraftChecklistState {
   @Action(CreateDraftChecklist)
   create(ctx: StateContext<DraftChecklistStateModel>, action: CreateDraftChecklist) {
     if (!this.env.previewMode) {
-      return this.data.create(action.workOrderId, action.payload).pipe(
-        tap(() => {
-          ctx.dispatch(new LoadDraftChecklist(action.workOrderId));
-        }),
-      );
+      // Tunggu reload selesai agar state sudah berisi draft versi terbaru
+      // sebelum observable dispatch ini complete (dipakai oleh alur kirim draft).
+      return this.data
+        .create(action.workOrderId, action.payload)
+        .pipe(switchMap(() => ctx.dispatch(new LoadDraftChecklist(action.workOrderId))));
     }
 
     const current = ctx
@@ -160,6 +161,44 @@ export class DraftChecklistState {
       scanDraftImageId: (action.payload['scanDraftImageId'] as number | undefined) ?? null,
     };
     ctx.patchState({ list: [next, ...ctx.getState().list] });
+    return;
+  }
+
+  @Action(UpdateDraftChecklist)
+  update(ctx: StateContext<DraftChecklistStateModel>, action: UpdateDraftChecklist) {
+    if (!this.env.previewMode) {
+      return this.data
+        .update(action.id, action.payload)
+        .pipe(switchMap(() => ctx.dispatch(new LoadDraftChecklist(action.workOrderId))));
+    }
+
+    const items = ((action.payload['items'] as DraftChecklistItem[]) ?? []).map((item) => ({
+      ...item,
+    }));
+    const totalHargaManual = action.payload['totalHargaManual'] as number | undefined;
+    const totalHarga =
+      items.length > 0
+        ? items.reduce((sum, item) => {
+            const h = item.harga ?? item.hargaItem ?? 0;
+            const q = item.qty ?? 1;
+            const d = item.diskon ?? 0;
+            return sum + (item.subTotal ?? h * q * (1 - d / 100));
+          }, 0)
+        : (totalHargaManual ?? 0);
+
+    ctx.patchState({
+      list: ctx.getState().list.map((item) =>
+        item.id === action.id && item.status === 'DRAFT'
+          ? {
+              ...item,
+              items,
+              totalHarga,
+              scanDraftImageId:
+                (action.payload['scanDraftImageId'] as number | null | undefined) ?? null,
+            }
+          : item,
+      ),
+    });
     return;
   }
 

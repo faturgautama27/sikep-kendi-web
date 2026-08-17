@@ -39,8 +39,8 @@ import {
 } from './state';
 import {
   DraftChecklistState,
-  ApproveDraft,
-  RejectDraft,
+  ApproveDraftPb,
+  RejectDraftPb,
   LoadDraftChecklist,
 } from '@features/draft-checklist/state';
 import { AuthState } from '@features/login/state/auth.state';
@@ -137,14 +137,66 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly latestDraft = computed(() => {
     const list = this.drafts();
     if (!list.length) return null;
-    return list.sort((a, b) => b.versi - a.versi)[0];
+    // Salin dulu: sort() memutasi array, dan hasil computed ini di-cache.
+    return [...list].sort((a, b) => b.versi - a.versi)[0];
   });
 
+  /**
+   * Draft yang boleh direview PB hanyalah draft versi TERBARU yang berstatus
+   * DIKIRIM. Sebelumnya dipakai find() pada versi mana pun, sehingga tombol
+   * bisa mengaksi draft versi lama sementara kartu menampilkan versi terbaru.
+   */
   protected readonly draftToReview = computed(() => {
-    const list = this.drafts();
-    // Cari draft DIKIRIM untuk di-approve/reject oleh PB
-    return list.find(d => d.status === 'DIKIRIM') ?? null;
+    const latest = this.latestDraft();
+    return latest?.status === 'DIKIRIM' ? latest : null;
   });
+
+  /** Status penolakan draft (PB / PPTK / legacy). */
+  protected readonly draftRejected = computed(() => {
+    const s = this.latestDraft()?.status;
+    return s === 'DITOLAK' || s === 'DITOLAK_PB' || s === 'DITOLAK_PPTK';
+  });
+
+  /** Catatan penolakan dari PPTK atau PB, mana pun yang terisi. */
+  protected readonly draftRejectionNote = computed(() => {
+    const d = this.latestDraft();
+    if (!d) return '';
+    return d.pptkAlasanPenolakan || d.notesRejection || 'Tidak ada catatan penolakan.';
+  });
+
+  protected readonly draftStatusLabel = computed(() => {
+    const s = this.latestDraft()?.status;
+    if (!s) return '';
+    const map: Record<string, string> = {
+      DRAFT: 'Draft (belum dikirim vendor)',
+      DIKIRIM: 'Menunggu Review Pengurus Barang',
+      DISETUJUI: 'Disetujui',
+      DISETUJUI_PB: 'Disetujui PB — menunggu PPTK',
+      DISETUJUI_PPTK: 'Disetujui PPTK',
+      DITOLAK: 'Ditolak',
+      DITOLAK_PB: 'Ditolak Pengurus Barang',
+      DITOLAK_PPTK: 'Ditolak PPTK',
+    };
+    return map[s] ?? s;
+  });
+
+  protected draftStatusSeverity(): 'info' | 'success' | 'warn' | 'danger' | 'secondary' {
+    const s = this.latestDraft()?.status;
+    switch (s) {
+      case 'DIKIRIM':
+        return 'warn';
+      case 'DISETUJUI':
+      case 'DISETUJUI_PB':
+      case 'DISETUJUI_PPTK':
+        return 'success';
+      case 'DITOLAK':
+      case 'DITOLAK_PB':
+      case 'DITOLAK_PPTK':
+        return 'danger';
+      default:
+        return 'secondary';
+    }
+  }
 
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly isPPTK = computed(() => this.user()?.roles?.includes('pptk'));
@@ -481,25 +533,89 @@ export class WorkOrderDetailComponent implements OnInit {
     }).format(val || 0);
   }
 
-  // ─── Legacy Draft Actions ─────────────────────────────────────────────────
+  // ─── Draft Checklist Review (PB) ──────────────────────────────────────────
+  protected readonly draftReviewBusy = signal(false);
+
   protected approve() {
     const draft = this.draftToReview();
-    if (!draft) return;
-    this.store.dispatch(new ApproveDraft(draft.id)).subscribe(() => {
-      this.store.dispatch(new GetWorkOrderDetail(this.id));
+    if (!draft || this.draftReviewBusy()) {
+      if (!draft) {
+        this.msg.add({
+          severity: 'warn',
+          summary: 'Tidak ada draft yang bisa direview',
+          detail: 'Draft terbaru tidak berstatus DIKIRIM.',
+        });
+      }
+      return;
+    }
+
+    this.draftReviewBusy.set(true);
+    this.store.dispatch(new ApproveDraftPb(this.id, draft.id)).subscribe({
+      next: () => {
+        this.draftReviewBusy.set(false);
+        this.catatan = '';
+        this.store.dispatch(new GetWorkOrderDetail(this.id));
+        this.msg.add({
+          severity: 'success',
+          summary: 'Draft disetujui',
+          detail: 'Draft diteruskan ke PPTK untuk verifikasi.',
+        });
+      },
+      error: (err) => {
+        this.draftReviewBusy.set(false);
+        this.msg.add({
+          severity: 'error',
+          summary: 'Gagal menyetujui draft',
+          detail: err?.error?.message ?? 'Terjadi kesalahan pada server.',
+        });
+      },
     });
-    this.catatan = '';
   }
 
   protected reject() {
     const draft = this.draftToReview();
-    if (!draft) return;
-    this.store
-      .dispatch(new RejectDraft(draft.id, this.catatan || 'Perlu koreksi item dan harga.'))
-      .subscribe(() => {
-        this.store.dispatch(new GetWorkOrderDetail(this.id));
+    if (!draft || this.draftReviewBusy()) {
+      if (!draft) {
+        this.msg.add({
+          severity: 'warn',
+          summary: 'Tidak ada draft yang bisa direview',
+          detail: 'Draft terbaru tidak berstatus DIKIRIM.',
+        });
+      }
+      return;
+    }
+
+    const catatan = this.catatan.trim();
+    if (!catatan) {
+      this.msg.add({
+        severity: 'warn',
+        summary: 'Catatan wajib diisi',
+        detail: 'Tuliskan alasan penolakan agar vendor bisa merevisi.',
       });
-    this.catatan = '';
+      return;
+    }
+
+    this.draftReviewBusy.set(true);
+    this.store.dispatch(new RejectDraftPb(this.id, draft.id, catatan)).subscribe({
+      next: () => {
+        this.draftReviewBusy.set(false);
+        this.catatan = '';
+        this.store.dispatch(new GetWorkOrderDetail(this.id));
+        this.msg.add({
+          severity: 'success',
+          summary: 'Draft ditolak',
+          detail: 'Vendor dapat merevisi draft checklist.',
+        });
+      },
+      error: (err) => {
+        this.draftReviewBusy.set(false);
+        this.msg.add({
+          severity: 'error',
+          summary: 'Gagal menolak draft',
+          detail: err?.error?.message ?? 'Terjadi kesalahan pada server.',
+        });
+      },
+    });
   }
 
   protected approvePenawaran() {

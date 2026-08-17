@@ -56,7 +56,11 @@
           <th class="w-40">Merk / Tipe</th>
           <th class="w-40">Unit Kerja</th>
           <th class="w-40">Pengajuan</th>
-          <th class="w-32">Status</th>
+          @if (currentView === 'draft') {
+            <th class="w-20 text-center">Versi</th>
+            <th class="w-32">Status Draft</th>
+          }
+          <th class="w-32">Status WO</th>
           <th class="w-36 text-right">Nominal</th>
           <th class="w-32">Ditugaskan</th>
           <th class="w-48">Catatan</th>
@@ -80,10 +84,39 @@
           <td class="text-xs text-slate-600">{{ row.vehicleMerk }} {{ row.vehicleModel }}</td>
           <td class="text-xs text-slate-600">{{ row.vehicleUnitKerja || '—' }}</td>
           <td class="text-xs font-mono text-slate-500">{{ row.pengajuanNomor }}</td>
+          @if (currentView === 'draft') {
+            <td class="text-center">
+              @if (latestDraft(row.id); as draft) {
+                <span class="inline-flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  v{{ draft.versi }}
+                </span>
+              } @else {
+                <span class="text-xs text-slate-400">—</span>
+              }
+            </td>
+            <td>
+              @if (latestDraft(row.id); as draft) {
+                <p-tag 
+                  [value]="draftStatusLabel(draft.status)" 
+                  [severity]="draftStatusSeverity(draft.status)" 
+                  [rounded]="true"
+                  styleClass="text-xs"
+                ></p-tag>
+              } @else {
+                <span class="text-xs text-slate-400">Belum ada draft</span>
+              }
+            </td>
+          }
           <td>
             <p-tag [value]="statusLabel(row.status)" [severity]="statusSeverity(row.status)" [rounded]="true"></p-tag>
           </td>
-          <td class="text-right font-medium text-slate-800">{{ formatCurrency(row.totalNominal) }}</td>
+          <td class="text-right font-medium text-slate-800">
+            @if (currentView === 'draft' && latestDraft(row.id); as draft) {
+              {{ formatCurrency(draft.totalHarga) }}
+            } @else {
+              {{ formatCurrency(row.totalNominal) }}
+            }
+          </td>
           <td class="text-xs text-slate-500">{{ formatDate(row.assignedAt) }}</td>
           <td class="text-xs text-slate-600 max-w-[12rem] truncate" [title]="row.status === 'VENDOR_DITUGASKAN' ? (row.komentarVerifikasi || '') : ''">
             {{ row.status === 'VENDOR_DITUGASKAN' ? (row.komentarVerifikasi || '—') : '' }}
@@ -117,7 +150,7 @@
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="10" class="py-10 text-center text-sm text-slate-500">
+          <td [attr.colspan]="currentView === 'draft' ? 12 : 10" class="py-10 text-center text-sm text-slate-500">
             <i class="pi pi-inbox text-3xl mb-2 block text-slate-300"></i>
             {{ emptyMessage() }}
           </td>

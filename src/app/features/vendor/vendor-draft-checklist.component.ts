@@ -18,6 +18,7 @@ import {
   DraftChecklistState,
   LoadDraftChecklist,
   SubmitDraft,
+  UpdateDraftChecklist,
 } from '@features/draft-checklist/state';
 import type { DraftChecklistItem, DraftChecklistRecord } from '@features/draft-checklist/state';
 import { ButtonModule } from 'primeng/button';
@@ -87,9 +88,35 @@ export class VendorDraftChecklistComponent implements OnInit {
     () => this.drafts()[0] ?? null,
   );
 
+  /** Status penolakan (lama + PB + PPTK) yang membuat vendor boleh merevisi. */
+  private static readonly REJECTED_STATUSES: readonly DraftStatus[] = [
+    'DITOLAK',
+    'DITOLAK_PB',
+    'DITOLAK_PPTK',
+  ];
+
+  private isRejected(status: DraftStatus | undefined | null): boolean {
+    return !!status && VendorDraftChecklistComponent.REJECTED_STATUSES.includes(status);
+  }
+
+  protected readonly rejected = computed(() => this.isRejected(this.activeDraft()?.status));
+
+  /** Alasan penolakan dari PB atau PPTK, mana pun yang mengisi. */
+  protected readonly rejectionNote = computed(() => {
+    const d = this.activeDraft();
+    if (!d) return '';
+    return d.pptkAlasanPenolakan || d.notesRejection || 'Tidak ada catatan penolakan.';
+  });
+
   protected readonly canEdit = computed(() => {
     const d = this.activeDraft();
-    return !d || d.status === 'DRAFT' || d.status === 'DITOLAK';
+    return !d || d.status === 'DRAFT' || this.isRejected(d.status);
+  });
+
+  /** Draft masih DRAFT → edit in-place (PATCH), bukan bikin versi baru. */
+  private readonly editableDraftId = computed(() => {
+    const d = this.activeDraft();
+    return d && d.status === 'DRAFT' ? d.id : null;
   });
 
   protected readonly readOnlyRows = computed<EditableRow[]>(() =>
@@ -128,7 +155,7 @@ export class VendorDraftChecklistComponent implements OnInit {
     effect(() => {
       const draft = this.activeDraft();
 
-      if (draft && (draft.status === 'DRAFT' || draft.status === 'DITOLAK')) {
+      if (draft && (draft.status === 'DRAFT' || this.isRejected(draft.status))) {
         const mapped: EditableRow[] = draft.items.map((item) => ({
           _key: this.nextKey++,
           tindakanPerbaikan: item.tindakanPerbaikan ?? '',
@@ -233,25 +260,40 @@ export class VendorDraftChecklistComponent implements OnInit {
     this.scanFileName.set(null);
   }
 
+  /**
+   * Simpan draft.
+   * - Draft aktif masih DRAFT  → PATCH (edit di tempat, versi tetap).
+   * - Belum ada draft / ditolak → POST (buat versi baru untuk revisi).
+   */
+  private saveDraft() {
+    const payload = this.buildPayload(this.toPayload());
+    const editId = this.editableDraftId();
+    return this.store.dispatch(
+      editId
+        ? new UpdateDraftChecklist(this.workOrderId, editId, payload)
+        : new CreateDraftChecklist(this.workOrderId, payload),
+    );
+  }
+
   protected simpanDraft(): void {
-    const items = this.toPayload();
+    const isEdit = this.editableDraftId() !== null;
     this.saving.set(true);
-    this.store
-      .dispatch(new CreateDraftChecklist(this.workOrderId, this.buildPayload(items)))
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.msg.add({ severity: 'success', summary: 'Draft tersimpan.' });
-        },
-        error: () => {
-          this.saving.set(false);
-          this.msg.add({ severity: 'error', summary: 'Gagal menyimpan draft.' });
-        },
-      });
+    this.saveDraft().subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.msg.add({
+          severity: 'success',
+          summary: isEdit ? 'Perubahan draft tersimpan.' : 'Draft tersimpan.',
+        });
+      },
+      error: () => {
+        this.saving.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal menyimpan draft.' });
+      },
+    });
   }
 
   protected kirimDraft(): void {
-    const items = this.toPayload();
     this.confirm.confirm({
       message: 'Draft akan dikirim ke Pengurus Barang. Setelah dikirim tidak bisa diubah. Lanjutkan?',
       header: 'Konfirmasi Pengiriman',
@@ -260,40 +302,42 @@ export class VendorDraftChecklistComponent implements OnInit {
       rejectLabel: 'Batal',
       accept: () => {
         this.saving.set(true);
-        // Selalu simpan rows terbaru dulu, baru submit
-        this.store
-          .dispatch(new CreateDraftChecklist(this.workOrderId, this.buildPayload(items)))
-          .subscribe({
-            next: () => {
-              const latest = this.activeDraft();
-              if (!latest) {
-                this.saving.set(false);
-                this.msg.add({ severity: 'error', summary: 'Draft tidak ditemukan setelah disimpan.' });
-                return;
-              }
-              this.store.dispatch(new SubmitDraft(latest.id)).subscribe({
-                next: () => {
-                  this.saving.set(false);
-                  this.msg.add({ severity: 'success', summary: 'Draft terkirim ke Pengurus Barang.' });
-                },
-                error: () => {
-                  this.saving.set(false);
-                  this.msg.add({ severity: 'error', summary: 'Gagal mengirim draft.' });
-                },
-              });
-            },
-            error: () => {
+        // Simpan rows terbaru dulu. Dispatch baru complete setelah state
+        // di-reload, jadi activeDraft() sudah menunjuk draft terbaru.
+        this.saveDraft().subscribe({
+          next: () => {
+            const latest = this.activeDraft();
+            if (!latest || latest.status !== 'DRAFT') {
               this.saving.set(false);
-              this.msg.add({ severity: 'error', summary: 'Gagal menyimpan draft sebelum kirim.' });
-            },
-          });
+              this.msg.add({
+                severity: 'error',
+                summary: 'Draft tidak ditemukan setelah disimpan.',
+              });
+              return;
+            }
+            this.store.dispatch(new SubmitDraft(latest.id)).subscribe({
+              next: () => {
+                this.saving.set(false);
+                this.msg.add({ severity: 'success', summary: 'Draft terkirim ke Pengurus Barang.' });
+              },
+              error: () => {
+                this.saving.set(false);
+                this.msg.add({ severity: 'error', summary: 'Gagal mengirim draft.' });
+              },
+            });
+          },
+          error: () => {
+            this.saving.set(false);
+            this.msg.add({ severity: 'error', summary: 'Gagal menyimpan draft sebelum kirim.' });
+          },
+        });
       },
     });
   }
 
   protected reviseDraft(): void {
     const draft = this.activeDraft();
-    if (!draft || draft.status !== 'DITOLAK') return;
+    if (!draft || !this.isRejected(draft.status)) return;
     const mapped: EditableRow[] = draft.items.map((item) => ({
       _key: this.nextKey++,
       tindakanPerbaikan: item.tindakanPerbaikan ?? '',
@@ -327,7 +371,8 @@ export class VendorDraftChecklistComponent implements OnInit {
     return {
       items,
       totalHargaManual: items.length === 0 ? this.totalManual : undefined,
-      scanDraftImageId: this.scanImageId() ?? undefined,
+      // null dikirim eksplisit agar backend tahu scan sengaja dihapus
+      scanDraftImageId: this.scanImageId(),
     };
   }
 

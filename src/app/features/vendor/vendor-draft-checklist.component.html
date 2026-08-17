@@ -17,12 +17,19 @@
   </header>
 
   <!-- ═══ Banner status ════════════════════════════════════════════════════ -->
-  @if (activeDraft()?.status === 'DITOLAK') {
+  @if (rejected()) {
     <div class="rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3">
       <i class="pi pi-exclamation-circle text-red-500 mt-0.5 text-lg"></i>
       <div class="flex-1">
-        <p class="font-semibold text-red-700">Draft Ditolak</p>
-        <p class="text-sm text-red-600 mt-1">{{ activeDraft()?.notesRejection }}</p>
+        <p class="font-semibold text-red-700">
+          Draft Ditolak
+          @if (activeDraft()?.status === 'DITOLAK_PPTK') {
+            <span class="font-normal">oleh PPTK</span>
+          } @else if (activeDraft()?.status === 'DITOLAK_PB') {
+            <span class="font-normal">oleh Pengurus Barang</span>
+          }
+        </p>
+        <p class="text-sm text-red-600 mt-1">{{ rejectionNote() }}</p>
         <p-button label="Revisi Draft" icon="pi pi-refresh" severity="danger"
           [outlined]="true" size="small" styleClass="mt-2" (onClick)="reviseDraft()" />
       </div>
@@ -33,7 +40,12 @@
       <i class="pi pi-clock"></i> Draft telah dikirim dan menunggu review Pengurus Barang.
     </div>
   }
-  @if (activeDraft()?.status === 'DISETUJUI') {
+  @if (activeDraft()?.status === 'DISETUJUI_PB') {
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 flex items-center gap-2">
+      <i class="pi pi-clock"></i> Disetujui Pengurus Barang, menunggu verifikasi PPTK.
+    </div>
+  }
+  @if (activeDraft()?.status === 'DISETUJUI' || activeDraft()?.status === 'DISETUJUI_PPTK') {
     <div class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
       <i class="pi pi-check-circle"></i> Draft disetujui. Lanjutkan ke tahap Penawaran Final.
     </div>

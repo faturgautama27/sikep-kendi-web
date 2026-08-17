@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -10,8 +10,10 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { WorkOrdersState } from '@features/work-orders/state';
+import { WorkOrdersState, LoadWorkOrders } from '@features/work-orders/state';
+import { DraftChecklistState, LoadDraftChecklist } from '@features/draft-checklist/state';
 import type { WorkOrder, WorkOrderStatus } from '@shared/models';
+import type { DraftChecklistRecord } from '@features/draft-checklist/state';
 
 type VendorView = 'notifikasi' | 'draft' | 'penawaran' | 'riwayat';
 
@@ -63,10 +65,28 @@ const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'da
   templateUrl: './vendor-work-orders.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VendorWorkOrdersComponent {
+export class VendorWorkOrdersComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
   private readonly allRows = this.store.selectSignal(WorkOrdersState.list);
+  private readonly allDrafts = this.store.selectSignal(DraftChecklistState.list);
+
+  constructor() {
+    // Load draft untuk setiap WO yang ada di list setiap kali list berubah
+    effect(() => {
+      const woList = this.allRows();
+      woList.forEach(wo => {
+        if (wo.id) {
+          this.store.dispatch(new LoadDraftChecklist(String(wo.id)));
+        }
+      });
+    });
+  }
+
+  ngOnInit() {
+    // Load work orders
+    this.store.dispatch(new LoadWorkOrders());
+  }
 
   protected readonly currentView =
     (this.route.snapshot.data['vendorView'] as VendorView | undefined) ?? 'notifikasi';
@@ -151,5 +171,48 @@ export class VendorWorkOrdersComponent {
 
   protected formatCurrency(n: number): string {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
+  }
+
+  /** Cari draft terbaru untuk work order tertentu. */
+  protected latestDraft(woId: string | number): DraftChecklistRecord | null {
+    const drafts = this.allDrafts().filter(d => String(d.workOrderId) === String(woId));
+    if (!drafts.length) return null;
+    return [...drafts].sort((a, b) => b.versi - a.versi)[0];
+  }
+
+  /** Label status draft untuk ditampilkan. */
+  protected draftStatusLabel(status: string | undefined): string {
+    if (!status) return '—';
+    const map: Record<string, string> = {
+      DRAFT: 'Draft',
+      DIKIRIM: 'Dikirim',
+      DISETUJUI: 'Disetujui',
+      DISETUJUI_PB: 'Disetujui PB',
+      DISETUJUI_PPTK: 'Disetujui PPTK',
+      DITOLAK: 'Ditolak',
+      DITOLAK_PB: 'Ditolak PB',
+      DITOLAK_PPTK: 'Ditolak PPTK',
+    };
+    return map[status] ?? status;
+  }
+
+  /** Severity untuk status draft. */
+  protected draftStatusSeverity(status: string | undefined): 'info' | 'warn' | 'success' | 'danger' | 'secondary' {
+    switch (status) {
+      case 'DIKIRIM':
+        return 'warn';
+      case 'DISETUJUI':
+      case 'DISETUJUI_PB':
+      case 'DISETUJUI_PPTK':
+        return 'success';
+      case 'DITOLAK':
+      case 'DITOLAK_PB':
+      case 'DITOLAK_PPTK':
+        return 'danger';
+      case 'DRAFT':
+        return 'secondary';
+      default:
+        return 'secondary';
+    }
   }
 }

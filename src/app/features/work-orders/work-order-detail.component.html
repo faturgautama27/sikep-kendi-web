@@ -114,7 +114,31 @@
 
         <!-- Draft Checklist -->
         @if (latestDraft(); as draft) {
-          <p-card header="Detail Draft Checklist">
+          <p-card>
+            <ng-template #header>
+              <div class="flex items-center justify-between px-6 pt-4">
+                <span class="text-lg font-semibold text-slate-700">Detail Draft Checklist</span>
+                <p-tag
+                  [value]="draftStatusLabel()"
+                  [severity]="draftStatusSeverity()"
+                  styleClass="text-xs"
+                />
+              </div>
+            </ng-template>
+
+            <!-- Banner penolakan -->
+            @if (draftRejected()) {
+              <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3">
+                <i class="pi pi-exclamation-circle text-red-500 mt-0.5 text-lg"></i>
+                <div class="flex-1">
+                  <p class="font-semibold text-red-700">Draft Ditolak</p>
+                  <p class="text-sm text-red-600 mt-1">{{ draftRejectionNote() }}</p>
+                  <p class="text-xs text-red-500 mt-2 italic">
+                    Vendor dapat merevisi dan mengirim ulang draft di halaman draft checklist.
+                  </p>
+                </div>
+              </div>
+            }
 
             <!-- Scan Dokumen Draft -->
             @if (draft.scanDraftImageId || draft.scanDraftImageUrl) {
@@ -182,8 +206,8 @@
                 </tfoot>
               </table>
             </div>
-            <!-- Legacy approve/reject for draft checklist -->
-            @if (wo.status === 'DRAFT_CHECKLIST' || draft.status === 'DIKIRIM') {
+            <!-- Review PB: hanya tampil jika draft terbaru berstatus DIKIRIM dan user adalah PB -->
+            @if (draftToReview() && (isPB() || isAdmin())) {
               <div
                 class="mt-4 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4"
               >
@@ -194,16 +218,23 @@
                       pInputText
                       class="w-full"
                       [(ngModel)]="catatan"
-                      placeholder="Catatan jika menolak..."
+                      placeholder="Catatan penolakan (wajib jika menolak)"
+                      [disabled]="draftReviewBusy()"
                     />
                   </div>
                   <p-button
                     label="Tolak"
                     icon="pi pi-times"
                     severity="danger"
+                    [loading]="draftReviewBusy()"
                     (onClick)="reject()"
                   ></p-button>
-                  <p-button label="Setujui" icon="pi pi-check" (onClick)="approve()"></p-button>
+                  <p-button
+                    label="Setujui"
+                    icon="pi pi-check"
+                    [loading]="draftReviewBusy()"
+                    (onClick)="approve()"
+                  ></p-button>
                 </div>
               </div>
             }

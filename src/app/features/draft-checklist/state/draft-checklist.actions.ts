@@ -13,6 +13,17 @@ export class CreateDraftChecklist {
   ) {}
 }
 
+/** Update draft yang masih berstatus DRAFT (tidak membuat versi baru) */
+export class UpdateDraftChecklist {
+  static readonly type = '[DraftChecklist] Update';
+  readonly type = UpdateDraftChecklist.type;
+  constructor(
+    public readonly workOrderId: string,
+    public readonly id: string,
+    public readonly payload: Record<string, unknown>,
+  ) {}
+}
+
 export class SubmitDraft {
   static readonly type = '[DraftChecklist] Submit';
   readonly type = SubmitDraft.type;
