@@ -333,7 +333,14 @@ export class VendorDraftChecklistComponent implements OnInit {
 
   protected statusSeverity(s: DraftStatus): 'secondary' | 'info' | 'success' | 'danger' {
     const m: Record<DraftStatus, 'secondary' | 'info' | 'success' | 'danger'> = {
-      DRAFT: 'secondary', DIKIRIM: 'info', DISETUJUI: 'success', DITOLAK: 'danger',
+      DRAFT: 'secondary',
+      DIKIRIM: 'info',
+      DISETUJUI: 'success',
+      DITOLAK: 'danger',
+      DISETUJUI_PB: 'success',
+      DITOLAK_PB: 'danger',
+      DISETUJUI_PPTK: 'success',
+      DITOLAK_PPTK: 'danger',
     };
     return m[s];
   }
