@@ -46,6 +46,13 @@ export interface WorkOrderDataPort {
     dokumentasiKategori?: string[],
     fakturPajakImageId?: number,
   ): Observable<WorkOrder>;
+  submitPekerjaan(workOrderId: string): Observable<WorkOrder>;
+  reviewPekerjaanPb(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder>;
   // Step F: Verifikator review
   verifikatorReview(
     workOrderId: string,

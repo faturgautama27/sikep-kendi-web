@@ -6,7 +6,7 @@
   >
     <div class="space-y-2">
       <div class="flex flex-wrap items-center gap-2">
-        <h1 class="text-2xl font-bold text-primary-900">Penawaran Final</h1>
+        <h1 class="text-2xl font-bold text-primary-900">Proses Pengerjaan</h1>
         @if (activePenawaran(); as p) {
           <p-tag [value]="p.status" [severity]="statusSeverity(p.status)" class="text-sm" />
         }
@@ -218,7 +218,7 @@
       <p-divider />
 
       <!-- Upload Invoice -->
-      <div class="flex flex-col gap-2">
+      <div class="order-2 flex flex-col gap-2">
         <label class="text-sm font-semibold text-slate-700"
           >Invoice Final <span class="text-red-500">*</span></label
         >
@@ -252,7 +252,7 @@
       </div>
 
       <!-- Upload Draft TTD -->
-      <div class="flex flex-col gap-2">
+      <div class="order-2 flex flex-col gap-2">
         <label class="text-sm font-semibold text-slate-700"
           >Draft Berttd/Cap Bengkel
           <span class="text-slate-400 font-normal">(opsional)</span></label
@@ -286,7 +286,7 @@
       </div>
 
       <!-- Upload Faktur Pajak -->
-      <div class="flex flex-col gap-2">
+      <div class="order-2 flex flex-col gap-2">
         <label class="text-sm font-semibold text-slate-700"
           >Faktur Pajak <span class="text-slate-400 font-normal">(opsional)</span></label
         >
@@ -323,10 +323,32 @@
         }
       </div>
 
-      <p-divider />
+      <p-divider styleClass="order-2" />
 
-      <!-- Foto In-Progress -->
-      <div class="flex flex-col gap-2">
+      <!-- Foto Spare Part -->
+      <div class="order-1 flex flex-col gap-2">
+        <label class="text-sm font-semibold text-slate-700">Foto Spare Part <span class="text-slate-400 font-normal">(opsional)</span></label>
+        <div class="flex flex-wrap gap-2">
+          @for (foto of fotoSparePart(); track foto.id; let i = $index) {
+            <div class="relative h-24 w-24 overflow-hidden rounded-lg border border-slate-200"><img [src]="foto.previewUrl" class="h-full w-full object-cover" [alt]="foto.name" /><button type="button" (click)="removePhoto('spare_part', i)" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6"><i class="pi pi-times"></i></button></div>
+          }
+          <label class="flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-orange-200 bg-orange-50"><i class="pi pi-plus text-orange-400"></i><span class="text-[10px] text-orange-600">Tambah</span><input type="file" accept="image/*" multiple class="hidden" [disabled]="stepEUploading()" (change)="onDokumentasiSelected($event, 'spare_part')" /></label>
+        </div>
+      </div>
+
+      <!-- Foto Sebelum Perbaikan -->
+      <div class="order-1 flex flex-col gap-2">
+        <label class="text-sm font-semibold text-slate-700">Foto Sebelum Perbaikan <span class="text-slate-400 font-normal">(opsional)</span></label>
+        <div class="flex flex-wrap gap-2">
+          @for (foto of fotoBeforeWork(); track foto.id; let i = $index) {
+            <div class="relative h-24 w-24 overflow-hidden rounded-lg border border-slate-200"><img [src]="foto.previewUrl" class="h-full w-full object-cover" [alt]="foto.name" /><button type="button" (click)="removePhoto('before_work', i)" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6"><i class="pi pi-times"></i></button></div>
+          }
+          <label class="flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50"><i class="pi pi-plus text-slate-400"></i><span class="text-[10px] text-slate-500">Tambah</span><input type="file" accept="image/*" multiple class="hidden" [disabled]="stepEUploading()" (change)="onDokumentasiSelected($event, 'before_work')" /></label>
+        </div>
+      </div>
+
+      <!-- Foto Saat Perbaikan -->
+      <div class="order-1 flex flex-col gap-2">
         <label class="text-sm font-semibold text-slate-700"
           >Foto Saat Pengerjaan
           <span class="text-slate-400 font-normal">(opsional, bisa lebih dari 1)</span></label
@@ -362,7 +384,7 @@
       </div>
 
       <!-- Foto Setelah Perbaikan -->
-      <div class="flex flex-col gap-2">
+      <div class="order-1 flex flex-col gap-2">
         <label class="text-sm font-semibold text-slate-700"
           >Foto Setelah Perbaikan <span class="text-red-500">*</span>
           <span class="text-slate-400 font-normal">(min 1)</span></label
@@ -398,7 +420,7 @@
       </div>
 
       <!-- Submit -->
-      <div class="flex items-center justify-between border-t border-green-200 pt-3">
+      <div class="order-3 flex items-center justify-between border-t border-green-200 pt-3">
         @if (stepEUploading()) {
           <span class="text-xs text-slate-500"
             ><i class="pi pi-spin pi-spinner mr-1"></i>Mengupload file...</span
@@ -409,7 +431,7 @@
           >
         }
         <p-button
-          label="Kirim Invoice ke Verifikator"
+          label="Selesai Pengerjaan & Kirim ke PB"
           icon="pi pi-send"
           iconPos="right"
           severity="success"

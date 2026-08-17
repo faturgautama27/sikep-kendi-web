@@ -38,7 +38,7 @@ import {
 } from '@features/penawaran/state';
 import type { PenawaranRecord } from '@features/penawaran/state';
 import { IMAGE_DATA } from '@core/data-access/ports/image-data.port';
-import { WorkOrdersState, GetWorkOrderDetail, SubmitInvoice } from '@features/work-orders/state';
+import { WorkOrdersState, GetWorkOrderDetail, SubmitInvoice, SubmitPekerjaan } from '@features/work-orders/state';
 import { catchError, of, throwError, forkJoin } from 'rxjs';
 
 type PenawaranStatus = 'DRAFT' | 'DIKIRIM' | 'DIVERIFIKASI' | 'REVISI';
@@ -94,7 +94,8 @@ export class VendorPenawaranComponent implements OnInit {
   protected readonly approvedItems = computed(
     () =>
       this.allDrafts().find(
-        (d) => String(d.workOrderId) === String(this.workOrderId) && d.status === 'DISETUJUI',
+        (d) =>
+          String(d.workOrderId) === String(this.workOrderId) && d.status === 'DISETUJUI_PPTK',
       )?.items ?? [],
   );
   protected readonly draftTotalHarga = computed(() =>
@@ -121,7 +122,7 @@ export class VendorPenawaranComponent implements OnInit {
   protected readonly wo = computed<any>(() => this.woDetail() as any);
   protected readonly isStepE = computed(
     () =>
-      this.woDetail()?.status === 'MENUNGGU_INVOICE_VENDOR' &&
+      this.woDetail()?.status === 'PENAWARAN' &&
       String(this.woDetail()?.id) === String(this.workOrderId),
   );
   protected readonly shsItemsReadonly = computed(() => this.wo()?.verifikasiHarga?.shsItems ?? []);
@@ -140,7 +141,7 @@ export class VendorPenawaranComponent implements OnInit {
   protected readonly pengajuanPhotos = computed(() => this.wo()?.pengajuan?.fotos ?? []);
   protected readonly dokumentasiPhotos = computed(() => this.wo()?.dokumentasi ?? []);
   protected readonly draftApproved = computed(
-    () => this.wo()?.draftChecklists?.find((d: any) => d.status === 'DISETUJUI') ?? null,
+    () => this.wo()?.draftChecklists?.find((d: any) => d.status === 'DISETUJUI_PPTK') ?? null,
   );
 
   protected formatKm(value: unknown): string {
@@ -154,6 +155,8 @@ export class VendorPenawaranComponent implements OnInit {
   protected readonly stepEDraftPreview = signal<string>('');
   protected readonly stepEFakturPajakImageId = signal<number | null>(null);
   protected readonly stepEFakturPajakPreview = signal<string>('');
+  protected readonly fotoSparePart = signal<UploadedPhoto[]>([]);
+  protected readonly fotoBeforeWork = signal<UploadedPhoto[]>([]);
   protected readonly fotoInProgress = signal<UploadedPhoto[]>([]);
   protected readonly fotoAfterWork = signal<UploadedPhoto[]>([]);
   protected readonly stepEUploading = signal(false);
@@ -383,7 +386,10 @@ export class VendorPenawaranComponent implements OnInit {
     input.value = '';
   }
 
-  protected onDokumentasiSelected(event: Event, kategori: 'in_progress' | 'after_work'): void {
+  protected onDokumentasiSelected(
+    event: Event,
+    kategori: 'spare_part' | 'before_work' | 'in_progress' | 'after_work',
+  ): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     if (!files.length) return;
@@ -397,7 +403,11 @@ export class VendorPenawaranComponent implements OnInit {
             previewUrl: URL.createObjectURL(file),
             name: file.name,
           };
-          if (kategori === 'in_progress') {
+          if (kategori === 'spare_part') {
+            this.fotoSparePart.update((arr) => [...arr, photo]);
+          } else if (kategori === 'before_work') {
+            this.fotoBeforeWork.update((arr) => [...arr, photo]);
+          } else if (kategori === 'in_progress') {
             this.fotoInProgress.update((arr) => [...arr, photo]);
           } else {
             this.fotoAfterWork.update((arr) => [...arr, photo]);
@@ -415,8 +425,15 @@ export class VendorPenawaranComponent implements OnInit {
     input.value = '';
   }
 
-  protected removePhoto(kategori: 'in_progress' | 'after_work', index: number): void {
-    if (kategori === 'in_progress') {
+  protected removePhoto(
+    kategori: 'spare_part' | 'before_work' | 'in_progress' | 'after_work',
+    index: number,
+  ): void {
+    if (kategori === 'spare_part') {
+      this.fotoSparePart.update((arr) => arr.filter((_, i) => i !== index));
+    } else if (kategori === 'before_work') {
+      this.fotoBeforeWork.update((arr) => arr.filter((_, i) => i !== index));
+    } else if (kategori === 'in_progress') {
       this.fotoInProgress.update((arr) => arr.filter((_, i) => i !== index));
     } else {
       this.fotoAfterWork.update((arr) => arr.filter((_, i) => i !== index));
@@ -436,11 +453,15 @@ export class VendorPenawaranComponent implements OnInit {
       return;
     }
     const allDokIds = [
+      ...this.fotoSparePart().map((p) => p.id),
+      ...this.fotoBeforeWork().map((p) => p.id),
       ...this.fotoInProgress().map((p) => p.id),
       ...this.fotoAfterWork().map((p) => p.id),
     ];
     const allDokKategori = [
-      ...this.fotoInProgress().map(() => 'IN_PROGRESS'),
+      ...this.fotoSparePart().map(() => 'SPARE_PART'),
+      ...this.fotoBeforeWork().map(() => 'SEBELUM_PERBAIKAN'),
+      ...this.fotoInProgress().map(() => 'SAAT_PERBAIKAN'),
       ...this.fotoAfterWork().map(() => 'SETELAH_PERBAIKAN'),
     ];
 
@@ -456,31 +477,38 @@ export class VendorPenawaranComponent implements OnInit {
           this.stepEFakturPajakImageId() ?? undefined,
         ),
       )
-      .subscribe({
-        next: () => {
-          this.stepESubmitting.set(false);
-          this.msg.add({
-            severity: 'success',
-            summary: 'Invoice & dokumentasi berhasil dikirim ke Verifikator',
-          });
-          this.stepEInvoiceImageId.set(null);
-          this.stepEInvoicePreview.set('');
-          this.stepEDraftImageId.set(null);
-          this.stepEDraftPreview.set('');
-          this.stepEFakturPajakImageId.set(null);
-          this.stepEFakturPajakPreview.set('');
-          this.fotoInProgress.set([]);
-          this.fotoAfterWork.set([]);
-        },
-        error: (err: any) => {
-          this.stepESubmitting.set(false);
-          this.msg.add({
-            severity: 'error',
-            summary: 'Gagal kirim',
-            detail: err?.error?.message ?? 'Terjadi kesalahan',
-          });
-        },
-      });
+        .subscribe({
+          next: () => {
+            this.store.dispatch(new SubmitPekerjaan(this.workOrderId)).subscribe({
+              next: () => {
+                this.stepESubmitting.set(false);
+                this.msg.add({ severity: 'success', summary: 'Pengerjaan berhasil dikirim ke PB' });
+                this.stepEInvoiceImageId.set(null);
+                this.stepEInvoicePreview.set('');
+                this.stepEDraftImageId.set(null);
+                this.stepEDraftPreview.set('');
+                this.stepEFakturPajakImageId.set(null);
+                this.stepEFakturPajakPreview.set('');
+                this.fotoSparePart.set([]);
+                this.fotoBeforeWork.set([]);
+                this.fotoInProgress.set([]);
+                this.fotoAfterWork.set([]);
+              },
+              error: (err: any) => {
+                this.stepESubmitting.set(false);
+                this.msg.add({ severity: 'error', summary: 'Gagal mengirim ke PB', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+              },
+            });
+          },
+          error: (err: any) => {
+            this.stepESubmitting.set(false);
+            this.msg.add({
+              severity: 'error',
+              summary: 'Gagal kirim',
+              detail: err?.error?.message ?? 'Terjadi kesalahan',
+            });
+          },
+        });
   }
 
   protected statusSeverity(s: PenawaranStatus): 'secondary' | 'info' | 'success' | 'warn' {

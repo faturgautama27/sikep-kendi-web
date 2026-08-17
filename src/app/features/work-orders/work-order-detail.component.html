@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        @if (wo.status !== 'DIBUAT') {
+        @if (spkVisible(wo.status)) {
           <a [routerLink]="['/work-orders', wo.id, 'spk']" target="_blank">
             <p-button
               icon="pi pi-print"
@@ -22,6 +22,7 @@
               size="small"
             ></p-button>
           </a>
+        @if (bastVisible(wo.status)) {
           <a [routerLink]="['/work-orders', wo.id, 'bast']" target="_blank">
             <p-button
               icon="pi pi-print"
@@ -31,6 +32,7 @@
               size="small"
             ></p-button>
           </a>
+        }
         }
         <p-tag [value]="statusLabel(wo.status)" [severity]="statusSeverity(wo.status)"></p-tag>
       </div>
@@ -578,7 +580,7 @@
 
         <!-- ══ STEP E: Vendor Submit Invoice ══ -->
         @if (
-          wo.status === 'MENUNGGU_INVOICE_VENDOR' &&
+          (wo.status === 'PENAWARAN' || wo.status === 'MENUNGGU_INVOICE_VENDOR') &&
           !isVendor() &&
           wo.verifikasiHarga?.shsItems?.length
         ) {
@@ -616,7 +618,7 @@
            </p-card>
          }
 
-        @if (wo.status === 'MENUNGGU_INVOICE_VENDOR' && isVendor()) {
+        @if (wo.status === 'PENAWARAN' && isVendor()) {
           <div
             class="flex items-center gap-4 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4"
           >
@@ -636,7 +638,7 @@
             </div>
             <a [routerLink]="['/vendor/work-orders', wo.id, 'penawaran']">
               <p-button
-                label="Buka Halaman Invoice"
+                label="Buka Halaman Pengerjaan"
                 icon="pi pi-arrow-right"
                 iconPos="right"
                 severity="success"
@@ -646,6 +648,18 @@
           </div>
         }
 
+        @if (wo.status === 'MENUNGGU_PB' && (isPB() || isAdmin())) {
+          <p-card header="Review Hasil Pekerjaan (PB)">
+            <div class="flex flex-col gap-4">
+              <p class="text-sm text-slate-600">Review hasil pekerjaan vendor sebelum diteruskan ke verifikator.</p>
+              <div class="flex gap-2">
+                <p-button label="Tolak" icon="pi pi-times" severity="danger" [outlined]="true" (onClick)="openPekerjaanPbReviewDialog(false)"></p-button>
+                <p-button label="Setujui → Kirim ke Verifikator" icon="pi pi-check" severity="success" (onClick)="openPekerjaanPbReviewDialog(true)"></p-button>
+              </div>
+            </div>
+          </p-card>
+        }
+
         <!-- ══ STEP F: Verifikator Review ══ -->
         @if (wo.status === 'MENUNGGU_VERIFIKATOR' && isVerifikator()) {
           <p-card header="Verifikasi Invoice & Dokumen">
@@ -653,6 +667,7 @@
               <p class="text-sm text-slate-600">
                 Review invoice final, draft checklist, SPK, dan Berita Acara.
               </p>
+
 
               <!-- SHS Items from PB -->
               @if (wo.verifikasiHarga?.shsItems?.length) {
@@ -703,11 +718,15 @@
         }
 
         <!-- ══ STEP G: PPTK Decision ══ -->
-        @if (latestDraft()?.status === 'DISETUJUI_PB' && (isPPTK() || isAdmin())) {
+        @if (((latestDraft()?.status === 'DISETUJUI_PB') || wo.status === 'MENUNGGU_PPTK') && (isPPTK() || isAdmin())) {
           <p-card header="Persetujuan PPTK">
             <div class="flex flex-col gap-3">
               <p class="text-sm text-slate-600">
-                Review detail pekerjaan dan nominal. Berikan persetujuan akhir sebelum pembayaran.
+                @if (wo.status === 'MENUNGGU_PPTK') {
+                  Review final hasil pekerjaan sebelum diteruskan ke Bendahara.
+                } @else {
+                  Review estimasi biaya sebelum menerbitkan SPK dan memulai pengerjaan.
+                }
               </p>
               @if (wo.verifikasiHarga?.shsItems?.length) {
                 <p-table [value]="wo.verifikasiHarga!.shsItems">
@@ -733,14 +752,33 @@
               }
               <div class="flex gap-2 mt-2">
                 <p-button
-                  label="Tolak"
+                  [label]="wo.status === 'MENUNGGU_PPTK' ? 'Tolak Hasil Pekerjaan' : 'Tolak Estimasi'"
                   icon="pi pi-times"
                   severity="danger"
                   [outlined]="true"
                   (onClick)="openPptkDialog(false)"
                 ></p-button>
+                @if (wo.status === 'MENUNGGU_PPTK') {
+                  <a [routerLink]="['/work-orders', wo.id, 'bast']" target="_blank">
+                    <p-button
+                      label="Cetak BAST"
+                      icon="pi pi-print"
+                      severity="secondary"
+                      [outlined]="true"
+                    ></p-button>
+                  </a>
+                } @else {
+                  <a [routerLink]="['/work-orders', wo.id, 'spk']" target="_blank">
+                    <p-button
+                      label="Cetak SPK"
+                      icon="pi pi-print"
+                      severity="secondary"
+                      [outlined]="true"
+                    ></p-button>
+                  </a>
+                }
                 <p-button
-                  label="Setujui Estimasi & Terbitkan SPK"
+                  [label]="wo.status === 'MENUNGGU_PPTK' ? 'Setujui → Kirim ke Bendahara' : 'Setujui Estimasi & Terbitkan SPK'"
                   icon="pi pi-check"
                   severity="success"
                   (onClick)="openPptkDialog(true)"
@@ -859,6 +897,20 @@
               Silakan hubungi Verifikator atau Pengurus Barang.
             </p>
           </div>
+        }
+
+        @if (wo.pembayaran) {
+          <p-card header="Informasi Pembayaran">
+            <div class="grid gap-2 sm:grid-cols-2 text-sm">
+              <div><span class="text-slate-500">Metode:</span> {{ paymentMethodLabel(wo.pembayaran.metodePembayaran) }}</div>
+              <div><span class="text-slate-500">Total:</span> {{ formatRupiah(wo.pembayaran.totalDibayar) }}</div>
+              <div><span class="text-slate-500">Tanggal:</span> {{ formatDateTime(wo.pembayaran.tanggalPembayaran || wo.pembayaran.paidAt || '') }}</div>
+              <div><span class="text-slate-500">Status:</span> {{ wo.pembayaran.status || '-' }}</div>
+            </div>
+            @if (wo.pembayaran.buktiTransferUrl) {
+              <p-button label="Buka Bukti Pembayaran" icon="pi pi-external-link" size="small" class="mt-3" (onClick)="openDraftAttachment(wo.pembayaran.buktiTransferImageId || 0, wo.pembayaran.buktiTransferUrl || undefined)"></p-button>
+            }
+          </p-card>
         }
 
         <!-- Evidence -->
@@ -1030,6 +1082,32 @@
   </ng-template>
 </p-dialog>
 
+<p-dialog
+  [header]="pekerjaanPbReviewApproved() ? 'Setujui Hasil Pekerjaan' : 'Tolak Hasil Pekerjaan'"
+  [visible]="pekerjaanPbReviewDialogVisible()"
+  (visibleChange)="pekerjaanPbReviewDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
+  <div class="flex flex-col gap-3 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Catatan (opsional)</label>
+      <textarea pTextarea rows="2" [ngModel]="pekerjaanPbCatatan()" (ngModelChange)="pekerjaanPbCatatan.set($event)" placeholder="Catatan untuk vendor..."></textarea>
+    </div>
+    @if (!pekerjaanPbReviewApproved()) {
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-red-700">Alasan Penolakan <span class="text-red-500">*</span></label>
+        <textarea pTextarea rows="2" [ngModel]="pekerjaanPbAlasanPenolakan()" (ngModelChange)="pekerjaanPbAlasanPenolakan.set($event)" placeholder="Jelaskan alasan penolakan..."></textarea>
+      </div>
+    }
+  </div>
+  <ng-template #footer>
+    <p-button label="Batal" severity="secondary" [outlined]="true" (onClick)="pekerjaanPbReviewDialogVisible.set(false)"></p-button>
+    <p-button [label]="pekerjaanPbReviewApproved() ? 'Setujui' : 'Tolak'" [severity]="pekerjaanPbReviewApproved() ? 'success' : 'danger'" [loading]="pekerjaanPbReviewLoading()" (onClick)="submitPekerjaanPbReview()"></p-button>
+  </ng-template>
+</p-dialog>
+
 <!-- ══ Dialog: Verifikator Review (Step F) ══ -->
 <p-dialog
   [header]="verifikatorApproved() ? 'Setujui & Kirim ke PPTK' : 'Tolak Invoice'"
@@ -1083,7 +1161,15 @@
 
 <!-- ══ Dialog: PPTK Decision (Step G) ══ -->
 <p-dialog
-  [header]="pptkApprovedSignal() ? 'Setujui WO — Kirim ke Bendahara' : 'Tolak WO'"
+  [header]="
+    isPptkFinalPhase()
+      ? pptkApprovedSignal()
+        ? 'Setujui Hasil Pekerjaan — Kirim ke Bendahara'
+        : 'Tolak Hasil Pekerjaan'
+      : pptkApprovedSignal()
+        ? 'Setujui Estimasi & Terbitkan SPK'
+        : 'Tolak Estimasi Biaya'
+  "
   [visible]="pptkDialogVisible()"
   (visibleChange)="pptkDialogVisible.set($event)"
   [modal]="true"
@@ -1102,6 +1188,13 @@
       ></textarea>
     </div>
     @if (!pptkApprovedSignal()) {
+      <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        @if (isPptkFinalPhase()) {
+          Hasil pekerjaan akan dikembalikan ke tahap Pengerjaan untuk diperbaiki vendor.
+        } @else {
+          Estimasi biaya akan ditolak dan vendor perlu merevisi draft checklist.
+        }
+      </div>
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-red-700"
           >Alasan Penolakan <span class="text-red-500">*</span></label
@@ -1114,6 +1207,14 @@
           placeholder="Jelaskan alasan penolakan..."
         ></textarea>
       </div>
+    } @else {
+      <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+        @if (isPptkFinalPhase()) {
+          Hasil pekerjaan akan disetujui dan WO diteruskan ke Bendahara.
+        } @else {
+          Estimasi biaya akan disetujui dan SPK dapat diterbitkan untuk memulai pengerjaan.
+        }
+      </div>
     }
   </div>
   <ng-template #footer>
@@ -1124,7 +1225,15 @@
       (onClick)="pptkDialogVisible.set(false)"
     ></p-button>
     <p-button
-      [label]="pptkApprovedSignal() ? 'Setujui' : 'Tolak'"
+      [label]="
+        isPptkFinalPhase()
+          ? pptkApprovedSignal()
+            ? 'Setujui Hasil Pekerjaan'
+            : 'Tolak Hasil Pekerjaan'
+          : pptkApprovedSignal()
+            ? 'Setujui Estimasi'
+            : 'Tolak Estimasi'
+      "
       [severity]="pptkApprovedSignal() ? 'success' : 'danger'"
       [loading]="pptkLoading()"
       (onClick)="submitPptkDecision()"

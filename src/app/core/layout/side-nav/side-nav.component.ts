@@ -116,7 +116,7 @@ export class SideNavComponent {
           permission: 'draft_checklist.create',
         },
         {
-          label: 'Penawaran & Invoice',
+          label: 'Proses Pengerjaan',
           icon: 'pi pi-receipt',
           route: '/vendor/penawaran-invoice',
           permission: 'penawaran.create',

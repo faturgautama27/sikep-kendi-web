@@ -66,6 +66,22 @@ export class PreviewWorkOrderData implements WorkOrderDataPort {
     return of({ id: workOrderId, status: 'MENUNGGU_VERIFIKATOR' } as unknown as WorkOrder);
   }
 
+  submitPekerjaan(workOrderId: string): Observable<WorkOrder> {
+    return of({ id: workOrderId, status: 'MENUNGGU_PB' } as unknown as WorkOrder);
+  }
+
+  reviewPekerjaanPb(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder> {
+    return of({
+      id: workOrderId,
+      status: approved ? 'MENUNGGU_VERIFIKATOR' : 'PENAWARAN',
+    } as unknown as WorkOrder);
+  }
+
   verifikatorReview(
     workOrderId: string,
     approved: boolean,
@@ -74,7 +90,7 @@ export class PreviewWorkOrderData implements WorkOrderDataPort {
   ): Observable<WorkOrder> {
     return of({
       id: workOrderId,
-      status: approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR',
+      status: approved ? 'MENUNGGU_PPTK' : 'PENAWARAN',
     } as unknown as WorkOrder);
   }
 

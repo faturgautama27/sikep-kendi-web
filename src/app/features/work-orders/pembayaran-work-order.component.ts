@@ -69,13 +69,13 @@ export class PembayaranWorkOrderComponent implements OnInit, AfterViewInit {
 
   // Form Options
   protected metodeOptions = [
-    { label: 'CRM', value: 'crm' },
     { label: 'Tunai', value: 'tunai' },
+    { label: 'GIBS', value: 'gibs' },
     { label: 'KKPD', value: 'kkpd' },
   ];
 
   // Form
-  protected metodePembayaran = 'crm';
+  protected metodePembayaran = 'tunai';
   protected totalDibayar = 0;
   protected fileUpload: File | null = null;
   protected saving = signal(false);

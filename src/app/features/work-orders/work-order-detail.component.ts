@@ -35,6 +35,8 @@ import {
   SaveShsMapping,
   PbReviewShs,
   SubmitInvoice,
+  SubmitPekerjaan,
+  ReviewPekerjaanPb,
   VerifikatorReview,
   PptkDecision,
 } from './state';
@@ -50,13 +52,24 @@ import { APP_ENV } from '@core/data-access/app-env.token';
 import { IMAGE_DATA, type ImageDataPort } from '@core/data-access/ports/image-data.port';
 import type { ShsItemInput } from '@core/data-access/ports/work-order-data.port';
 
+const STATUS_FLOW: WorkOrderStatus[] = [
+  'PENAWARAN',
+  'MENUNGGU_PB',
+  'MENUNGGU_INVOICE_VENDOR',
+  'MENUNGGU_VERIFIKATOR',
+  'MENUNGGU_PPTK',
+  'DISETUJUI_PPTK',
+  'DIBAYAR',
+];
+
 const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DIBUAT: 'Dibuat',
   VENDOR_DITUGASKAN: 'Vendor Ditugaskan',
   DRAFT_CHECKLIST: 'Draft Checklist',
-  PENAWARAN: 'Penawaran',
+  PENAWARAN: 'Pengerjaan',
   DIVERIFIKASI: 'Diverifikasi',
   MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice Vendor',
+  MENUNGGU_PB: 'Menunggu PB',
   MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
@@ -76,7 +89,11 @@ const EVIDENCE_LABEL: Record<string, string> = {
   kondisi_awal: 'Kondisi Awal',
   sparepart_sebelum: 'Sparepart Sebelum',
   sparepart_sesudah: 'Sparepart Sesudah',
-  pasca_perbaikan: 'Bukti Pembayaran',
+  pasca_perbaikan: 'Pasca Perbaikan',
+  spare_part: 'Spare Part',
+  sebelum_perbaikan: 'Sebelum Perbaikan',
+  saat_perbaikan: 'Saat Perbaikan',
+  setelah_perbaikan: 'Setelah Perbaikan',
 };
 
 interface ShsItemLocal extends ShsItemInput {
@@ -221,8 +238,8 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly canUploadFotoParts = computed(() => {
     const wo = this.detail();
     if (!wo) return false;
-    const uploadableStatuses = ['DISETUJUI_PPTK', 'MENUNGGU_PEMBAYARAN', 'VERIFIKASI_HARGA'];
-    return this.isVendor() && uploadableStatuses.includes(wo.status) && wo.status !== 'DIBAYAR';
+    const uploadableStatuses = ['PENAWARAN', 'MENUNGGU_PB', 'MENUNGGU_VERIFIKATOR'];
+    return this.isVendor() && uploadableStatuses.includes(wo.status);
   });
 
   protected loadFotoParts(): void {
@@ -308,6 +325,12 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly pbAlasanPenolakan = signal('');
   protected readonly pbReviewLoading = signal(false);
 
+  protected readonly pekerjaanPbReviewDialogVisible = signal(false);
+  protected readonly pekerjaanPbReviewApproved = signal(false);
+  protected readonly pekerjaanPbCatatan = signal('');
+  protected readonly pekerjaanPbAlasanPenolakan = signal('');
+  protected readonly pekerjaanPbReviewLoading = signal(false);
+
   // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────
   protected readonly invoiceDialogVisible = signal(false);
   protected readonly invoiceImageId = signal<number | null>(null);
@@ -329,6 +352,7 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly pptkKomentar = signal('');
   protected readonly pptkAlasan = signal('');
   protected readonly pptkLoading = signal(false);
+  protected readonly isPptkFinalPhase = computed(() => this.detail()?.status === 'MENUNGGU_PPTK');
 
   private readonly hydrateShsItemsEffect = effect(() => {
     const serverItems = this.detail()?.verifikasiHarga?.shsItems ?? [];
@@ -392,6 +416,21 @@ export class WorkOrderDetailComponent implements OnInit {
     this.router.navigate(['/work-orders']);
   }
 
+  private atStage(status: WorkOrderStatus, from: WorkOrderStatus): boolean {
+    const idx = STATUS_FLOW.indexOf(from);
+    return idx >= 0 && STATUS_FLOW.slice(idx).includes(status);
+  }
+
+  protected spkVisible(status: WorkOrderStatus): boolean {
+    return this.atStage(status, 'PENAWARAN');
+  }
+
+  protected bastVisible(status: WorkOrderStatus): boolean {
+    return this.isVendor()
+      ? this.atStage(status, 'DISETUJUI_PPTK')
+      : this.atStage(status, 'MENUNGGU_PPTK');
+  }
+
   protected statusLabel(status: WorkOrderStatus): string {
     return STATUS_LABEL[status] ?? status;
   }
@@ -406,6 +445,7 @@ export class WorkOrderDetailComponent implements OnInit {
       case 'DRAFT_CHECKLIST':
       case 'PENAWARAN':
       case 'MENUNGGU_INVOICE_VENDOR':
+      case 'MENUNGGU_PB':
       case 'MENUNGGU_VERIFIKATOR':
       case 'MENUNGGU_PPTK':
         return 'warn';
@@ -446,6 +486,14 @@ export class WorkOrderDetailComponent implements OnInit {
   protected evidenceLabel(ev: WorkOrderEvidence): string {
     const base = EVIDENCE_LABEL[ev.kategori] ?? ev.kategori;
     return ev.image?.caption ? `${ev.image.caption}` : base;
+  }
+
+  protected paymentMethodLabel(method?: string | null): string {
+    const normalized = (method ?? '').toLowerCase();
+    if (normalized === 'tunai') return 'TUNAI';
+    if (normalized === 'gibs') return 'GIBS';
+    if (normalized === 'kkpd') return 'KKPD';
+    return (method ?? '-').toUpperCase();
   }
 
   protected openDraftAttachment(imageId: number, fallbackUrl?: string): void {
@@ -873,6 +921,32 @@ export class WorkOrderDetailComponent implements OnInit {
           });
         },
       });
+  }
+
+  protected openPekerjaanPbReviewDialog(approved: boolean) {
+    this.pekerjaanPbReviewApproved.set(approved);
+    this.pekerjaanPbCatatan.set('');
+    this.pekerjaanPbAlasanPenolakan.set('');
+    this.pekerjaanPbReviewDialogVisible.set(true);
+  }
+
+  protected submitPekerjaanPbReview() {
+    if (!this.pekerjaanPbReviewApproved() && !this.pekerjaanPbAlasanPenolakan().trim()) {
+      this.msg.add({ severity: 'warn', summary: 'Alasan penolakan wajib diisi' });
+      return;
+    }
+    this.pekerjaanPbReviewLoading.set(true);
+    this.store.dispatch(new ReviewPekerjaanPb(this.id, this.pekerjaanPbReviewApproved(), this.pekerjaanPbCatatan() || undefined, this.pekerjaanPbAlasanPenolakan() || undefined)).subscribe({
+      next: () => {
+        this.pekerjaanPbReviewLoading.set(false);
+        this.pekerjaanPbReviewDialogVisible.set(false);
+        this.msg.add({ severity: 'success', summary: this.pekerjaanPbReviewApproved() ? 'Pekerjaan disetujui' : 'Pekerjaan dikembalikan ke vendor' });
+      },
+      error: (err: any) => {
+        this.pekerjaanPbReviewLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
+    });
   }
 
   // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────

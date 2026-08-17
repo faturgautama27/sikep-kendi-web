@@ -37,7 +37,8 @@ const STATUS_OPTIONS: OptionItem<WorkOrderStatus>[] = [
   { label: 'Dibuat', value: 'DIBUAT' },
   { label: 'Assigned', value: 'VENDOR_DITUGASKAN' },
   { label: 'Draft Checklist', value: 'DRAFT_CHECKLIST' },
-  { label: 'Penawaran', value: 'PENAWARAN' },
+  { label: 'Pengerjaan', value: 'PENAWARAN' },
+  { label: 'Menunggu PB', value: 'MENUNGGU_PB' },
   { label: 'Diverifikasi', value: 'DIVERIFIKASI' },
   { label: 'Selesai / Dibayar', value: 'DIBAYAR' },
 ];
@@ -46,9 +47,10 @@ const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DIBUAT: 'Dibuat',
   VENDOR_DITUGASKAN: 'Vendor Ditugaskan',
   DRAFT_CHECKLIST: 'Draft Checklist',
-  PENAWARAN: 'Penawaran',
+  PENAWARAN: 'Pengerjaan',
   DIVERIFIKASI: 'Diverifikasi',
   MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice Vendor',
+  MENUNGGU_PB: 'Menunggu PB',
   MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
@@ -164,6 +166,7 @@ export class WorkOrdersListComponent implements OnInit {
       DRAFT_CHECKLIST: 0,
       PENAWARAN: 0,
       DIVERIFIKASI: 0,
+      MENUNGGU_PB: 0,
       MENUNGGU_PPTK: 0,
       DISETUJUI_PPTK: 0,
       DIBAYAR: 0,
@@ -202,6 +205,7 @@ export class WorkOrdersListComponent implements OnInit {
       case 'DRAFT_CHECKLIST':
       case 'PENAWARAN':
       case 'MENUNGGU_INVOICE_VENDOR':
+      case 'MENUNGGU_PB':
       case 'MENUNGGU_VERIFIKATOR':
       case 'MENUNGGU_PPTK':
         return 'warn';

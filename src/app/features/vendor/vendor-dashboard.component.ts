@@ -25,7 +25,7 @@ export class VendorDashboardComponent {
   protected readonly unread = this.store.selectSignal(NotificationsState.unreadCount);
 
   protected readonly woAktif = computed(
-    () => this.woList().filter(w => ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN'].includes(w.status)).length,
+    () => this.woList().filter(w => ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN', 'MENUNGGU_PB', 'MENUNGGU_VERIFIKATOR'].includes(w.status)).length,
   );
 
   protected readonly woPendingDraft = computed(

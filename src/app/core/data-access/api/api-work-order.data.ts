@@ -41,6 +41,7 @@ interface BackendDraftChecklistItem {
 interface BackendDraftChecklist {
   id: number;
   status: string;
+  totalHarga?: number | string;
   createdAt: string;
   updatedAt: string;
   items?: BackendDraftChecklistItem[];
@@ -83,7 +84,12 @@ interface BackendDokumentasi {
   id: number;
   workOrderId: number;
   imageId: number;
-  kategori: 'IN_PROGRESS' | 'SETELAH_PERBAIKAN';
+    kategori:
+    | 'SPARE_PART'
+    | 'SEBELUM_PERBAIKAN'
+    | 'SAAT_PERBAIKAN'
+    | 'SETELAH_PERBAIKAN'
+    | 'IN_PROGRESS';
   createdAt: string;
   image?: BackendImageRef & {
     originalFilename?: string;
@@ -105,6 +111,8 @@ interface BackendBendahara {
 interface BackendPembayaran {
   id: number;
   status: string;
+  metodePembayaran: string;
+  tanggalPembayaran?: string | null;
   totalDibayar: number | string;
   createdAt: string;
   updatedAt: string;
@@ -250,38 +258,28 @@ function mapEvidence(raw: BackendWorkOrder): WorkOrderEvidence[] {
       }),
     ) ?? [];
 
-  const fromPembayaran = raw.pembayaran?.buktiTransfer
-    ? [
-        {
-          id: `bt-${raw.pembayaran.id}`,
-          workOrderId: String(raw.id),
-          kategori: 'pasca_perbaikan',
-          imageId: String(raw.pembayaran.buktiTransfer.imageId),
-          image: emptyImage(
-            raw.pembayaran.buktiTransfer.imageId,
-            raw.pembayaran.buktiTransfer.image?.signedUrl ?? raw.pembayaran.buktiTransfer.image?.signed_url,
-          ),
-          uploadedAt: raw.pembayaran.paidAt ?? raw.pembayaran.updatedAt,
-          uploadedBy: String(raw.pembayaran.bendaharaId),
-        } satisfies WorkOrderEvidence,
-      ]
-    : [];
-
-  const fromDokumentasi: WorkOrderEvidence[] = (raw.dokumentasi ?? []).map((dok: any) => ({
+  const dokumentasiKategori = {
+    SPARE_PART: ['spare_part', 'Spare Part'],
+    SEBELUM_PERBAIKAN: ['sebelum_perbaikan', 'Sebelum Perbaikan'],
+    SAAT_PERBAIKAN: ['saat_perbaikan', 'Saat Perbaikan'],
+    IN_PROGRESS: ['saat_perbaikan', 'Saat Perbaikan'],
+    SETELAH_PERBAIKAN: ['setelah_perbaikan', 'Setelah Perbaikan'],
+  } as const;
+  const fromDokumentasi: WorkOrderEvidence[] = (raw.dokumentasi ?? []).map((dok) => ({
     id: `dok-${dok.id}`,
     workOrderId: String(raw.id),
-    kategori: dok.kategori === 'IN_PROGRESS' ? 'sparepart_sebelum' : 'pasca_perbaikan',
+    kategori: dokumentasiKategori[dok.kategori][0],
     imageId: String(dok.imageId),
     image: emptyImage(
       dok.imageId,
       dok.image?.signedUrl ?? dok.image?.signed_url,
-      dok.kategori === 'IN_PROGRESS' ? 'In Progress' : 'Setelah Perbaikan',
+      dokumentasiKategori[dok.kategori][1],
     ),
     uploadedAt: dok.createdAt,
     uploadedBy: String(raw.vendorId ?? 0),
   }));
 
-  return [...fromDraft, ...fromPembayaran, ...fromDokumentasi];
+  return [...fromDraft, ...fromDokumentasi];
 }
 
 function mapStatus(raw: BackendWorkOrder): WorkOrderStatus {
@@ -327,8 +325,9 @@ function mapProgress(raw: BackendWorkOrder): WorkOrderProgress[] {
     DIBUAT: 'Work order dibuat',
     VENDOR_DITUGASKAN: 'Vendor ditugaskan',
     DRAFT_CHECKLIST: 'Menunggu review draft checklist',
-    PENAWARAN: 'Masuk tahap penawaran',
+    PENAWARAN: 'Masuk tahap pengerjaan',
     MENUNGGU_INVOICE_VENDOR: 'Menunggu invoice final dari vendor',
+    MENUNGGU_PB: 'Hasil pekerjaan menunggu review PB',
     MENUNGGU_VERIFIKATOR: 'Invoice vendor menunggu review verifikator',
     MENUNGGU_PPTK: 'Menunggu persetujuan PPTK',
     DISETUJUI_PPTK: 'Disetujui PPTK, menunggu pembayaran',
@@ -387,6 +386,7 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
     totalNominal: asNumber(
       raw.pembayaran?.totalDibayar ??
         latestPenawaran?.totalBiaya ??
+        raw.draftChecklists?.[0]?.totalHarga ??
         latestPenawaran?.invoice?.totalTagihan,
     ),
     assignedAt: raw.createdAt,
@@ -493,6 +493,21 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
           raw.fakturPajakFile.signedUrl ?? (raw.fakturPajakFile as any).signed_url,
           raw.fakturPajakFile.originalFilename,
         )
+      : null,
+    pembayaran: raw.pembayaran
+      ? {
+          id: String(raw.pembayaran.id),
+          status: raw.pembayaran.status,
+          metodePembayaran: raw.pembayaran.metodePembayaran,
+          totalDibayar: asNumber(raw.pembayaran.totalDibayar),
+          tanggalPembayaran: raw.pembayaran.tanggalPembayaran ?? null,
+          paidAt: raw.pembayaran.paidAt ?? null,
+          buktiTransferImageId: raw.pembayaran.buktiTransfer?.imageId ?? null,
+          buktiTransferUrl:
+            raw.pembayaran.buktiTransfer?.image?.signedUrl ??
+            raw.pembayaran.buktiTransfer?.image?.signed_url ??
+            null,
+        }
       : null,
   };
 }
@@ -607,6 +622,27 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
         dokumentasiImageIds,
         dokumentasiKategori,
         fakturPajakImageId,
+      })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
+
+  submitPekerjaan(workOrderId: string): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/submit-pekerjaan`), {})
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
+
+  reviewPekerjaanPb(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
+  ): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/review-pekerjaan-pb`), {
+        approved,
+        catatan,
+        alasanPenolakan,
       })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }

@@ -19,6 +19,8 @@ import {
   SaveShsMapping,
   PbReviewShs,
   SubmitInvoice,
+  SubmitPekerjaan,
+  ReviewPekerjaanPb,
   VerifikatorReview,
   PptkDecision,
   UploadFotoSebelum,
@@ -213,8 +215,24 @@ export class WorkOrdersState {
     }
     const currentDetail = ctx.getState().detail;
     if (currentDetail && currentDetail.id === action.workOrderId) {
-      ctx.patchState({ detail: { ...currentDetail, status: 'MENUNGGU_VERIFIKATOR' } });
+      ctx.patchState({ detail: { ...currentDetail, status: 'PENAWARAN' } });
     }
+    return;
+  }
+
+  @Action(SubmitPekerjaan)
+  submitPekerjaan(ctx: StateContext<WorkOrdersStateModel>, action: SubmitPekerjaan) {
+    if (!this.env.previewMode) return this.data.submitPekerjaan(action.workOrderId).pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
+    const detail = ctx.getState().detail;
+    if (detail?.id === action.workOrderId) ctx.patchState({ detail: { ...detail, status: 'MENUNGGU_PB' } });
+    return;
+  }
+
+  @Action(ReviewPekerjaanPb)
+  reviewPekerjaanPb(ctx: StateContext<WorkOrdersStateModel>, action: ReviewPekerjaanPb) {
+    if (!this.env.previewMode) return this.data.reviewPekerjaanPb(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan).pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
+    const detail = ctx.getState().detail;
+    if (detail?.id === action.workOrderId) ctx.patchState({ detail: { ...detail, status: action.approved ? 'MENUNGGU_VERIFIKATOR' : 'PENAWARAN' } });
     return;
   }
 
@@ -236,7 +254,7 @@ export class WorkOrdersState {
       ctx.patchState({
         detail: {
           ...currentDetail,
-          status: action.approved ? 'MENUNGGU_PPTK' : 'DITOLAK_VERIFIKATOR',
+          status: action.approved ? 'MENUNGGU_PPTK' : 'PENAWARAN',
         },
       });
     }
