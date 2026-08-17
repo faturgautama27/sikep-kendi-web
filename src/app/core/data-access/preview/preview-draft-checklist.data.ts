@@ -29,7 +29,23 @@ export class PreviewDraftChecklistData implements DraftChecklistDataPort {
     return of({ id, status: 'DISETUJUI' });
   }
 
+  approvePb(woId: string, id: string): Observable<unknown> {
+    return of({ woId, id, status: 'DISETUJUI_PB' });
+  }
+
   reject(id: string, payload: { notesRejection: string }): Observable<unknown> {
     return of({ id, status: 'DITOLAK', ...payload });
+  }
+
+  rejectPb(woId: string, id: string, payload: { notesRejection: string }): Observable<unknown> {
+    return of({ woId, id, status: 'DITOLAK_PB', ...payload });
+  }
+
+  approvePptk(woId: string, id: string, payload?: { pptkCatatan?: string }): Observable<unknown> {
+    return of({ woId, id, status: 'DISETUJUI_PPTK', ...payload });
+  }
+
+  rejectPptk(woId: string, id: string, payload: { pptkAlasanPenolakan: string }): Observable<unknown> {
+    return of({ woId, id, status: 'DITOLAK_PPTK', ...payload });
   }
 }

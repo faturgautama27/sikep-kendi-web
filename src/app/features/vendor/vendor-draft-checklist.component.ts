@@ -32,7 +32,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { CommonModule } from '@angular/common';
 
-type DraftStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK';
+type DraftStatus = 'DRAFT' | 'DIKIRIM' | 'DISETUJUI' | 'DITOLAK' | 'DISETUJUI_PB' | 'DITOLAK_PB' | 'DISETUJUI_PPTK' | 'DITOLAK_PPTK';
 
 export interface EditableRow {
   _key: number;
@@ -303,6 +303,7 @@ export class VendorDraftChecklistComponent implements OnInit {
       harga: Number(item.harga ?? item.hargaItem ?? 0),
       diskon: Number(item.diskon ?? 0),
       subTotal: Number(item.subTotal ?? item.hargaItem ?? 0),
+      nomorSeri: item.nomorSeri ?? '',
     }));
     this.rows.set(mapped);
     this.msg.add({ severity: 'info', summary: 'Silakan revisi item dan kirim kembali.' });

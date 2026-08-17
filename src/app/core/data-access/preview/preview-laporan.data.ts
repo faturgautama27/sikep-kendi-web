@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import type { LaporanDataPort, LaporanBiayaFilter, LaporanBiayaResponse } from '../ports/laporan-data.port';
+import type { LaporanDataPort, LaporanBiayaFilter, LaporanBiayaResponse, LaporanFilter } from '../ports/laporan-data.port';
 
 @Injectable({ providedIn: 'root' })
 export class PreviewLaporanData implements LaporanDataPort {
@@ -29,5 +29,49 @@ export class PreviewLaporanData implements LaporanDataPort {
         ]
       }
     });
+  }
+
+  getExportBiayaUrl(filter?: LaporanFilter): string {
+    return '#preview-export-biaya';
+  }
+
+  getExportWorkOrderUrl(filter?: LaporanFilter): string {
+    return '#preview-export-workorder';
+  }
+
+  getExportPengajuanUrl(filter?: LaporanFilter): string {
+    return '#preview-export-pengajuan';
+  }
+
+  getExportDaftarBarangUrl(filter?: LaporanFilter): string {
+    return '#preview-export-daftar-barang';
+  }
+
+  getExportHasilPemeliharaanUrl(filter?: LaporanFilter): string {
+    return '#preview-export-hasil-pemeliharaan';
+  }
+
+  getExportKartuPemeliharaanUrl(kendaraanId: string | number): string {
+    return `#preview-export-kartu-${kendaraanId}`;
+  }
+
+  getWorkOrder(filter?: LaporanFilter): Observable<any[]> {
+    return of([]);
+  }
+
+  getPengajuan(filter?: LaporanFilter): Observable<any[]> {
+    return of([]);
+  }
+
+  getDaftarBarang(filter?: LaporanFilter): Observable<any[]> {
+    return of([]);
+  }
+
+  getHasilPemeliharaan(filter?: LaporanFilter): Observable<any[]> {
+    return of([]);
+  }
+
+  getKartuPemeliharaan(kendaraanId: string | number): Observable<any> {
+    return of(null);
   }
 }

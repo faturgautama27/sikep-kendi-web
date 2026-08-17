@@ -89,4 +89,12 @@ export class PreviewWorkOrderData implements WorkOrderDataPort {
       status: approved ? 'DISETUJUI_PPTK' : 'DITOLAK_PPTK',
     } as unknown as WorkOrder);
   }
+
+  uploadFotoSebelum(workOrderId: string, imageId: number): Observable<WorkOrder> {
+    return of({ id: workOrderId } as unknown as WorkOrder);
+  }
+
+  inputKondisi(workOrderId: string, kondisiKendaraan: import('../ports/work-order-data.port').KondisiKendaraan): Observable<WorkOrder> {
+    return of({ id: workOrderId } as unknown as WorkOrder);
+  }
 }

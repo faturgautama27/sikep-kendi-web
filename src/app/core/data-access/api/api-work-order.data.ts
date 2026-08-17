@@ -637,4 +637,20 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
       .post<any>(this.url(`/work-orders/${workOrderId}/kondisi-kendaraan`), { kondisiKendaraan })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }
+
+  // Step G: PPTK approve/reject via verifikasi endpoint
+  pptkApprove(
+    workOrderId: string,
+    approved: boolean,
+    komentar?: string,
+    alasan?: string,
+  ): Observable<WorkOrder> {
+    return this.http
+      .post<any>(this.url(`/work-orders/${workOrderId}/verifikasi/pptk-approve`), {
+        approved,
+        komentar,
+        alasan,
+      })
+      .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
+  }
 }

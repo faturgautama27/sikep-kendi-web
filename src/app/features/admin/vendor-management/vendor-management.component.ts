@@ -71,6 +71,7 @@ export class VendorManagementComponent implements OnInit {
     alamat:       ['', Validators.required],
     kontak:       ['', Validators.required],
     email:        ['', [Validators.required, Validators.email]],
+    username:     ['', Validators.required],
     npwp:         [''],
     namaPimpinan: [''],
     isAktif:      [true],
@@ -94,6 +95,7 @@ export class VendorManagementComponent implements OnInit {
     if (!this.editingId()) {
       this.adminPort.createVendor({
         namaVendor: raw.namaVendor!, alamat: raw.alamat!, kontak: raw.kontak!, email: raw.email!,
+        username: raw.username || raw.email!.split('@')[0],
         npwp: raw.npwp || null, namaPimpinan: raw.namaPimpinan || null,
       }).subscribe({
         next: (newVendor) => {

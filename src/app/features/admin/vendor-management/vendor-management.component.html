@@ -125,6 +125,14 @@
         @if (form.get('email')!.invalid && form.get('email')!.touched && !emailConflict()) { <small class="text-red-500">Format email tidak valid.</small> }
       </div>
     </div>
+    @if (!editingId()) {
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Username Login <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="username" placeholder="username untuk login vendor" />
+        <small class="text-slate-400 text-xs">Digunakan vendor untuk login ke sistem</small>
+        @if (form.get('username')!.invalid && form.get('username')!.touched) { <small class="text-red-500">Username wajib diisi.</small> }
+      </div>
+    }
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">NPWP</label>
