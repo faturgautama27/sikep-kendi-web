@@ -11,6 +11,7 @@ export interface WorkOrderFilter {
 
 export interface ShsItemInput {
   namaItem: string;
+  jenis?: string;
   hargaVendor: number;
   hargaStandart: number;
   qty?: number;

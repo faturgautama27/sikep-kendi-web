@@ -13,7 +13,10 @@ export interface WorkOrderPenawaranItem {
 export interface WorkOrderShsItem {
   id: number;
   namaItem: string;
+  jenis?: string | null;
+  qty?: number | string;
   hargaVendor: number | string;
+  diskon?: number | string;
   hargaStandart: number | string;
   selisih: number | string;
   keterangan: string;

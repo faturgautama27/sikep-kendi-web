@@ -448,8 +448,11 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
             raw.verifikasiHarga.shsItems?.map((s: any) => ({
               id: s.id,
               namaItem: s.namaItem ?? '',
+              jenis: s.jenis ?? null,
               hargaVendor: asNumber(s.hargaVendor),
               hargaStandart: asNumber(s.hargaStandart),
+              qty: asNumber(s.qty ?? 1),
+              diskon: asNumber(s.diskon ?? 0),
               selisih: asNumber(s.selisih),
               keterangan: s.keterangan ?? '',
               shsMasterId: s.shsMasterId ?? null,

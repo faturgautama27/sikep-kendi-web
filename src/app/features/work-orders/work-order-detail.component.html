@@ -167,7 +167,7 @@
                   <tr class="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                     <th class="px-3 py-2.5 w-10 text-center">No</th>
                     <th class="px-3 py-2.5">Tindakan</th>
-                    <th class="px-3 py-2.5 w-36">No. Seri</th>
+                    <th class="px-3 py-2.5 w-28">Jenis</th>
                     <th class="px-3 py-2.5 w-20 text-right">Qty</th>
                     <th class="px-3 py-2.5 w-40 text-right">Harga (Rp)</th>
                     <th class="px-3 py-2.5 w-28 text-right">Diskon (%)</th>
@@ -179,7 +179,7 @@
                     <tr class="hover:bg-slate-50">
                       <td class="px-3 py-2.5 text-center text-slate-400 text-xs">{{ i + 1 }}</td>
                       <td class="px-3 py-2.5 text-slate-800">{{ item.tindakanPerbaikan || '—' }}</td>
-                      <td class="px-3 py-2.5 text-slate-500 text-xs">{{ item.nomorSeri || '—' }}</td>
+                      <td class="px-3 py-2.5 text-slate-600 text-xs">{{ item.jenis || '—' }}</td>
                       <td class="px-3 py-2.5 text-right">{{ item.qty ?? 1 }}</td>
                       <td class="px-3 py-2.5 text-right text-slate-700">{{ formatRupiah(item.harga ?? item.hargaItem) }}</td>
                       <td class="px-3 py-2.5 text-right text-slate-500">{{ item.diskon ?? 0 }}%</td>
@@ -190,7 +190,7 @@
                   }
                   @if (!draft.items.length) {
                     <tr>
-                      <td colspan="6" class="py-8 text-center text-slate-400 text-sm italic">
+                      <td colspan="7" class="py-8 text-center text-slate-400 text-sm italic">
                         Tidak ada item checklist.
                       </td>
                     </tr>
@@ -198,7 +198,7 @@
                 </tbody>
                 <tfoot class="bg-slate-50 border-t-2 border-slate-200">
                   <tr>
-                    <td colspan="5" class="px-3 py-3 text-right font-semibold text-slate-600">Total Harga:</td>
+                    <td colspan="6" class="px-3 py-3 text-right font-semibold text-slate-600">Total Harga:</td>
                     <td class="px-3 py-3 text-right font-bold text-primary-700 text-base">
                       {{ formatRupiah(draft.totalHarga) }}
                     </td>
@@ -243,47 +243,6 @@
                 </p>
               </div>
 
-              @if (draftToReview()) {
-                <div
-                  class="rounded-xl border p-4"
-                  [class]="
-                    shsMappingComplete()
-                      ? 'border-green-200 bg-green-50'
-                      : 'border-amber-200 bg-amber-50'
-                  "
-                >
-                  <div class="flex items-start gap-3">
-                    <i
-                      class="mt-0.5 text-lg"
-                      [class]="
-                        shsMappingComplete()
-                          ? 'pi pi-check-circle text-green-500'
-                          : 'pi pi-exclamation-triangle text-amber-500'
-                      "
-                    ></i>
-                    <div class="flex-1">
-                      <p
-                        class="text-sm font-semibold"
-                        [class]="shsMappingComplete() ? 'text-green-800' : 'text-amber-800'"
-                      >
-                        Mapping SHS wajib lengkap sebelum menyetujui draft
-                      </p>
-                      <p
-                        class="mt-1 text-xs"
-                        [class]="shsMappingComplete() ? 'text-green-700' : 'text-amber-700'"
-                      >
-                        Item draft: <strong>{{ draftItemCount() }}</strong> &middot; Item SHS:
-                        <strong>{{ shsItems().length }}</strong>
-                        @if (!shsMappingComplete()) {
-                          — jumlah harus sama. Gunakan "Input dari Draft Checklist" untuk mengisi
-                          otomatis.
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              }
-
               @if (false && latestDraft()?.items?.length) {
                 <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                   <div class="mb-3 flex items-center justify-between">
@@ -322,9 +281,10 @@
               <div class="overflow-x-auto rounded-xl border border-slate-200">
                 <table class="w-full table-fixed border-collapse bg-white text-sm">
                   <colgroup>
-                    <col class="w-[22%]" /><!-- SHS Referensi -->
-                    <col class="w-[10%]" /><!-- SHS Maks -->
-                    <col class="w-[22%]" /><!-- Nama Item -->
+                    <col class="w-[19%]" /><!-- SHS Referensi -->
+                    <col class="w-[9%]" /><!-- SHS Maks -->
+                    <col class="w-[17%]" /><!-- Nama Item -->
+                    <col class="w-[9%]" /><!-- Jenis -->
                     <col class="w-[6%]"  /><!-- QTY -->
                     <col class="w-[12%]" /><!-- Harga -->
                     <col class="w-[8%]"  /><!-- Diskon -->
@@ -337,6 +297,7 @@
                       <th class="p-3 text-left">SHS Referensi</th>
                       <th class="p-3 text-right">SHS Maks</th>
                       <th class="p-3 text-left">Nama Item</th>
+                      <th class="p-3 text-left">Jenis</th>
                       <th class="p-3 text-right">QTY</th>
                       <th class="p-3 text-right">Harga</th>
                       <th class="p-3 text-right">Diskon (%)</th>
@@ -377,6 +338,18 @@
                             (change)="updateShsItemField(item._key, 'namaItem', $any($event.target).value)"
                             placeholder="Nama item..."
                           />
+                        </td>
+                        <!-- Jenis -->
+                        <td class="p-2">
+                          <select
+                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-2 text-sm"
+                            [ngModel]="item.jenis ?? ''"
+                            (ngModelChange)="updateShsItemField(item._key, 'jenis', $event || undefined)"
+                          >
+                            <option value="">—</option>
+                            <option value="jasa">Jasa</option>
+                            <option value="spare part">Spare Part</option>
+                          </select>
                         </td>
                         <!-- QTY -->
                         <td class="p-2">
@@ -516,14 +489,8 @@
                       icon="pi pi-check"
                       severity="success"
                       [loading]="draftReviewBusy() || savingShsMappingLoading()"
-                      [disabled]="!shsMappingComplete() || hasItemExceedingShs()"
-                      [pTooltip]="
-                        !shsMappingComplete()
-                          ? 'Jumlah item SHS harus sama dengan jumlah item draft'
-                          : hasItemExceedingShs()
-                            ? 'Ada item melebihi SHS maksimum'
-                            : ''
-                      "
+                      [disabled]="hasItemExceedingShs()"
+                      [pTooltip]="hasItemExceedingShs() ? 'Ada item melebihi SHS maksimum' : ''"
                       tooltipPosition="top"
                       (onClick)="approve()"
                     ></p-button>
@@ -736,7 +703,7 @@
         }
 
         <!-- ══ STEP G: PPTK Decision ══ -->
-        @if (wo.status === 'MENUNGGU_PPTK' && (isPPTK() || isAdmin())) {
+        @if (latestDraft()?.status === 'DISETUJUI_PB' && (isPPTK() || isAdmin())) {
           <p-card header="Persetujuan PPTK">
             <div class="flex flex-col gap-3">
               <p class="text-sm text-slate-600">
@@ -773,7 +740,7 @@
                   (onClick)="openPptkDialog(false)"
                 ></p-button>
                 <p-button
-                  label="Setujui → Kirim ke Bendahara"
+                  label="Setujui Estimasi & Terbitkan SPK"
                   icon="pi pi-check"
                   severity="success"
                   (onClick)="openPptkDialog(true)"

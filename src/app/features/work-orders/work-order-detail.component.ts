@@ -301,11 +301,6 @@ export class WorkOrderDetailComponent implements OnInit {
   /** Jumlah item pada draft terbaru. */
   protected readonly draftItemCount = computed(() => this.latestDraft()?.items?.length ?? 0);
 
-  /** Mapping SHS dianggap lengkap: jumlah item SHS = jumlah item draft (>= 1). */
-  protected readonly shsMappingComplete = computed(
-    () => this.draftItemCount() > 0 && this.shsItems().length === this.draftItemCount(),
-  );
-
   // ─── Step D: PB Review Dialog ─────────────────────────────────────────────
   protected readonly pbReviewDialogVisible = signal(false);
   protected readonly pbReviewApproved = signal(false);
@@ -347,12 +342,17 @@ export class WorkOrderDetailComponent implements OnInit {
     const mapped: ShsItemLocal[] = serverItems.map((item) => {
       const hargaVendor = Number(item.hargaVendor) || 0;
       const hargaStandart = Number(item.hargaStandart) || 0;
+      const qty = Number(item.qty) || 1;
+      const diskon = Number(item.diskon) || 0;
       return {
         _key: this.itemKey++,
         namaItem: item.namaItem ?? '',
+        jenis: item.jenis ?? undefined,
         hargaVendor,
         hargaStandart,
-        jumlah: 1,
+        qty,
+        jumlah: qty,
+        diskon,
         shsMasterId: item.shsMasterId ?? undefined,
         hargaShs: hargaStandart || undefined,
         melebihiShs: hargaVendor > hargaStandart && hargaStandart > 0,
@@ -559,15 +559,6 @@ export class WorkOrderDetailComponent implements OnInit {
       return;
     }
 
-    if (!this.shsMappingComplete()) {
-      this.msg.add({
-        severity: 'warn',
-        summary: 'Mapping SHS belum lengkap',
-        detail: `Jumlah item SHS (${this.shsItems().length}) harus sama dengan item draft (${this.draftItemCount()}).`,
-      });
-      return;
-    }
-
     if (this.hasItemExceedingShs()) {
       this.msg.add({
         severity: 'error',
@@ -693,6 +684,7 @@ export class WorkOrderDetailComponent implements OnInit {
       {
         _key: this.itemKey++,
         namaItem: '',
+        jenis: undefined,
         hargaVendor: 0,
         hargaStandart: 0,
         jumlah: 1,
@@ -717,6 +709,7 @@ export class WorkOrderDetailComponent implements OnInit {
       return {
         _key:          this.itemKey++,
         namaItem:      item.tindakanPerbaikan || item.namaSparepart || item.namaKerusakan || '',
+        jenis:         item.jenis ?? undefined,
         hargaVendor:   harga,
         hargaStandart: 0,
         jumlah:        qty,
