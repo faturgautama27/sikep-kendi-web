@@ -34,12 +34,13 @@ import { ApprovePengajuan, RejectPengajuan } from './state/pengajuan.actions';
 import type { Pengajuan, PengajuanJenis, PengajuanStatus, ServisInfo, User } from '@shared/models';
 import { CommonModule } from '@angular/common';
 
-const STATUS_LABEL: Record<PengajuanStatus, string> = {
+const STATUS_LABEL: Record<PengajuanStatus | 'selesai', string> = {
   draft: 'Draft',
   menunggu_verifikasi: 'Menunggu Verifikasi',
   terverifikasi: 'Terverifikasi',
   ditolak: 'Ditolak',
   work_order_terbuat: 'Work Order Terbuat',
+  selesai: 'Selesai',
 };
 
 // Removed dummy vendors
@@ -107,11 +108,35 @@ export class PengajuanDetailComponent implements OnInit {
     () => this.pengajuan()?.status === 'menunggu_verifikasi',
   );
 
+  // Computed: display status with "SELESAI" for paid work orders
+  protected readonly displayStatus = computed(() => {
+    const p = this.pengajuan();
+    if (!p) return 'draft';
+    // Check if work order is DIBAYAR
+    if (p.workOrder && p.workOrder.status === 'DIBAYAR') {
+      console.log('✅ Status SELESAI displayed for pengajuan', p.id);
+      return 'selesai' as const;
+    }
+    return p.status;
+  });
+
+  // Computed: check if user is driver only (hide prices)
+  protected readonly isDriverOnly = computed(() => {
+    const roles = this.currentUserRoles();
+    return roles.includes('pengemudi') && !roles.includes('admin_sistem') && !roles.includes('pengurus_barang');
+  });
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.pengajuanId.set(id);
     this.dataPort.getById(id).subscribe({
       next: (res) => {
+        // Debug: check if workOrder is received
+        if (res.workOrder) {
+          console.log('✅ Work Order received - ID:', res.workOrder.id, 'Status:', res.workOrder.status);
+        } else {
+          console.log('⚠️ No work order for this pengajuan');
+        }
         this.pengajuan.set(res);
         // Fetch vendors only if status is menunggu_verifikasi
         this.adminDataPort.getVendors().subscribe({
@@ -145,19 +170,20 @@ export class PengajuanDetailComponent implements OnInit {
   }
 
   protected statusSeverity(
-    s: PengajuanStatus,
+    s: PengajuanStatus | 'selesai',
   ): 'warn' | 'success' | 'danger' | 'secondary' | 'info' {
-    const m: Record<PengajuanStatus, 'warn' | 'success' | 'danger' | 'secondary' | 'info'> = {
+    const m: Record<PengajuanStatus | 'selesai', 'warn' | 'success' | 'danger' | 'secondary' | 'info'> = {
       draft: 'secondary',
       menunggu_verifikasi: 'warn',
       terverifikasi: 'success',
       ditolak: 'danger',
       work_order_terbuat: 'info',
+      selesai: 'success',
     };
     return m[s];
   }
 
-  protected statusLabel(s: PengajuanStatus): string {
+  protected statusLabel(s: PengajuanStatus | 'selesai'): string {
     return STATUS_LABEL[s];
   }
 

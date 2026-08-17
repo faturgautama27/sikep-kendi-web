@@ -29,6 +29,23 @@ export type PengajuanCreateInput = Omit<
   | 'rejectedAt'
 > & { fotoIds?: number[] };
 
+export interface ServiceIntervalValidation {
+  eligible: boolean;
+  lastServiceDate?: string;
+  lastServiceOdometer?: number;
+  currentOdometer?: number;
+  requiredIntervalDays?: number;
+  requiredIntervalKm?: number;
+  daysSinceLastService?: number;
+  kmSinceLastService?: number;
+  daysEligible?: boolean;
+  kmEligible?: boolean;
+  daysRemaining?: number;
+  kmRemaining?: number;
+  message: string;
+  details?: string[];
+}
+
 export interface PengajuanDataPort {
   list(filter?: PengajuanFilter): Observable<Pengajuan[]>;
   getById(id: string): Observable<Pengajuan>;
@@ -39,6 +56,11 @@ export interface PengajuanDataPort {
   reject(id: string, reason: string): Observable<Pengajuan>;
   listApprovalPolicies(): Observable<ApprovalPolicy[]>;
   updateApprovalPolicies(policies: ApprovalPolicy[]): Observable<ApprovalPolicy[]>;
+  validateServiceInterval(payload: {
+    kendaraanId: number;
+    jenisPengajuan: string;
+    odometerSaatPengajuan: number;
+  }): Observable<ServiceIntervalValidation>;
 }
 
 export const PENGAJUAN_DATA = new InjectionToken<PengajuanDataPort>('PENGAJUAN_DATA');

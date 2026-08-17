@@ -240,8 +240,8 @@
 
             <td>
               <p-tag
-                [value]="statusLabel(p.status)"
-                [severity]="statusSeverity(p.status)"
+                [value]="statusLabel(getDisplayStatus(p))"
+                [severity]="statusSeverity(getDisplayStatus(p))"
                 [rounded]="true"
               ></p-tag>
             </td>
@@ -301,8 +301,8 @@
                   {{ p.nomor }}
                 </span>
                 <p-tag
-                  [value]="statusLabel(p.status)"
-                  [severity]="statusSeverity(p.status)"
+                  [value]="statusLabel(getDisplayStatus(p))"
+                  [severity]="statusSeverity(getDisplayStatus(p))"
                   [rounded]="true"
                   styleClass="text-[10px] shrink-0"
                 ></p-tag>

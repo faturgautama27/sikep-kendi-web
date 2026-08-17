@@ -29,6 +29,11 @@ export interface Pengajuan {
   spareparts: PengajuanSparepart[];
   approvalSteps: ApprovalStep[];
   workOrderId: Uuid | null;
+  workOrder?: {
+    id: Uuid;
+    status: string;
+    [key: string]: any;
+  } | null;
   photos: Image[];
   createdAt: Timestamp;
   updatedAt?: Timestamp;

@@ -55,12 +55,13 @@ const JENIS_OPTIONS: JenisOption[] = [
   { label: 'Ganti Spare Part', value: 'GANTI_SPARE_PART' },
 ];
 
-const STATUS_LABEL: Record<PengajuanStatus, string> = {
+const STATUS_LABEL: Record<PengajuanStatus | 'selesai', string> = {
   draft: 'Draft',
   menunggu_verifikasi: 'Menunggu Verifikasi',
   terverifikasi: 'Terverifikasi',
   ditolak: 'Ditolak',
   work_order_terbuat: 'Work Order Terbuat',
+  selesai: 'Selesai',
 };
 
 /**
@@ -102,11 +103,19 @@ export class PengajuanListComponent implements OnInit {
   protected readonly env = inject(APP_ENV);
 
   protected navigateToCreate(): void {
-    this.router.navigate(['/driver/pengajuan/baru']);
+    if (this.env.isMobile) {
+      this.router.navigate(['/driver/pengajuan/new']);
+    } else {
+      this.router.navigate(['/pengajuan/new']);
+    }
   }
 
   protected navigateToDetail(id: string): void {
-    this.router.navigate(['/driver/pengajuan', id]);
+    if (this.env.isMobile) {
+      this.router.navigate(['/driver/riwayat', id]);
+    } else {
+      this.router.navigate(['/pengajuan', id]);
+    }
   }
 
   protected readonly statusOptions = STATUS_OPTIONS;
@@ -149,11 +158,23 @@ export class PengajuanListComponent implements OnInit {
         const haystack = `${p.nomor} ${p.judul}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
-      if (statuses.length > 0 && !statuses.includes(p.status)) return false;
+      // For status filter, also check work order status for "selesai"
+      if (statuses.length > 0) {
+        const displayStatus = this.getDisplayStatus(p);
+        if (!statuses.includes(displayStatus as PengajuanStatus)) return false;
+      }
       if (jenis && p.jenis !== jenis) return false;
       return true;
     });
   });
+
+  /** Get display status including "selesai" check */
+  protected getDisplayStatus(p: Pengajuan): PengajuanStatus | 'selesai' {
+    if (p.workOrder && p.workOrder.status === 'DIBAYAR') {
+      return 'selesai';
+    }
+    return p.status;
+  }
 
   /** Hitung jumlah pengajuan per status untuk panel statistik. */
   protected readonly statsByStatus = computed(() => {
@@ -176,19 +197,11 @@ export class PengajuanListComponent implements OnInit {
   });
 
   protected onCreateManual(): void {
-    if (this.env.isMobile) {
-      this.router.navigate(['/driver/pengajuan/new']);
-    } else {
-      this.router.navigate(['/pengajuan/new']);
-    }
+    this.navigateToCreate();
   }
 
   protected onOpenDetail(p: Pengajuan): void {
-    if (this.isDriverOnly()) {
-      this.router.navigate(['/driver/riwayat', p.id]);
-    } else {
-      this.router.navigate(['/pengajuan', p.id]);
-    }
+    this.navigateToDetail(p.id);
   }
 
   protected onApprove(p: Pengajuan, event: MouseEvent): void {
@@ -210,7 +223,7 @@ export class PengajuanListComponent implements OnInit {
 
   /** Mapping status → severity Tag PrimeNG (biru-putih friendly). */
   protected statusSeverity(
-    status: PengajuanStatus,
+    status: PengajuanStatus | 'selesai',
   ): 'info' | 'success' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
       case 'draft':
@@ -219,6 +232,8 @@ export class PengajuanListComponent implements OnInit {
         return 'warn';
       case 'terverifikasi':
       case 'work_order_terbuat':
+        return 'success';
+      case 'selesai':
         return 'success';
       case 'ditolak':
         return 'danger';
@@ -241,7 +256,7 @@ export class PengajuanListComponent implements OnInit {
     }
   }
 
-  protected statusLabel(status: PengajuanStatus): string {
+  protected statusLabel(status: PengajuanStatus | 'selesai'): string {
     return STATUS_LABEL[status] ?? status;
   }
 

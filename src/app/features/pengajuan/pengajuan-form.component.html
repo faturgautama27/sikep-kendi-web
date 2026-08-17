@@ -214,6 +214,42 @@
         <h3 class="font-semibold text-slate-700">Step 2 — Detail Kerusakan</h3>
       }
 
+      <!-- Interval Warning Card (at top of Step 2) -->
+      @if (showIntervalWarning()) {
+        <div
+          class="flex flex-col gap-3 rounded-2xl border-2 border-amber-200 bg-amber-50 p-5 shadow-sm"
+          [class.mt-5]="env.isMobile"
+          [class.mt-4]="!env.isMobile"
+          [class.mb-4]="true"
+        >
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500">
+              <i class="pi pi-exclamation-triangle text-lg text-white"></i>
+            </div>
+            <div class="flex flex-1 flex-col gap-2">
+              <h4 class="text-base font-bold text-amber-900">
+                ⚠️ Belum Waktunya Servis Rutin
+              </h4>
+              <p class="text-sm leading-relaxed text-amber-800">
+                {{ intervalValidation()?.message }}
+              </p>
+              @if (intervalValidation()?.details && intervalValidation().details.length > 0) {
+                <ul class="ml-4 list-disc space-y-1 text-sm text-amber-700">
+                  @for (detail of intervalValidation().details; track $index) {
+                    <li>{{ detail }}</li>
+                  }
+                </ul>
+              }
+              <div class="mt-2 rounded-lg bg-amber-100 p-3 text-xs text-amber-900">
+                <i class="pi pi-info-circle mr-1"></i>
+                <strong>Pengajuan tidak dapat dikirim</strong> sampai interval servis terpenuhi.
+                Silakan kembali dan ubah data atau tunggu hingga interval terpenuhi.
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1"
           >Deskripsi / Kebutuhan Pemeliharaan <span class="text-red-500">*</span></label
@@ -300,9 +336,11 @@
             (onClick)="goStep(0)"
           />
           <p-button
-            label="Lanjutkan"
-            icon="pi pi-arrow-right"
+            [label]="canSubmit() ? 'Lanjutkan' : 'Interval Belum Terpenuhi'"
+            [icon]="canSubmit() ? 'pi pi-arrow-right' : 'pi pi-lock'"
             iconPos="right"
+            [disabled]="!canSubmit()"
+            [severity]="canSubmit() ? 'primary' : 'secondary'"
             (onClick)="goStep(2)"
           />
         </div>
@@ -323,6 +361,15 @@
     >
       @if (!env.isMobile) {
         <h3 class="font-semibold text-slate-700">Step 3 — Konfirmasi</h3>
+      }
+
+      @if (!env.isMobile) {
+        <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 flex gap-3">
+          <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
+          <p class="text-xs leading-relaxed text-amber-800">
+            Harap periksa kembali detail pengajuan Anda sebelum dikirim.
+          </p>
+        </div>
       } @else {
         <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 flex gap-3">
           <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
@@ -393,8 +440,10 @@
           />
           <p-button
             [label]="isEditMode() ? 'Simpan Perubahan' : 'Kirim Pengajuan'"
-            icon="pi pi-send"
+            [icon]="canSubmit() ? 'pi pi-send' : 'pi pi-lock'"
             [loading]="submitting()"
+            [disabled]="!canSubmit()"
+            [severity]="canSubmit() ? 'primary' : 'secondary'"
             (onClick)="onSubmit()"
           />
         </div>
@@ -444,21 +493,44 @@
 
     @if (step() < 2) {
       <button
-        class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-[0.98] active:bg-blue-700"
+        class="flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition active:scale-[0.98]"
+        [class.bg-blue-600]="canSubmit()"
+        [class.shadow-blue-600/30]="canSubmit()"
+        [class.active:bg-blue-700]="canSubmit()"
+        [class.bg-gray-400]="!canSubmit()"
+        [class.shadow-gray-400/30]="!canSubmit()"
+        [class.cursor-not-allowed]="!canSubmit()"
+        [class.opacity-60]="!canSubmit()"
+        [disabled]="!canSubmit()"
         (click)="nextStep()"
       >
-        <span>Lanjutkan</span>
-        <i class="pi pi-arrow-right text-lg"></i>
+        @if (!canSubmit()) {
+          <span>Interval Belum Terpenuhi</span>
+          <i class="pi pi-lock text-lg"></i>
+        } @else {
+          <span>Lanjutkan</span>
+          <i class="pi pi-arrow-right text-lg"></i>
+        }
       </button>
     } @else {
       <button
-        class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/30 transition active:scale-[0.98] active:bg-emerald-700 disabled:opacity-70 disabled:active:scale-100"
-        [disabled]="submitting()"
+        class="flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition active:scale-[0.98]"
+        [class.bg-emerald-600]="canSubmit()"
+        [class.shadow-emerald-600/30]="canSubmit()"
+        [class.active:bg-emerald-700]="canSubmit()"
+        [class.bg-gray-400]="!canSubmit()"
+        [class.shadow-gray-400/30]="!canSubmit()"
+        [class.cursor-not-allowed]="!canSubmit()"
+        [class.opacity-60]="!canSubmit()"
+        [disabled]="submitting() || !canSubmit()"
         (click)="onSubmit()"
       >
         @if (submitting()) {
           <i class="pi pi-spin pi-spinner text-lg"></i>
           <span>Menyimpan...</span>
+        } @else if (!canSubmit()) {
+          <i class="pi pi-lock text-lg"></i>
+          <span>Pengajuan Diblokir</span>
         } @else {
           <i class="pi pi-send text-lg"></i>
           <span>{{ isEditMode() ? 'Simpan' : 'Kirim Pengajuan' }}</span>

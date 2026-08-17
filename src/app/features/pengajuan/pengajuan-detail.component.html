@@ -45,16 +45,18 @@
       <!-- Mobile Hero Banner -->
       <div
         class="relative overflow-hidden px-5 pt-5 pb-16 bg-gradient-to-br"
-        [class.from-slate-600]="p.status === 'draft'"
-        [class.to-slate-700]="p.status === 'draft'"
-        [class.from-amber-500]="p.status === 'menunggu_verifikasi'"
-        [class.to-amber-600]="p.status === 'menunggu_verifikasi'"
-        [class.from-emerald-500]="p.status === 'terverifikasi'"
-        [class.to-emerald-600]="p.status === 'terverifikasi'"
-        [class.from-red-500]="p.status === 'ditolak'"
-        [class.to-red-600]="p.status === 'ditolak'"
-        [class.from-blue-500]="p.status === 'work_order_terbuat'"
-        [class.to-blue-600]="p.status === 'work_order_terbuat'"
+        [class.from-slate-600]="displayStatus() === 'draft'"
+        [class.to-slate-700]="displayStatus() === 'draft'"
+        [class.from-amber-500]="displayStatus() === 'menunggu_verifikasi'"
+        [class.to-amber-600]="displayStatus() === 'menunggu_verifikasi'"
+        [class.from-emerald-500]="displayStatus() === 'terverifikasi'"
+        [class.to-emerald-600]="displayStatus() === 'terverifikasi'"
+        [class.from-red-500]="displayStatus() === 'ditolak'"
+        [class.to-red-600]="displayStatus() === 'ditolak'"
+        [class.from-blue-500]="displayStatus() === 'work_order_terbuat'"
+        [class.to-blue-600]="displayStatus() === 'work_order_terbuat'"
+        [class.from-green-500]="displayStatus() === 'selesai'"
+        [class.to-green-600]="displayStatus() === 'selesai'"
       >
         <!-- Decorative circles -->
         <div class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5"></div>
@@ -78,7 +80,10 @@
             <span
               class="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold bg-white/15 backdrop-blur-sm text-white"
             >
-              {{ statusLabel(p.status) }}
+              @if (displayStatus() === 'selesai') {
+                <i class="pi pi-check-circle mr-1"></i>
+              }
+              {{ statusLabel(displayStatus()) }}
             </span>
             <span class="text-white/60 text-xs">{{ formatDate(p.createdAt) }}</span>
           </div>
@@ -209,10 +214,12 @@
                     <span class="text-xs text-slate-500 mb-0.5">Vendor</span>
                     <span class="font-medium text-slate-800">{{ info.lastServis.vendor || '—' }}</span>
                   </div>
-                  <div class="flex flex-col px-5 py-3">
-                    <span class="text-xs text-slate-500 mb-0.5">Total Biaya</span>
-                    <span class="font-semibold text-slate-800">{{ formatCurrency(info.lastServis.totalDibayar) }}</span>
-                  </div>
+                  @if (!isDriverOnly()) {
+                    <div class="flex flex-col px-5 py-3">
+                      <span class="text-xs text-slate-500 mb-0.5">Total Biaya</span>
+                      <span class="font-semibold text-slate-800">{{ formatCurrency(info.lastServis.totalDibayar) }}</span>
+                    </div>
+                  }
                   @if (info.lastServis.items.length > 0) {
                     <div class="flex flex-col px-5 py-3 gap-2">
                       <span class="text-xs text-slate-500">Rincian Pekerjaan</span>
@@ -223,7 +230,9 @@
                             @if (item.namaSparepart) {
                               <p class="text-slate-500 mt-0.5">Sparepart: {{ item.namaSparepart }}</p>
                             }
-                            <p class="text-slate-500 mt-0.5 text-right font-semibold">{{ formatCurrency(item.hargaItem) }}</p>
+                            @if (!isDriverOnly()) {
+                              <p class="text-slate-500 mt-0.5 text-right font-semibold">{{ formatCurrency(item.hargaItem) }}</p>
+                            }
                           </div>
                         }
                       </div>
@@ -427,10 +436,12 @@
                           </span>
                         </div>
                       }
-                      <div class="flex flex-col px-4 py-3">
-                        <span class="text-xs text-teal-600 mb-0.5">Total Biaya</span>
-                        <span class="font-semibold text-slate-800">{{ formatCurrency(info.lastServis.totalDibayar) }}</span>
-                      </div>
+                      @if (!isDriverOnly()) {
+                        <div class="flex flex-col px-4 py-3">
+                          <span class="text-xs text-teal-600 mb-0.5">Total Biaya</span>
+                          <span class="font-semibold text-slate-800">{{ formatCurrency(info.lastServis.totalDibayar) }}</span>
+                        </div>
+                      }
                     </div>
                     @if (info.lastServis.items.length > 0) {
                       <div class="border-t border-teal-100 px-4 py-3">
@@ -440,7 +451,9 @@
                             <tr class="text-left text-slate-500">
                               <th class="pb-1 font-medium">Tindakan</th>
                               <th class="pb-1 font-medium">Sparepart</th>
-                              <th class="pb-1 font-medium text-right">Biaya</th>
+                              @if (!isDriverOnly()) {
+                                <th class="pb-1 font-medium text-right">Biaya</th>
+                              }
                             </tr>
                           </thead>
                           <tbody class="divide-y divide-teal-50">
@@ -448,7 +461,9 @@
                               <tr>
                                 <td class="py-1.5 text-slate-700 pr-3">{{ item.tindakanPerbaikan }}</td>
                                 <td class="py-1.5 text-slate-500 pr-3">{{ item.namaSparepart || '—' }}</td>
-                                <td class="py-1.5 text-slate-700 text-right font-medium">{{ formatCurrency(item.hargaItem) }}</td>
+                                @if (!isDriverOnly()) {
+                                  <td class="py-1.5 text-slate-700 text-right font-medium">{{ formatCurrency(item.hargaItem) }}</td>
+                                }
                               </tr>
                             }
                           </tbody>

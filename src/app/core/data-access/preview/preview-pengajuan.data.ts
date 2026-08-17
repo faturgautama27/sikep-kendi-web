@@ -51,4 +51,16 @@ export class PreviewPengajuanData implements PengajuanDataPort {
   updateApprovalPolicies(policies: ApprovalPolicy[]): Observable<ApprovalPolicy[]> {
     return of(policies);
   }
+
+  validateServiceInterval(payload: {
+    kendaraanId: number;
+    jenisPengajuan: string;
+    odometerSaatPengajuan: number;
+  }): Observable<any> {
+    // Mock response for preview mode
+    return of({
+      eligible: true,
+      message: 'Preview mode - validasi interval dilewati',
+    });
+  }
 }

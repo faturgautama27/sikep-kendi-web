@@ -66,7 +66,7 @@ export class PengajuanFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly msg = inject(MessageService);
-  private readonly dataPort = inject(PENGAJUAN_DATA);
+  private readonly pengajuanData = inject(PENGAJUAN_DATA);
   private readonly imageData = inject(IMAGE_DATA);
   protected readonly env = inject(APP_ENV);
   private readonly offlineQueue = inject(OfflineQueueDbService);
@@ -79,6 +79,7 @@ export class PengajuanFormComponent implements OnInit {
   protected readonly photos = signal<{ id?: string, dataUrl: string }[]>([]);
   protected readonly warningDialogVisible = signal(false);
   protected readonly submissionWarnings = signal<string[]>([]);
+  protected readonly intervalValidation = signal<any | null>(null);
 
   private readonly allVehicles = this.store.selectSignal(VehiclesState.list);
   protected readonly vehicleOpts = computed(() =>
@@ -86,6 +87,27 @@ export class PengajuanFormComponent implements OnInit {
       .filter((v) => v.status === 'active' || v.status === 'in_repair')
       .map((v) => ({ label: `${v.nomorPolisi} — ${v.merk} ${v.tipe}`, value: v.id })),
   );
+
+  protected readonly canSubmit = computed(() => {
+    const jenis = this.step1.get('jenisPengajuan')?.value;
+    if (jenis !== 'servis_rutin') return true; // Allow for other types
+    
+    const validation = this.intervalValidation();
+    if (!validation) return true; // No validation done yet
+    
+    return validation.eligible; // Only allow if eligible
+  });
+
+  protected readonly showIntervalWarning = computed(() => {
+    const jenis = this.step1.get('jenisPengajuan')?.value;
+    if (jenis !== 'servis_rutin') return false;
+    
+    const validation = this.intervalValidation();
+    if (!validation) return false;
+    
+    // Show warning in Step 2 (Detail Kerusakan) = index 1
+    return this.step() === 1 && !validation.eligible;
+  });
 
   protected readonly steps = [
     { label: 'Data Kendaraan' },
@@ -125,8 +147,8 @@ export class PengajuanFormComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.pengajuanId.set(id);
-      this.dataPort.getById(id).subscribe({
-        next: (res) => {
+      this.pengajuanData.getById(id).subscribe({
+        next: (res: any) => {
           this.step1.patchValue({
             vehicleId: res.vehicleId,
             jenisPengajuan: res.jenis.toLowerCase(),
@@ -139,6 +161,15 @@ export class PengajuanFormComponent implements OnInit {
         error: () => this.msg.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data pengajuan' }),
       });
     }
+
+    // Watch for changes in Step 1 form to reset validation
+    this.step1.get('jenisPengajuan')?.valueChanges.subscribe(() => {
+      this.intervalValidation.set(null);
+    });
+    
+    this.step1.get('odometerSaatPengajuan')?.valueChanges.subscribe(() => {
+      this.intervalValidation.set(null);
+    });
   }
 
   protected onVehicleChange(): void {
@@ -146,6 +177,8 @@ export class PengajuanFormComponent implements OnInit {
     if (v && !this.isEditMode()) {
       this.step1.patchValue({ odometerSaatPengajuan: v.odometerCurrent });
     }
+    // Reset validation when vehicle changes
+    this.intervalValidation.set(null);
   }
 
   protected charCount(): number {
@@ -224,8 +257,46 @@ export class PengajuanFormComponent implements OnInit {
     this.goStep((this.step() - 1) as Step);
   }
 
-  protected nextStep() {
-    this.goStep((this.step() + 1) as Step);
+  protected async nextStep() {
+    const nextStepNum = (this.step() + 1) as Step;
+    
+    // Validate service interval when moving from step 0 to step 1
+    if (this.step() === 0 && nextStepNum === 1) {
+      this.step1.markAllAsTouched();
+      if (this.step1.invalid) return;
+      
+      const jenis = this.step1.get('jenisPengajuan')!.value;
+      
+      // Only validate for servis_rutin
+      if (jenis === 'servis_rutin') {
+        const kendaraanId = this.step1.get('vehicleId')!.value;
+        const odometer = this.step1.get('odometerSaatPengajuan')!.value;
+        
+        if (!kendaraanId || !odometer) return;
+        
+        try {
+          const validation = await this.pengajuanData.validateServiceInterval({
+            kendaraanId: Number(kendaraanId),
+            jenisPengajuan: jenis,
+            odometerSaatPengajuan: Number(odometer),
+          }).toPromise();
+          
+          // Save validation result
+          this.intervalValidation.set(validation || null);
+          
+          // Always allow to proceed (warning shown in Step 2)
+        } catch (error) {
+          console.error('Failed to validate service interval:', error);
+          // If validation fails, allow to proceed but without validation data
+          this.intervalValidation.set(null);
+        }
+      } else {
+        // Reset validation for non-servis_rutin types
+        this.intervalValidation.set(null);
+      }
+    }
+    
+    this.goStep(nextStepNum);
   }
 
   protected goStep(target: Step): void {
@@ -238,11 +309,29 @@ export class PengajuanFormComponent implements OnInit {
       this.step2.markAllAsTouched();
       if (this.step1.invalid || this.step2.invalid) return;
     }
+    
+    // Reset validation when going back to Step 0 (for re-validation)
+    if (target === 0) {
+      this.intervalValidation.set(null);
+    }
+    
     this.step.set(target);
   }
 
   protected async onSubmit(): Promise<void> {
     if (this.step1.invalid || this.step2.invalid) return;
+    
+    // Block submit if interval validation failed
+    if (!this.canSubmit()) {
+      this.msg.add({
+        severity: 'error',
+        summary: 'Tidak Dapat Mengirim',
+        detail: 'Kendaraan belum memenuhi interval servis rutin.',
+        life: 5000,
+      });
+      return;
+    }
+    
     this.submitting.set(true);
 
     const v = this.selectedVehicle()!;

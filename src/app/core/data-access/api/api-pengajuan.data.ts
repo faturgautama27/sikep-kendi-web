@@ -95,6 +95,11 @@ export class ApiPengajuanData implements PengajuanDataPort {
       spareparts: Array.isArray(raw['spareparts']) ? (raw['spareparts'] as Pengajuan['spareparts']) : [],
       approvalSteps: Array.isArray(raw['approvalSteps']) ? (raw['approvalSteps'] as Pengajuan['approvalSteps']) : [],
       workOrderId: (raw['workOrderId'] as string | null | undefined) ?? null,
+      workOrder: raw['workOrder'] ? {
+        id: String(raw['workOrder']['id']),
+        status: String(raw['workOrder']['status']),
+        ...raw['workOrder']
+      } : null,
       photos: fotos as Pengajuan['photos'],
       createdAt,
       updatedAt: (raw['updatedAt'] as string | undefined) ?? createdAt,
@@ -207,5 +212,13 @@ export class ApiPengajuanData implements PengajuanDataPort {
 
   updateApprovalPolicies(policies: ApprovalPolicy[]): Observable<ApprovalPolicy[]> {
     return of(policies);
+  }
+
+  validateServiceInterval(payload: {
+    kendaraanId: number;
+    jenisPengajuan: string;
+    odometerSaatPengajuan: number;
+  }): Observable<any> {
+    return this.http.post<any>(this.url('/pengajuan/validate-service-interval'), payload);
   }
 }
