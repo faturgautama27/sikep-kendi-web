@@ -212,37 +212,25 @@
                 class="mt-4 flex flex-col gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4"
               >
                 <h3 class="text-sm font-semibold text-primary-900">Review Draft Checklist</h3>
-                <div class="flex items-end gap-3">
-                  <div class="flex-1">
-                    <input
-                      pInputText
-                      class="w-full"
-                      [(ngModel)]="catatan"
-                      placeholder="Catatan penolakan (wajib jika menolak)"
-                      [disabled]="draftReviewBusy()"
-                    />
-                  </div>
-                  <p-button
-                    label="Tolak"
-                    icon="pi pi-times"
-                    severity="danger"
-                    [loading]="draftReviewBusy()"
-                    (onClick)="reject()"
-                  ></p-button>
-                  <p-button
-                    label="Setujui"
-                    icon="pi pi-check"
-                    [loading]="draftReviewBusy()"
-                    (onClick)="approve()"
-                  ></p-button>
-                </div>
+                <p class="text-xs text-primary-800">
+                  Isi catatan di bawah, lalu lengkapi <strong>Mapping SHS</strong> pada kartu
+                  berikutnya. Tombol setujui/tolak berada di kartu Mapping SHS.
+                </p>
+                <input
+                  pInputText
+                  class="w-full"
+                  [(ngModel)]="catatan"
+                  placeholder="Catatan penolakan (wajib jika menolak)"
+                  [disabled]="draftReviewBusy()"
+                />
               </div>
             }
           </p-card>
         }
 
         <!-- ══ STEP D: PB Input SHS Mapping ══ -->
-        @if (wo.status === 'PENAWARAN' && (isPB() || isAdmin())) {
+        <!-- Tampil saat PB mereview draft (DIKIRIM) maupun pada tahap PENAWARAN -->
+        @if (draftToReview() && (isPB() || isAdmin())) {
           <p-card header="Mapping SHS oleh Pengurus Barang">
             <div class="flex flex-col gap-5">
               <div
@@ -254,6 +242,47 @@
                   maksimum.
                 </p>
               </div>
+
+              @if (draftToReview()) {
+                <div
+                  class="rounded-xl border p-4"
+                  [class]="
+                    shsMappingComplete()
+                      ? 'border-green-200 bg-green-50'
+                      : 'border-amber-200 bg-amber-50'
+                  "
+                >
+                  <div class="flex items-start gap-3">
+                    <i
+                      class="mt-0.5 text-lg"
+                      [class]="
+                        shsMappingComplete()
+                          ? 'pi pi-check-circle text-green-500'
+                          : 'pi pi-exclamation-triangle text-amber-500'
+                      "
+                    ></i>
+                    <div class="flex-1">
+                      <p
+                        class="text-sm font-semibold"
+                        [class]="shsMappingComplete() ? 'text-green-800' : 'text-amber-800'"
+                      >
+                        Mapping SHS wajib lengkap sebelum menyetujui draft
+                      </p>
+                      <p
+                        class="mt-1 text-xs"
+                        [class]="shsMappingComplete() ? 'text-green-700' : 'text-amber-700'"
+                      >
+                        Item draft: <strong>{{ draftItemCount() }}</strong> &middot; Item SHS:
+                        <strong>{{ shsItems().length }}</strong>
+                        @if (!shsMappingComplete()) {
+                          — jumlah harus sama. Gunakan "Input dari Draft Checklist" untuk mengisi
+                          otomatis.
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              }
 
               @if (false && latestDraft()?.items?.length) {
                 <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
@@ -471,20 +500,49 @@
                     [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
                     (onClick)="saveShsMapping()"
                   ></p-button>
-                  <p-button
-                    label="Tolak Draft"
-                    icon="pi pi-times"
-                    severity="danger"
-                    [outlined]="true"
-                    (onClick)="openPbReviewDialog(false)"
-                  ></p-button>
-                  <p-button
-                    label="Approve Draft"
-                    icon="pi pi-check"
-                    severity="success"
-                    [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
-                    (onClick)="openPbReviewDialog(true)"
-                  ></p-button>
+
+                  @if (draftToReview()) {
+                    <!-- Alur baru: PB menolak / menyetujui draft checklist langsung di sini -->
+                    <p-button
+                      label="Tolak Draft"
+                      icon="pi pi-times"
+                      severity="danger"
+                      [outlined]="true"
+                      [loading]="draftReviewBusy()"
+                      (onClick)="reject()"
+                    ></p-button>
+                    <p-button
+                      label="Simpan SHS & Setujui Draft"
+                      icon="pi pi-check"
+                      severity="success"
+                      [loading]="draftReviewBusy() || savingShsMappingLoading()"
+                      [disabled]="!shsMappingComplete() || hasItemExceedingShs()"
+                      [pTooltip]="
+                        !shsMappingComplete()
+                          ? 'Jumlah item SHS harus sama dengan jumlah item draft'
+                          : hasItemExceedingShs()
+                            ? 'Ada item melebihi SHS maksimum'
+                            : ''
+                      "
+                      tooltipPosition="top"
+                      (onClick)="approve()"
+                    ></p-button>
+                  } @else {
+                    <p-button
+                      label="Tolak Draft"
+                      icon="pi pi-times"
+                      severity="danger"
+                      [outlined]="true"
+                      (onClick)="openPbReviewDialog(false)"
+                    ></p-button>
+                    <p-button
+                      label="Approve Draft"
+                      icon="pi pi-check"
+                      severity="success"
+                      [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
+                      (onClick)="openPbReviewDialog(true)"
+                    ></p-button>
+                  }
                 </div>
               </div>
             </div>

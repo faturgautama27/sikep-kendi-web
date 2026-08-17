@@ -9,7 +9,7 @@ export interface DraftChecklistDataPort {
   submit(id: string): Observable<unknown>;
   /** PB approve — status: DIKIRIM → DISETUJUI_PB */
   approve(id: string): Observable<unknown>;
-  approvePb(woId: string, id: string): Observable<unknown>;
+  approvePb(woId: string, id: string, payload?: { catatan?: string }): Observable<unknown>;
   /** PB reject — status: DIKIRIM → DITOLAK_PB */
   reject(id: string, payload: { notesRejection: string }): Observable<unknown>;
   rejectPb(woId: string, id: string, payload: { notesRejection: string }): Observable<unknown>;

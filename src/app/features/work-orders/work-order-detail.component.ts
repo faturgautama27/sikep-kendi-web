@@ -25,6 +25,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import {
   WorkOrdersState,
@@ -107,6 +108,7 @@ interface ShsItemLocal extends ShsItemInput {
     TextareaModule,
     TimelineModule,
     ToastModule,
+    TooltipModule,
   ],
   providers: [MessageService],
   templateUrl: './work-order-detail.component.html',
@@ -294,6 +296,14 @@ export class WorkOrderDetailComponent implements OnInit {
   );
   protected readonly shsTotal = computed(() =>
     this.shsItems().reduce((sum, i) => sum + this.subtotalItem(i), 0),
+  );
+
+  /** Jumlah item pada draft terbaru. */
+  protected readonly draftItemCount = computed(() => this.latestDraft()?.items?.length ?? 0);
+
+  /** Mapping SHS dianggap lengkap: jumlah item SHS = jumlah item draft (>= 1). */
+  protected readonly shsMappingComplete = computed(
+    () => this.draftItemCount() > 0 && this.shsItems().length === this.draftItemCount(),
   );
 
   // ─── Step D: PB Review Dialog ─────────────────────────────────────────────
@@ -549,23 +559,56 @@ export class WorkOrderDetailComponent implements OnInit {
       return;
     }
 
+    if (!this.shsMappingComplete()) {
+      this.msg.add({
+        severity: 'warn',
+        summary: 'Mapping SHS belum lengkap',
+        detail: `Jumlah item SHS (${this.shsItems().length}) harus sama dengan item draft (${this.draftItemCount()}).`,
+      });
+      return;
+    }
+
+    if (this.hasItemExceedingShs()) {
+      this.msg.add({
+        severity: 'error',
+        summary: 'Ada item melebihi SHS',
+        detail: 'Perbaiki harga item sebelum menyetujui draft.',
+      });
+      return;
+    }
+
     this.draftReviewBusy.set(true);
-    this.store.dispatch(new ApproveDraftPb(this.id, draft.id)).subscribe({
+    this.savingShsMappingLoading.set(true);
+    this.store.dispatch(new SaveShsMapping(this.id, this.buildShsPayload())).subscribe({
       next: () => {
-        this.draftReviewBusy.set(false);
-        this.catatan = '';
-        this.store.dispatch(new GetWorkOrderDetail(this.id));
-        this.msg.add({
-          severity: 'success',
-          summary: 'Draft disetujui',
-          detail: 'Draft diteruskan ke PPTK untuk verifikasi.',
+        this.savingShsMappingLoading.set(false);
+        this.store.dispatch(new ApproveDraftPb(this.id, draft.id, this.catatan.trim() || undefined)).subscribe({
+          next: () => {
+            this.draftReviewBusy.set(false);
+            this.catatan = '';
+            this.store.dispatch(new GetWorkOrderDetail(this.id));
+            this.msg.add({
+              severity: 'success',
+              summary: 'SHS tersimpan dan draft disetujui',
+              detail: 'Draft diteruskan ke PPTK untuk verifikasi.',
+            });
+          },
+          error: (err) => {
+            this.draftReviewBusy.set(false);
+            this.msg.add({
+              severity: 'error',
+              summary: 'SHS tersimpan, tetapi draft gagal disetujui',
+              detail: err?.error?.message ?? 'Terjadi kesalahan pada server.',
+            });
+          },
         });
       },
-      error: (err) => {
+      error: (err: any) => {
+        this.savingShsMappingLoading.set(false);
         this.draftReviewBusy.set(false);
         this.msg.add({
           severity: 'error',
-          summary: 'Gagal menyetujui draft',
+          summary: 'Gagal menyimpan mapping SHS',
           detail: err?.error?.message ?? 'Terjadi kesalahan pada server.',
         });
       },
@@ -757,6 +800,14 @@ export class WorkOrderDetailComponent implements OnInit {
     );
   }
 
+  private buildShsPayload(): ShsItemInput[] {
+    return this.shsItems().map(({ _key, hargaShs, melebihiShs, jumlah, ...item }) => ({
+      ...item,
+      qty: item.qty ?? jumlah ?? 1,
+      diskon: item.diskon ?? 0,
+    }));
+  }
+
   protected saveShsMapping() {
     if (this.shsItems().length === 0) {
       this.msg.add({ severity: 'warn', summary: 'Minimal 1 item SHS diperlukan' });
@@ -771,13 +822,7 @@ export class WorkOrderDetailComponent implements OnInit {
       return;
     }
 
-    const payload: ShsItemInput[] = this.shsItems().map(
-      ({ _key, hargaShs, melebihiShs, jumlah, ...item }) => ({
-        ...item,
-        qty:    item.qty    ?? jumlah ?? 1,
-        diskon: item.diskon ?? 0,
-      }),
-    );
+    const payload = this.buildShsPayload();
     this.savingShsMappingLoading.set(true);
     this.store.dispatch(new SaveShsMapping(this.id, payload)).subscribe({
       next: () => {

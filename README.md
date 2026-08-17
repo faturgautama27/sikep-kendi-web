@@ -78,3 +78,6 @@ npm run start:preview   # dev server preview mode (no backend)
 npm run lint       # ESLint
 npm run format     # Prettier
 ```
+
+## 🛠️ Build APK
+source ~/.zshrc && java -version && npm run build:android

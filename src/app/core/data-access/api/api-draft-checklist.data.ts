@@ -58,9 +58,9 @@ export class ApiDraftChecklistData implements DraftChecklistDataPort {
     return this.http.post<unknown>(this.url(`/draft-checklist/${id}/approve`), {});
   }
 
-  approvePb(woId: string, id: string): Observable<unknown> {
+  approvePb(woId: string, id: string, payload?: { catatan?: string }): Observable<unknown> {
     return this.http.post<unknown>(
-      this.url(`/work-orders/${woId}/draft-checklist/${id}/approve-pb`), {},
+      this.url(`/work-orders/${woId}/draft-checklist/${id}/approve-pb`), payload ?? {},
     );
   }
 
