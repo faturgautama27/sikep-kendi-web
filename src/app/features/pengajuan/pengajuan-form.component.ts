@@ -197,6 +197,45 @@ export class PengajuanFormComponent implements OnInit {
     }
   }
   
+  protected async takeVideo(): Promise<void> {
+    if (this.photos().length >= 5) {
+      this.msg.add({ severity: 'warn', summary: 'Batas Media', detail: 'Maksimal 5 foto/video' });
+      return;
+    }
+
+    try {
+      const result = await this.cameraService.pickVideo();
+      if (!result) return; // user cancelled or file oversized
+
+      // Show size-limit toast when file > 100 MB
+      if (!result.file.size) {
+        this.msg.add({ severity: 'error', summary: 'File Terlalu Besar', detail: 'Ukuran video maksimal 100 MB' });
+        return;
+      }
+
+      this.submitting.set(true);
+      this.imageData.upload(result.file).subscribe({
+        next: (res: any) => {
+          this.submitting.set(false);
+          this.photos.update(p => [...p, {
+            id: String(res.id),
+            dataUrl: result.dataUrl,
+            mimeType: result.mimeType,
+          }]);
+          this.msg.add({ severity: 'success', summary: 'Sukses', detail: 'Video berhasil diupload' });
+        },
+        error: () => {
+          this.submitting.set(false);
+          // Revoke object URL to free memory on failure
+          URL.revokeObjectURL(result.dataUrl);
+          this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal mengupload video' });
+        },
+      });
+    } catch (e) {
+      console.error('takeVideo error:', e);
+    }
+  }
+
   protected removePhoto(index: number) {
     this.photos.update(p => p.filter((_, i) => i !== index));
   }

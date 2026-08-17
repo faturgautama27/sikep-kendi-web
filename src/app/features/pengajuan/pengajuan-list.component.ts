@@ -102,11 +102,11 @@ export class PengajuanListComponent implements OnInit {
   protected readonly env = inject(APP_ENV);
 
   protected navigateToCreate(): void {
-    this.router.navigate(['/driver/pengajuan/baru']);
+    this.router.navigate(['/driver/pengajuan/new']);
   }
 
   protected navigateToDetail(id: string): void {
-    this.router.navigate(['/driver/pengajuan', id]);
+    this.router.navigate(['/driver/riwayat', id]);
   }
 
   protected readonly statusOptions = STATUS_OPTIONS;

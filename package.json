@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "lsof -ti :4400 | xargs kill -9; ng serve --port 4400",
+    "start": "(Get-NetTCPConnection -LocalPort 4200).OwningProcess | ForEach-Object { taskkill /PID $_ /F }; ng serve --port 4200",
     "start:preview": "lsof -ti :4400 | xargs kill -9; ng serve --configuration=preview --port 4400",
     "start:mobile": "lsof -ti :4500 | xargs kill -9; ng serve --configuration=mobile --port 4500",
     "build": "ng build",

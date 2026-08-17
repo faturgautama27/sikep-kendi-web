@@ -57,7 +57,6 @@
   [class.px-4]="env.isMobile"
   [class.pb-6]="env.isMobile"
   [class.bg-slate-50]="env.isMobile"
-  [class.-mt-8]="env.isMobile"
   [class.gap-5]="!env.isMobile"
   [class.max-w-3xl]="!env.isMobile"
 >
@@ -271,14 +270,26 @@
 
         @if (photos().length < 5) {
           @if (env.isMobile) {
-            <button
-              type="button"
-              (click)="takePhoto()"
-              class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 aspect-square text-blue-600 active:bg-blue-100 transition w-1/2"
-            >
-              <i class="pi pi-camera text-2xl"></i>
-              <span class="text-xs font-semibold">Ambil Foto</span>
-            </button>
+            <!-- Mobile: dua tombol Foto + Video side-by-side -->
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                (click)="takePhoto()"
+                class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 aspect-square text-blue-600 active:bg-blue-100 transition"
+              >
+                <i class="pi pi-camera text-2xl"></i>
+                <span class="text-xs font-semibold">Ambil Foto</span>
+              </button>
+              <button
+                type="button"
+                (click)="takeVideo()"
+                [disabled]="submitting()"
+                class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 aspect-square text-violet-600 active:bg-violet-100 transition disabled:opacity-50 disabled:active:scale-100"
+              >
+                <i class="pi pi-video text-2xl"></i>
+                <span class="text-xs font-semibold">Rekam Video</span>
+              </button>
+            </div>
           } @else {
             <p-fileupload
               #fuPhoto
@@ -329,7 +340,7 @@
       [class.shadow-sm]="!env.isMobile"
     >
       @if (!env.isMobile) {
-        <h3 class="font-semibold text-slate-700">Step 3 — Konfirmasi</h3>
+        <h3 class="font-semibold text-slate-700 mt-2">Step 3 — Konfirmasi</h3>
       } @else {
         <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 flex gap-3">
           <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>

@@ -64,6 +64,51 @@ export class CameraService {
   }
 
   /**
+   * Pick a video from device storage or record a new one via native file input.
+   * Uses a hidden <input type="file"> element so no extra Capacitor plugin is needed.
+   * Max size: 100 MB.
+   *
+   * @returns CaptureResult with video File, object-URL dataUrl, and mimeType
+   */
+  pickVideo(): Promise<CaptureResult | null> {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      // accept video formats + capture attribute opens camera directly on Android
+      input.accept = 'video/mp4,video/quicktime,video/x-msvideo,video/3gpp,video/x-matroska,video/*';
+      input.capture = 'environment'; // rear camera for recording
+
+      const MAX_BYTES = 100 * 1024 * 1024; // 100 MB
+
+      input.onchange = () => {
+        const file = input.files?.[0] ?? null;
+        if (!file) { resolve(null); return; }
+
+        if (file.size > MAX_BYTES) {
+          resolve(null);
+          // Caller is responsible for showing the size-limit toast
+          (input as any).__oversized = true;
+          return;
+        }
+
+        // Use object URL — avoids reading the entire binary into memory as base64
+        const dataUrl = URL.createObjectURL(file);
+        resolve({ file, dataUrl, mimeType: file.type || 'video/mp4' });
+      };
+
+      // Resolve null if the picker is dismissed without selecting
+      input.oncancel = () => resolve(null);
+
+      input.click();
+    });
+  }
+
+  /** Expose the oversized flag so callers can show the right toast. */
+  static isOversized(input: HTMLInputElement): boolean {
+    return !!(input as any).__oversized;
+  }
+
+  /**
    * Returns true if location permission was denied during last capture.
    * Used to show warning toast to user.
    */
