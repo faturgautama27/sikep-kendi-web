@@ -74,6 +74,23 @@ export class SubmitInvoice {
   ) {}
 }
 
+export class SubmitPekerjaan {
+  static readonly type = '[WorkOrders] Submit Pekerjaan';
+  readonly type = SubmitPekerjaan.type;
+  constructor(public readonly workOrderId: string) {}
+}
+
+export class ReviewPekerjaanPb {
+  static readonly type = '[WorkOrders] Review Pekerjaan PB';
+  readonly type = ReviewPekerjaanPb.type;
+  constructor(
+    public readonly workOrderId: string,
+    public readonly approved: boolean,
+    public readonly catatan?: string,
+    public readonly alasanPenolakan?: string,
+  ) {}
+}
+
 // Step F: Verifikator review invoice
 export class VerifikatorReview {
   static readonly type = '[WorkOrders] Verifikator Review';

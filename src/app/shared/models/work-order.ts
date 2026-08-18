@@ -13,7 +13,10 @@ export interface WorkOrderPenawaranItem {
 export interface WorkOrderShsItem {
   id: number;
   namaItem: string;
+  jenis?: string | null;
+  qty?: number | string;
   hargaVendor: number | string;
+  diskon?: number | string;
   hargaStandart: number | string;
   selisih: number | string;
   keterangan: string;
@@ -36,6 +39,7 @@ export type WorkOrderStatus =
   | 'PENAWARAN'
   | 'DIVERIFIKASI'
   | 'MENUNGGU_INVOICE_VENDOR'
+  | 'MENUNGGU_PB'
   | 'MENUNGGU_VERIFIKATOR'
   | 'MENUNGGU_PPTK'
   | 'DISETUJUI_PPTK'
@@ -48,7 +52,11 @@ export type EvidenceCategory =
   | 'kondisi_awal'
   | 'sparepart_sebelum'
   | 'sparepart_sesudah'
-  | 'pasca_perbaikan';
+  | 'pasca_perbaikan'
+  | 'spare_part'
+  | 'sebelum_perbaikan'
+  | 'saat_perbaikan'
+  | 'setelah_perbaikan';
 
 export interface WorkOrderInvoice {
   nomorInvoice: string;
@@ -65,6 +73,17 @@ export interface WorkOrderPenawaranDetail {
   catatanPerubahan?: string | null;
   invoice: WorkOrderInvoice | null;
   items: WorkOrderPenawaranItem[];
+}
+
+export interface WorkOrderPembayaran {
+  id: string;
+  status: string;
+  metodePembayaran: 'tunai' | 'gibs' | 'kkpd' | string;
+  totalDibayar: number;
+  tanggalPembayaran: string | null;
+  paidAt: string | null;
+  buktiTransferImageId: number | null;
+  buktiTransferUrl: string | null;
 }
 
 export interface WorkOrder {
@@ -106,6 +125,7 @@ export interface WorkOrder {
   invoiceImage?: Image | null;
   invoiceDraft?: Image | null;
   fakturPajakFile?: Image | null;
+  pembayaran?: WorkOrderPembayaran | null;
   // Fitur 3 — Foto Sebelum Pengerjaan
   fotoSebelumPengerjaanImageId?: number | null;
   fotoSebelumPengerjaan?: Image | null;

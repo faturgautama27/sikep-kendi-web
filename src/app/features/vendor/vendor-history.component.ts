@@ -55,7 +55,11 @@ export class VendorHistoryComponent {
       DIBUAT: 'Dibuat',
       VENDOR_DITUGASKAN: 'Ditugaskan',
       DRAFT_CHECKLIST: 'Draft Checklist',
-      PENAWARAN: 'Penawaran',
+      PENAWARAN: 'Pengerjaan',
+      MENUNGGU_PB: 'Menunggu PB',
+      MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
+      MENUNGGU_PPTK: 'Menunggu PPTK',
+      DISETUJUI_PPTK: 'Disetujui PPTK',
       DIVERIFIKASI: 'Diverifikasi',
       DIBAYAR: 'Selesai (Dibayar)',
     };

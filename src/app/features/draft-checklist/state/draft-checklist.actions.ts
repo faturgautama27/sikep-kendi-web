@@ -44,6 +44,7 @@ export class ApproveDraftPb {
   constructor(
     public readonly workOrderId: string,
     public readonly id: string,
+    public readonly catatan?: string,
   ) {}
 }
 

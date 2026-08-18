@@ -11,6 +11,7 @@ export interface WorkOrderFilter {
 
 export interface ShsItemInput {
   namaItem: string;
+  jenis?: string;
   hargaVendor: number;
   hargaStandart: number;
   qty?: number;
@@ -44,6 +45,13 @@ export interface WorkOrderDataPort {
     dokumentasiImageIds?: number[],
     dokumentasiKategori?: string[],
     fakturPajakImageId?: number,
+  ): Observable<WorkOrder>;
+  submitPekerjaan(workOrderId: string): Observable<WorkOrder>;
+  reviewPekerjaanPb(
+    workOrderId: string,
+    approved: boolean,
+    catatan?: string,
+    alasanPenolakan?: string,
   ): Observable<WorkOrder>;
   // Step F: Verifikator review
   verifikatorReview(

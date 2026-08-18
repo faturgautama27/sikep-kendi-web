@@ -256,7 +256,7 @@ export class DraftChecklistState {
   @Action(ApproveDraftPb)
   approvePb(ctx: StateContext<DraftChecklistStateModel>, action: ApproveDraftPb) {
     if (!this.env.previewMode) {
-      return this.data.approvePb(action.workOrderId, action.id).pipe(
+      return this.data.approvePb(action.workOrderId, action.id, { catatan: action.catatan }).pipe(
         tap(() => ctx.dispatch(new LoadDraftChecklist(action.workOrderId))),
       );
     }

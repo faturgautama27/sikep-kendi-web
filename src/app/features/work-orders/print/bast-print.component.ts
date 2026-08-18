@@ -23,6 +23,10 @@ const EVIDENCE_LABEL_MAP: Record<string, string> = {
   sparepart_sebelum: 'Sparepart Sebelum',
   sparepart_sesudah: 'Sparepart Sesudah',
   pasca_perbaikan: 'Pasca Perbaikan',
+  spare_part: 'Spare Part',
+  sebelum_perbaikan: 'Sebelum Perbaikan',
+  saat_perbaikan: 'Saat Perbaikan',
+  setelah_perbaikan: 'Setelah Perbaikan',
 };
 
 @Component({

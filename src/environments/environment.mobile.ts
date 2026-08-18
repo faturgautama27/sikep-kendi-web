@@ -4,7 +4,7 @@ export const environment: AppEnvironment = {
   production: true,
   previewMode: false,
   isMobile: true,
-  apiBaseUrl: 'http://localhost:3000/api',
+  apiBaseUrl: 'https://disperindag.jatengprov.go.id/sikepapi/public/api',
   appName: 'SiKeP KenDI Pengemudi',
   tagline: 'Sistem Kendali Pemeliharaan Kendaraan Dinas',
   defaultLocale: 'id-ID',

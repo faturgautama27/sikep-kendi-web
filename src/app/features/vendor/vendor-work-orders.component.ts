@@ -21,9 +21,10 @@ const STATUS_LABELS: Record<WorkOrderStatus, string> = {
   DIBUAT: 'Dibuat',
   VENDOR_DITUGASKAN: 'Ditugaskan',
   DRAFT_CHECKLIST: 'Draft Checklist',
-  PENAWARAN: 'Penawaran',
+  PENAWARAN: 'Pengerjaan',
   DIVERIFIKASI: 'Diverifikasi',
   MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice',
+  MENUNGGU_PB: 'Menunggu PB',
   MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
@@ -40,6 +41,7 @@ const STATUS_SEVERITY: Record<WorkOrderStatus, 'info' | 'warn' | 'success' | 'da
   PENAWARAN: 'warn',
   DIVERIFIKASI: 'success',
   MENUNGGU_INVOICE_VENDOR: 'warn',
+  MENUNGGU_PB: 'warn',
   MENUNGGU_VERIFIKATOR: 'warn',
   MENUNGGU_PPTK: 'warn',
   DISETUJUI_PPTK: 'success',
@@ -94,7 +96,7 @@ export class VendorWorkOrdersComponent implements OnInit {
   protected readonly headerTitle = computed(() => {
     switch (this.currentView) {
       case 'draft': return 'Draft Checklist';
-      case 'penawaran': return 'Penawaran & Invoice';
+      case 'penawaran': return 'Proses Pengerjaan';
       case 'riwayat': return 'Riwayat WO';
       default: return 'Notifikasi Work Order';
     }
@@ -136,9 +138,9 @@ export class VendorWorkOrdersComponent implements OnInit {
   private matchByView(row: WorkOrder, view: VendorView): boolean {
     switch (view) {
       case 'draft': return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'DITOLAK_PB'].includes(row.status);
-      case 'penawaran': return ['PENAWARAN', 'MENUNGGU_INVOICE_VENDOR'].includes(row.status);
+      case 'penawaran': return ['PENAWARAN', 'MENUNGGU_PB', 'MENUNGGU_INVOICE_VENDOR'].includes(row.status);
       case 'riwayat': return ['DIVERIFIKASI', 'MENUNGGU_VERIFIKATOR', 'MENUNGGU_PPTK', 'DISETUJUI_PPTK', 'DIBAYAR', 'DITOLAK_VERIFIKATOR', 'DITOLAK_PPTK'].includes(row.status);
-      default: return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN', 'MENUNGGU_INVOICE_VENDOR'].includes(row.status);
+      default: return ['VENDOR_DITUGASKAN', 'DRAFT_CHECKLIST', 'PENAWARAN', 'MENUNGGU_PB', 'MENUNGGU_INVOICE_VENDOR'].includes(row.status);
     }
   }
 

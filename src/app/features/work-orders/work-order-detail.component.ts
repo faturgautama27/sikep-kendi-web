@@ -25,6 +25,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import {
   WorkOrdersState,
@@ -34,6 +35,8 @@ import {
   SaveShsMapping,
   PbReviewShs,
   SubmitInvoice,
+  SubmitPekerjaan,
+  ReviewPekerjaanPb,
   VerifikatorReview,
   PptkDecision,
 } from './state';
@@ -49,13 +52,24 @@ import { APP_ENV } from '@core/data-access/app-env.token';
 import { IMAGE_DATA, type ImageDataPort } from '@core/data-access/ports/image-data.port';
 import type { ShsItemInput } from '@core/data-access/ports/work-order-data.port';
 
+const STATUS_FLOW: WorkOrderStatus[] = [
+  'PENAWARAN',
+  'MENUNGGU_PB',
+  'MENUNGGU_INVOICE_VENDOR',
+  'MENUNGGU_VERIFIKATOR',
+  'MENUNGGU_PPTK',
+  'DISETUJUI_PPTK',
+  'DIBAYAR',
+];
+
 const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   DIBUAT: 'Dibuat',
   VENDOR_DITUGASKAN: 'Vendor Ditugaskan',
   DRAFT_CHECKLIST: 'Draft Checklist',
-  PENAWARAN: 'Penawaran',
+  PENAWARAN: 'Pengerjaan',
   DIVERIFIKASI: 'Diverifikasi',
   MENUNGGU_INVOICE_VENDOR: 'Menunggu Invoice Vendor',
+  MENUNGGU_PB: 'Menunggu PB',
   MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
   DISETUJUI_PPTK: 'Disetujui PPTK',
@@ -75,7 +89,11 @@ const EVIDENCE_LABEL: Record<string, string> = {
   kondisi_awal: 'Kondisi Awal',
   sparepart_sebelum: 'Sparepart Sebelum',
   sparepart_sesudah: 'Sparepart Sesudah',
-  pasca_perbaikan: 'Bukti Pembayaran',
+  pasca_perbaikan: 'Pasca Perbaikan',
+  spare_part: 'Spare Part',
+  sebelum_perbaikan: 'Sebelum Perbaikan',
+  saat_perbaikan: 'Saat Perbaikan',
+  setelah_perbaikan: 'Setelah Perbaikan',
 };
 
 interface ShsItemLocal extends ShsItemInput {
@@ -107,6 +125,7 @@ interface ShsItemLocal extends ShsItemInput {
     TextareaModule,
     TimelineModule,
     ToastModule,
+    TooltipModule,
   ],
   providers: [MessageService],
   templateUrl: './work-order-detail.component.html',
@@ -219,8 +238,8 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly canUploadFotoParts = computed(() => {
     const wo = this.detail();
     if (!wo) return false;
-    const uploadableStatuses = ['DISETUJUI_PPTK', 'MENUNGGU_PEMBAYARAN', 'VERIFIKASI_HARGA'];
-    return this.isVendor() && uploadableStatuses.includes(wo.status) && wo.status !== 'DIBAYAR';
+    const uploadableStatuses = ['PENAWARAN', 'MENUNGGU_PB', 'MENUNGGU_VERIFIKATOR'];
+    return this.isVendor() && uploadableStatuses.includes(wo.status);
   });
 
   protected loadFotoParts(): void {
@@ -296,12 +315,21 @@ export class WorkOrderDetailComponent implements OnInit {
     this.shsItems().reduce((sum, i) => sum + this.subtotalItem(i), 0),
   );
 
+  /** Jumlah item pada draft terbaru. */
+  protected readonly draftItemCount = computed(() => this.latestDraft()?.items?.length ?? 0);
+
   // ─── Step D: PB Review Dialog ─────────────────────────────────────────────
   protected readonly pbReviewDialogVisible = signal(false);
   protected readonly pbReviewApproved = signal(false);
   protected readonly pbCatatan = signal('');
   protected readonly pbAlasanPenolakan = signal('');
   protected readonly pbReviewLoading = signal(false);
+
+  protected readonly pekerjaanPbReviewDialogVisible = signal(false);
+  protected readonly pekerjaanPbReviewApproved = signal(false);
+  protected readonly pekerjaanPbCatatan = signal('');
+  protected readonly pekerjaanPbAlasanPenolakan = signal('');
+  protected readonly pekerjaanPbReviewLoading = signal(false);
 
   // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────
   protected readonly invoiceDialogVisible = signal(false);
@@ -324,6 +352,7 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly pptkKomentar = signal('');
   protected readonly pptkAlasan = signal('');
   protected readonly pptkLoading = signal(false);
+  protected readonly isPptkFinalPhase = computed(() => this.detail()?.status === 'MENUNGGU_PPTK');
 
   private readonly hydrateShsItemsEffect = effect(() => {
     const serverItems = this.detail()?.verifikasiHarga?.shsItems ?? [];
@@ -337,12 +366,17 @@ export class WorkOrderDetailComponent implements OnInit {
     const mapped: ShsItemLocal[] = serverItems.map((item) => {
       const hargaVendor = Number(item.hargaVendor) || 0;
       const hargaStandart = Number(item.hargaStandart) || 0;
+      const qty = Number(item.qty) || 1;
+      const diskon = Number(item.diskon) || 0;
       return {
         _key: this.itemKey++,
         namaItem: item.namaItem ?? '',
+        jenis: item.jenis ?? undefined,
         hargaVendor,
         hargaStandart,
-        jumlah: 1,
+        qty,
+        jumlah: qty,
+        diskon,
         shsMasterId: item.shsMasterId ?? undefined,
         hargaShs: hargaStandart || undefined,
         melebihiShs: hargaVendor > hargaStandart && hargaStandart > 0,
@@ -382,6 +416,21 @@ export class WorkOrderDetailComponent implements OnInit {
     this.router.navigate(['/work-orders']);
   }
 
+  private atStage(status: WorkOrderStatus, from: WorkOrderStatus): boolean {
+    const idx = STATUS_FLOW.indexOf(from);
+    return idx >= 0 && STATUS_FLOW.slice(idx).includes(status);
+  }
+
+  protected spkVisible(status: WorkOrderStatus): boolean {
+    return this.atStage(status, 'PENAWARAN');
+  }
+
+  protected bastVisible(status: WorkOrderStatus): boolean {
+    return this.isVendor()
+      ? this.atStage(status, 'DISETUJUI_PPTK')
+      : this.atStage(status, 'MENUNGGU_PPTK');
+  }
+
   protected statusLabel(status: WorkOrderStatus): string {
     return STATUS_LABEL[status] ?? status;
   }
@@ -396,6 +445,7 @@ export class WorkOrderDetailComponent implements OnInit {
       case 'DRAFT_CHECKLIST':
       case 'PENAWARAN':
       case 'MENUNGGU_INVOICE_VENDOR':
+      case 'MENUNGGU_PB':
       case 'MENUNGGU_VERIFIKATOR':
       case 'MENUNGGU_PPTK':
         return 'warn';
@@ -436,6 +486,14 @@ export class WorkOrderDetailComponent implements OnInit {
   protected evidenceLabel(ev: WorkOrderEvidence): string {
     const base = EVIDENCE_LABEL[ev.kategori] ?? ev.kategori;
     return ev.image?.caption ? `${ev.image.caption}` : base;
+  }
+
+  protected paymentMethodLabel(method?: string | null): string {
+    const normalized = (method ?? '').toLowerCase();
+    if (normalized === 'tunai') return 'TUNAI';
+    if (normalized === 'gibs') return 'GIBS';
+    if (normalized === 'kkpd') return 'KKPD';
+    return (method ?? '-').toUpperCase();
   }
 
   protected openDraftAttachment(imageId: number, fallbackUrl?: string): void {
@@ -549,23 +607,47 @@ export class WorkOrderDetailComponent implements OnInit {
       return;
     }
 
+    if (this.hasItemExceedingShs()) {
+      this.msg.add({
+        severity: 'error',
+        summary: 'Ada item melebihi SHS',
+        detail: 'Perbaiki harga item sebelum menyetujui draft.',
+      });
+      return;
+    }
+
     this.draftReviewBusy.set(true);
-    this.store.dispatch(new ApproveDraftPb(this.id, draft.id)).subscribe({
+    this.savingShsMappingLoading.set(true);
+    this.store.dispatch(new SaveShsMapping(this.id, this.buildShsPayload())).subscribe({
       next: () => {
-        this.draftReviewBusy.set(false);
-        this.catatan = '';
-        this.store.dispatch(new GetWorkOrderDetail(this.id));
-        this.msg.add({
-          severity: 'success',
-          summary: 'Draft disetujui',
-          detail: 'Draft diteruskan ke PPTK untuk verifikasi.',
+        this.savingShsMappingLoading.set(false);
+        this.store.dispatch(new ApproveDraftPb(this.id, draft.id, this.catatan.trim() || undefined)).subscribe({
+          next: () => {
+            this.draftReviewBusy.set(false);
+            this.catatan = '';
+            this.store.dispatch(new GetWorkOrderDetail(this.id));
+            this.msg.add({
+              severity: 'success',
+              summary: 'SHS tersimpan dan draft disetujui',
+              detail: 'Draft diteruskan ke PPTK untuk verifikasi.',
+            });
+          },
+          error: (err) => {
+            this.draftReviewBusy.set(false);
+            this.msg.add({
+              severity: 'error',
+              summary: 'SHS tersimpan, tetapi draft gagal disetujui',
+              detail: err?.error?.message ?? 'Terjadi kesalahan pada server.',
+            });
+          },
         });
       },
-      error: (err) => {
+      error: (err: any) => {
+        this.savingShsMappingLoading.set(false);
         this.draftReviewBusy.set(false);
         this.msg.add({
           severity: 'error',
-          summary: 'Gagal menyetujui draft',
+          summary: 'Gagal menyimpan mapping SHS',
           detail: err?.error?.message ?? 'Terjadi kesalahan pada server.',
         });
       },
@@ -650,6 +732,7 @@ export class WorkOrderDetailComponent implements OnInit {
       {
         _key: this.itemKey++,
         namaItem: '',
+        jenis: undefined,
         hargaVendor: 0,
         hargaStandart: 0,
         jumlah: 1,
@@ -674,6 +757,7 @@ export class WorkOrderDetailComponent implements OnInit {
       return {
         _key:          this.itemKey++,
         namaItem:      item.tindakanPerbaikan || item.namaSparepart || item.namaKerusakan || '',
+        jenis:         item.jenis ?? undefined,
         hargaVendor:   harga,
         hargaStandart: 0,
         jumlah:        qty,
@@ -757,6 +841,14 @@ export class WorkOrderDetailComponent implements OnInit {
     );
   }
 
+  private buildShsPayload(): ShsItemInput[] {
+    return this.shsItems().map(({ _key, hargaShs, melebihiShs, jumlah, ...item }) => ({
+      ...item,
+      qty: item.qty ?? jumlah ?? 1,
+      diskon: item.diskon ?? 0,
+    }));
+  }
+
   protected saveShsMapping() {
     if (this.shsItems().length === 0) {
       this.msg.add({ severity: 'warn', summary: 'Minimal 1 item SHS diperlukan' });
@@ -771,13 +863,7 @@ export class WorkOrderDetailComponent implements OnInit {
       return;
     }
 
-    const payload: ShsItemInput[] = this.shsItems().map(
-      ({ _key, hargaShs, melebihiShs, jumlah, ...item }) => ({
-        ...item,
-        qty:    item.qty    ?? jumlah ?? 1,
-        diskon: item.diskon ?? 0,
-      }),
-    );
+    const payload = this.buildShsPayload();
     this.savingShsMappingLoading.set(true);
     this.store.dispatch(new SaveShsMapping(this.id, payload)).subscribe({
       next: () => {
@@ -835,6 +921,32 @@ export class WorkOrderDetailComponent implements OnInit {
           });
         },
       });
+  }
+
+  protected openPekerjaanPbReviewDialog(approved: boolean) {
+    this.pekerjaanPbReviewApproved.set(approved);
+    this.pekerjaanPbCatatan.set('');
+    this.pekerjaanPbAlasanPenolakan.set('');
+    this.pekerjaanPbReviewDialogVisible.set(true);
+  }
+
+  protected submitPekerjaanPbReview() {
+    if (!this.pekerjaanPbReviewApproved() && !this.pekerjaanPbAlasanPenolakan().trim()) {
+      this.msg.add({ severity: 'warn', summary: 'Alasan penolakan wajib diisi' });
+      return;
+    }
+    this.pekerjaanPbReviewLoading.set(true);
+    this.store.dispatch(new ReviewPekerjaanPb(this.id, this.pekerjaanPbReviewApproved(), this.pekerjaanPbCatatan() || undefined, this.pekerjaanPbAlasanPenolakan() || undefined)).subscribe({
+      next: () => {
+        this.pekerjaanPbReviewLoading.set(false);
+        this.pekerjaanPbReviewDialogVisible.set(false);
+        this.msg.add({ severity: 'success', summary: this.pekerjaanPbReviewApproved() ? 'Pekerjaan disetujui' : 'Pekerjaan dikembalikan ke vendor' });
+      },
+      error: (err: any) => {
+        this.pekerjaanPbReviewLoading.set(false);
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail: err?.error?.message ?? 'Terjadi kesalahan' });
+      },
+    });
   }
 
   // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────

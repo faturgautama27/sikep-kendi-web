@@ -368,7 +368,7 @@ export const routes: Routes = [
           ),
         canActivate: [permissionGuard],
         data: {
-          title: 'Portal Vendor Penawaran & Invoice',
+          title: 'Portal Vendor Proses Pengerjaan',
           requiredPermissions: ['penawaran.create'],
           vendorView: 'penawaran',
         },
