@@ -275,4 +275,10 @@ export class PengajuanDetailComponent implements OnInit {
   protected goBack(): void {
     this.location.back();
   }
+
+  protected isVideo(url: string): boolean {
+    if (!url) return false;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() ?? '';
+    return ['mp4', 'mov', 'avi', '3gp', 'mkv', 'webm'].includes(ext);
+  }
 }
