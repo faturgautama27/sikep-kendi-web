@@ -230,7 +230,7 @@
           <p>Semarang, {{ printDate | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
           <p class="mb-16">Pengurus Barang</p>
           <p class="underline">({{ signature('PENGURUS_BARANG')?.namaLengkap || '........................................' }})</p>
-          <p>NIK. {{ signature('PENGURUS_BARANG')?.nik || '........................................' }}</p>
+          <p>NIP {{ signature('PENGURUS_BARANG')?.nik || '........................................' }}</p>
         </div>
       </div>
     </div>

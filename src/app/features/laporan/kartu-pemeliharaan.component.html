@@ -295,19 +295,16 @@
             </tr>
             <tr class="text-center">
               <td class="border border-slate-300 px-3 py-1.5">
-                <p>Nama : {{ signature('PENGURUS_BARANG')?.namaLengkap || '................................' }}</p>
-                <p>NIK &nbsp;&nbsp;: {{ signature('PENGURUS_BARANG')?.nik || '................................' }}</p>
-                <p>Tanggal : ...............................</p>
+                <p>{{ signature('PENGURUS_BARANG')?.namaLengkap || '........................' }}</p>
+                <p>NIP {{ signature('PENGURUS_BARANG')?.nik || '........................' }}</p>
               </td>
               <td class="border border-slate-300 px-3 py-1.5">
-                <p>Nama : {{ signature('KASUBBAG_UMUM')?.namaLengkap || '................................' }}</p>
-                <p>NIK &nbsp;&nbsp;: {{ signature('KASUBBAG_UMUM')?.nik || '................................' }}</p>
-                <p>Tanggal : ...............................</p>
+                <p>{{ signature('KASUBBAG_UMUM')?.namaLengkap || '........................' }}</p>
+                <p>NIP {{ signature('KASUBBAG_UMUM')?.nik || '........................' }}</p>
               </td>
               <td class="border border-slate-300 px-3 py-1.5">
-                <p>Nama : {{ signature('KEPALA_DINAS')?.namaLengkap || '................................' }}</p>
-                <p>NIK &nbsp;&nbsp;: {{ signature('KEPALA_DINAS')?.nik || '................................' }}</p>
-                <p>Tanggal : ...............................</p>
+                <p>{{ signature('KEPALA_DINAS')?.namaLengkap || '........................' }}</p>
+                <p>NIP {{ signature('KEPALA_DINAS')?.nik || '........................' }}</p>
               </td>
             </tr>
           </tbody>

@@ -94,7 +94,10 @@ export class DaftarBarangComponent implements OnInit {
 
   private loadSignatures() {
     this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
-      next: (res) => this.signatures.set(Object.fromEntries((res?.data ?? []).map((x: SignatureSetting) => [x.kodeJabatan, x]))),
+      next: (res) => {
+        const raw = Array.isArray(res) ? res : (res?.data ?? []);
+        this.signatures.set(Object.fromEntries((raw as any[]).map((x) => [x.kodeJabatan, x])));
+      },
     });
   }
 

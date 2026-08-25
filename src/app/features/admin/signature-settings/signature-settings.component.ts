@@ -104,7 +104,10 @@ export class SignatureSettingsComponent {
   constructor() {
     this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
       next: (res) => {
-        const rows = ((res?.data ?? []) as any[]).map(mapSignatureSetting);
+        // responseUnwrapperInterceptor sudah membongkar envelope {success,data}
+        // sehingga `res` bisa berupa array langsung, atau tetap {data:[...]} di fallback.
+        const raw = Array.isArray(res) ? res : (res?.data ?? []);
+        const rows = (raw as any[]).map(mapSignatureSetting);
         const mapped = DEFAULT_SIGNATURE_SETTINGS.map((def) => {
           const hit = rows.find((r) => r.kodeJabatan === def.kodeJabatan);
           return hit ? { ...def, ...hit } : def;
@@ -146,7 +149,8 @@ export class SignatureSettingsComponent {
       isAktif: item.isAktif,
     }).subscribe({
       next: (res) => {
-        const updated = mapSignatureSetting(res?.data ?? item);
+        // res sudah di-unwrap oleh interceptor: bisa objek row langsung atau {data:[...]}
+        const updated = mapSignatureSetting(Array.isArray(res) ? res[0] : (res?.data ?? res));
         this.settings.update((list) => list.map((x) => x.kodeJabatan === updated.kodeJabatan ? updated : x));
         this.msg.add({ severity: 'success', summary: 'Tersimpan' });
         this.saving.set(null);

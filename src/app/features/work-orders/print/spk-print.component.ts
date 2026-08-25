@@ -85,7 +85,8 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
   private loadSignatures() {
     this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
       next: (res) => {
-        const map = Object.fromEntries((res?.data ?? []).map((x: SignatureSetting) => [x.kodeJabatan, x]));
+        const raw = Array.isArray(res) ? res : (res?.data ?? []);
+        const map = Object.fromEntries((raw as any[]).map((x) => [x.kodeJabatan, x]));
         this.signatures.set(map);
       },
     });
