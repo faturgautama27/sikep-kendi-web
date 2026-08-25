@@ -18,6 +18,7 @@ export interface ShsItemInput {
   diskon?: number;
   shsMasterId?: number;
   keterangan?: string;
+  jadikanKomponen?: boolean;
 }
 
 export type KondisiKendaraan = 'Baik' | 'Rusak Ringan' | 'Rusak Berat';

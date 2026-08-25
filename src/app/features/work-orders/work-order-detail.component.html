@@ -305,6 +305,9 @@
                       <th class="p-3 text-right">Diskon (%)</th>
                       <th class="p-3 text-right">Subtotal</th>
                       <th class="p-3 text-center">Status</th>
+                      <th class="p-3 text-center" pTooltip="Jadikan komponen terpantau EWS" tooltipPosition="top">
+                        EWS
+                      </th>
                       <th class="p-3"></th>
                     </tr>
                   </thead>
@@ -402,6 +405,23 @@
                             <span class="text-xs text-slate-400">-</span>
                           }
                         </td>
+                        <!-- Jadikan Komponen (EWS) -->
+                        <td class="p-2 text-center align-middle">
+                          <p-checkbox
+                            [binary]="true"
+                            [ngModel]="item.jadikanKomponen ?? false"
+                            (ngModelChange)="updateShsItemField(item._key, 'jadikanKomponen', $event)"
+                            [disabled]="!item.umurEstimasiBulan || item.jenis !== 'spare part'"
+                            [pTooltip]="
+                              !item.umurEstimasiBulan
+                                ? 'SHS master belum punya Umur Estimasi'
+                                : item.jenis !== 'spare part'
+                                  ? 'Hanya untuk jenis spare part'
+                                  : 'Buat baris komponen otomatis saat WO dibayar'
+                            "
+                            tooltipPosition="left"
+                          ></p-checkbox>
+                        </td>
                         <!-- Hapus -->
                         <td class="p-2 text-right">
                           <p-button
@@ -470,7 +490,7 @@
                     label="Simpan SHS"
                     icon="pi pi-save"
                     severity="secondary"
-                    [outlined]="true"
+                    [outlined]="true" 
                     [loading]="savingShsMappingLoading()"
                     [disabled]="shsItems().length === 0 || hasItemExceedingShs()"
                     (onClick)="saveShsMapping()"
@@ -1240,3 +1260,5 @@
     ></p-button>
   </ng-template>
 </p-dialog>
+
+<p-confirmdialog [style]="{ width: '420px' }" />

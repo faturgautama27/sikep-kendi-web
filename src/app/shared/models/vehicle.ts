@@ -20,6 +20,7 @@ export interface Vehicle {
   baselinePhotos: Image[];
   tanggalHabisPajak?: string;
   tanggalHabisSTNK?: string;
+  hargaPerolehan?: number | null;
   // Early warning fields
   intervalServisHari?: number | null; // jumlah hari antar servis berkala
   intervalServisKm?: number | null; // jarak km antar servis berkala

@@ -15,6 +15,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ImageModule } from 'primeng/image';
@@ -26,7 +27,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import {
   WorkOrdersState,
   GetWorkOrderDetail,
@@ -103,6 +105,7 @@ interface ShsItemLocal extends ShsItemInput {
   jumlah?: number;
   qty?: number;
   diskon?: number;
+  umurEstimasiBulan?: number | null;
 }
 
 @Component({
@@ -115,6 +118,7 @@ interface ShsItemLocal extends ShsItemInput {
     RouterLink,
     ButtonModule,
     CardModule,
+    CheckboxModule,
     DialogModule,
     SelectModule,
     ImageModule,
@@ -126,9 +130,9 @@ interface ShsItemLocal extends ShsItemInput {
     TimelineModule,
     ToastModule,
     TooltipModule,
+    ConfirmDialogModule,
   ],
-  providers: [MessageService],
-  templateUrl: './work-order-detail.component.html',
+  providers: [MessageService, ConfirmationService],  templateUrl: './work-order-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkOrderDetailComponent implements OnInit {
@@ -140,6 +144,7 @@ export class WorkOrderDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly imageData = inject<ImageDataPort>(IMAGE_DATA);
   private readonly msg = inject(MessageService);
+  private readonly confirm = inject(ConfirmationService);
 
   private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -406,6 +411,7 @@ export class WorkOrderDetailComponent implements OnInit {
             value: s.id,
             namaItem: s.namaItem,
             hargaMaksimum: Number(s.hargaMaksimum),
+            umurEstimasiBulan: s.umurEstimasiBulan != null ? Number(s.umurEstimasiBulan) : null,
           })),
         );
       },
@@ -796,6 +802,8 @@ export class WorkOrderDetailComponent implements OnInit {
             hargaStandart: 0,
             hargaShs: undefined,
             melebihiShs: false,
+            umurEstimasiBulan: null,
+            jadikanKomponen: false,
           };
         }),
       );
@@ -808,6 +816,8 @@ export class WorkOrderDetailComponent implements OnInit {
       items.map((item) => {
         if (item._key !== key) return item;
         const melebihiShs = item.hargaVendor > master.hargaMaksimum;
+        const jenis = item.jenis ?? 'spare part';
+        const eligibleEws = master.umurEstimasiBulan != null && jenis === 'spare part';
         return {
           ...item,
           shsMasterId: shsId,
@@ -815,6 +825,8 @@ export class WorkOrderDetailComponent implements OnInit {
           hargaStandart: master.hargaMaksimum,
           hargaShs: master.hargaMaksimum,
           melebihiShs,
+          umurEstimasiBulan: master.umurEstimasiBulan,
+          jadikanKomponen: eligibleEws ? true : false,
         };
       }),
     );
@@ -836,17 +848,24 @@ export class WorkOrderDetailComponent implements OnInit {
         if ((field === 'hargaVendor') && item.hargaShs) {
           updated.melebihiShs = Number(value) > item.hargaShs;
         }
+        // Recheck eligibility EWS jika jenis berubah
+        if (field === 'jenis') {
+          const eligibleEws = !!item.umurEstimasiBulan && updated.jenis === 'spare part';
+          updated.jadikanKomponen = eligibleEws ? (updated.jadikanKomponen ?? true) : false;
+        }
         return updated;
       }),
     );
   }
 
   private buildShsPayload(): ShsItemInput[] {
-    return this.shsItems().map(({ _key, hargaShs, melebihiShs, jumlah, ...item }) => ({
-      ...item,
-      qty: item.qty ?? jumlah ?? 1,
-      diskon: item.diskon ?? 0,
-    }));
+    return this.shsItems().map(
+      ({ _key, hargaShs, melebihiShs, jumlah, umurEstimasiBulan, ...item }) => ({
+        ...item,
+        qty: item.qty ?? jumlah ?? 1,
+        diskon: item.diskon ?? 0,
+      }),
+    );
   }
 
   protected saveShsMapping() {
@@ -863,6 +882,24 @@ export class WorkOrderDetailComponent implements OnInit {
       return;
     }
 
+    const items = this.shsItems();
+    const jadiKomponen = items.filter((i) => i.jadikanKomponen && i.umurEstimasiBulan).length;
+
+    this.confirm.confirm({
+      message:
+        `Simpan ${items.length} item mapping SHS?` +
+        (jadiKomponen > 0
+          ? ` ${jadiKomponen} item akan otomatis menjadi komponen terpantau EWS saat WO dibayar.`
+          : ''),
+      header: 'Konfirmasi Simpan SHS',
+      icon: 'pi pi-save',
+      acceptLabel: 'Ya, Simpan',
+      rejectLabel: 'Batal',
+      accept: () => this.performSaveShsMapping(),
+    });
+  }
+
+  private performSaveShsMapping() {
     const payload = this.buildShsPayload();
     this.savingShsMappingLoading.set(true);
     this.store.dispatch(new SaveShsMapping(this.id, payload)).subscribe({

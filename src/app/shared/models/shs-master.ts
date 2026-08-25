@@ -4,6 +4,7 @@ export interface ShsMaster {
   namaItem: string;
   satuan: string;
   hargaMaksimum: number;
+  umurEstimasiBulan?: number | null;
   sumberReferensi?: string;
   keterangan?: string;
   isAktif: boolean;

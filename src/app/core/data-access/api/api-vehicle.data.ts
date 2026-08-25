@@ -27,6 +27,9 @@ interface ApiVehicle {
   odometerCurrent?: number;
   createdAt?: string;
   updatedAt?: string;
+  tanggalHabisPajak?: string | null;
+  tanggalHabisSTNK?: string | null;
+  hargaPerolehan?: number | null;
   // Early warning fields
   intervalServisHari?: number | null;
   intervalServisKm?: number | null;
@@ -102,6 +105,9 @@ export class ApiVehicleData implements VehicleDataPort {
       unitKerja: raw.unitKerja ?? '-',
       status: this.mapStatus(raw.status),
       odometerCurrent: Number(raw.odometerCurrent ?? raw.odometerSaatIni ?? 0),
+      tanggalHabisPajak: raw.tanggalHabisPajak ?? undefined,
+      tanggalHabisSTNK: raw.tanggalHabisSTNK ?? undefined,
+      hargaPerolehan: raw.hargaPerolehan ?? null,
       baselinePhotos: [],
       createdAt: raw.createdAt ?? nowIso,
       updatedAt: raw.updatedAt ?? nowIso,

@@ -248,7 +248,22 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-slate-700">RKBMD Pemeliharaan</label>
+        <label class="text-sm font-medium text-slate-700">Harga Perolehan (Rp)</label>
+        <p-inputnumber
+          formControlName="hargaPerolehan"
+          [min]="0"
+          [useGrouping]="true"
+          mode="currency"
+          currency="IDR"
+          locale="id-ID"
+          placeholder="Contoh: 250000000"
+          class="w-full"
+        />
+        <small class="text-slate-400 text-xs">Harga perolehan awal kendaraan (opsional).</small>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">RKPBMD Pemeliharaan</label>
         <div class="flex gap-4 mt-1">
           <label class="flex items-center gap-2 text-sm cursor-pointer">
             <input
@@ -270,7 +285,7 @@
           </label>
         </div>
         <small class="text-slate-400 text-xs"
-          >Kendaraan yang tidak termasuk RKBMD tidak dapat mengajukan servis.</small
+          >Kendaraan yang tidak termasuk RKPBMD tidak dapat mengajukan servis.</small
         >
       </div>
     </div>

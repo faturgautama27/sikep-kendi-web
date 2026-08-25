@@ -98,7 +98,7 @@
           <th class="w-44">Unit Kerja</th>
           <th class="w-32">Tahun</th>
           <th class="w-40 text-right">Odometer</th>
-          <th class="w-28">RKBMD</th>
+          <th class="w-28">RKPBMD</th>
           <th class="w-40">Status EWS</th>
           <th class="w-40">Status</th>
           <th class="w-24 text-right">Aksi</th>
@@ -123,9 +123,9 @@
           <td class="text-right text-slate-700">{{ formatKm(row.odometerCurrent) }}</td>
           <td>
             @if (row.rkbmdPemeliharaan === false) {
-              <p-tag severity="danger" value="Non-RKBMD" [rounded]="true"></p-tag>
+              <p-tag severity="danger" value="Non-RKPBMD" [rounded]="true"></p-tag>
             } @else {
-              <p-tag severity="success" value="RKBMD" [rounded]="true"></p-tag>
+              <p-tag severity="success" value="RKPBMD" [rounded]="true"></p-tag>
             }
           </td>
           <td>

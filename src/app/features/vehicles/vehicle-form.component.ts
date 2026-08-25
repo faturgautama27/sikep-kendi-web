@@ -89,6 +89,7 @@ export class VehicleFormComponent implements OnInit {
     nomorMesin: [''],
     tanggalHabisPajak: [null as Date | null],
     tanggalHabisSTNK: [null as Date | null],
+    hargaPerolehan: [null as number | null, [Validators.min(0)]],
     // Early warning fields
     intervalServisHari: [null as number | null, [Validators.min(1)]],
     intervalServisKm: [null as number | null, [Validators.min(1)]],
@@ -137,6 +138,7 @@ export class VehicleFormComponent implements OnInit {
       nomorMesin: v.nomorMesin,
       tanggalHabisPajak: v.tanggalHabisPajak ? new Date(v.tanggalHabisPajak) : null,
       tanggalHabisSTNK: v.tanggalHabisSTNK ? new Date(v.tanggalHabisSTNK) : null,
+      hargaPerolehan: v.hargaPerolehan ?? null,
       intervalServisHari: v.intervalServisHari ?? null,
       intervalServisKm: v.intervalServisKm ?? null,
       odometerServisTerakhir: v.odometerServisTerakhir ?? null,

@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngxs/store';
+import { Table } from 'primeng/table';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -21,6 +23,7 @@ import { ShsMaster } from '@shared/models/shs-master';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     ButtonModule,
     TableModule,
@@ -39,8 +42,11 @@ export class ShsMasterListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
 
+  @ViewChild('dt') protected dt?: Table;
+
   protected readonly list: any = this.store.selectSignal(ShsMasterState.list);
   protected readonly loading = signal(false);
+  protected search = '';
 
   protected displayDialog = false;
   protected isEditMode = false;
@@ -52,6 +58,7 @@ export class ShsMasterListComponent implements OnInit {
     namaItem: ['', Validators.required],
     satuan: ['PCS', Validators.required],
     hargaMaksimum: [0, [Validators.required, Validators.min(0)]],
+    umurEstimasiBulan: [null as number | null, [Validators.min(1)]],
     sumberReferensi: [''],
     keterangan: [''],
     isAktif: [true],
@@ -69,6 +76,7 @@ export class ShsMasterListComponent implements OnInit {
       namaItem: '',
       satuan: 'PCS',
       hargaMaksimum: 0,
+      umurEstimasiBulan: null,
       isAktif: true,
     });
     this.displayDialog = true;
@@ -82,6 +90,7 @@ export class ShsMasterListComponent implements OnInit {
       namaItem: item.namaItem,
       satuan: item.satuan,
       hargaMaksimum: item.hargaMaksimum,
+      umurEstimasiBulan: item.umurEstimasiBulan ?? null,
       sumberReferensi: item.sumberReferensi,
       keterangan: item.keterangan,
       isAktif: item.isAktif,
@@ -91,6 +100,11 @@ export class ShsMasterListComponent implements OnInit {
 
   protected closeDialog(): void {
     this.displayDialog = false;
+  }
+
+  protected onSearch(value: string): void {
+    this.search = value;
+    this.dt?.filterGlobal(value, 'contains');
   }
 
   protected save(): void {
