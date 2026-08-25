@@ -29,6 +29,12 @@ const EVIDENCE_LABEL_MAP: Record<string, string> = {
   setelah_perbaikan: 'Setelah Perbaikan',
 };
 
+interface SignatureSetting {
+  kodeJabatan: 'PENGURUS_BARANG' | 'PPTK' | 'KASUBBAG_UMUM' | 'KEPALA_DINAS';
+  namaLengkap: string;
+  nik: string;
+}
+
 @Component({
   selector: 'app-spk-print',
   standalone: true,
@@ -50,6 +56,7 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
   protected readonly wo = signal<WorkOrder | null>(null);
   protected readonly printDate = new Date();
   protected readonly isExporting = signal(false);
+  protected readonly signatures = signal<Record<string, SignatureSetting>>({});
 
   /** Logo instansi dilayani via API backend (route /api/logo, CORS-enabled). */
   protected readonly logoUrl = `${this.env.apiBaseUrl}/logo`;
@@ -58,6 +65,7 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
   private pdfAttachmentDefs: { label: string; imageId: string; url: string }[] = [];
 
   ngOnInit() {
+    this.loadSignatures();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.dataPort.getById(id).subscribe((res) => {
@@ -69,6 +77,19 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {}
+
+  protected signature(kode: SignatureSetting['kodeJabatan']): SignatureSetting | null {
+    return this.signatures()[kode] ?? null;
+  }
+
+  private loadSignatures() {
+    this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
+      next: (res) => {
+        const map = Object.fromEntries((res?.data ?? []).map((x: SignatureSetting) => [x.kodeJabatan, x]));
+        this.signatures.set(map);
+      },
+    });
+  }
 
   private collectPdfAttachments(wo: WorkOrder) {
     this.pdfAttachmentDefs = [];

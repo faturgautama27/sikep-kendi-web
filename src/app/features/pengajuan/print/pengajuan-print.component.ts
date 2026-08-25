@@ -16,6 +16,12 @@ import { firstValueFrom } from 'rxjs';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { PengajuanDetailLengkap } from '@shared/models';
 
+interface SignatureSetting {
+  kodeJabatan: 'PENGURUS_BARANG' | 'PPTK' | 'KASUBBAG_UMUM' | 'KEPALA_DINAS';
+  namaLengkap: string;
+  nik: string;
+}
+
 @Component({
   selector: 'app-pengajuan-print',
   standalone: true,
@@ -36,11 +42,13 @@ export class PengajuanPrintComponent implements OnInit, OnDestroy {
   protected readonly data = signal<PengajuanDetailLengkap | null>(null);
   protected readonly printDate = new Date();
   protected readonly isExporting = signal(false);
+  protected readonly signatures = signal<Record<string, SignatureSetting>>({});
 
   /** Logo instansi dilayani via API backend (route /api/logo, CORS-enabled). */
   protected readonly logoUrl = `${this.env.apiBaseUrl}/logo`;
 
   ngOnInit() {
+    this.loadSignatures();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.http
@@ -53,6 +61,19 @@ export class PengajuanPrintComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {}
+
+  protected signature(kode: SignatureSetting['kodeJabatan']): SignatureSetting | null {
+    return this.signatures()[kode] ?? null;
+  }
+
+  private loadSignatures() {
+    this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
+      next: (res) => {
+        const map = Object.fromEntries((res?.data ?? []).map((x: SignatureSetting) => [x.kodeJabatan, x]));
+        this.signatures.set(map);
+      },
+    });
+  }
 
   /**
    * Fetches an image via the backend proxy blob endpoint (avoids CORS on R2).

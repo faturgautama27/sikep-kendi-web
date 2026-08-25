@@ -74,6 +74,12 @@ export class SideNavComponent {
           route: '/admin/vendors',
           permission: ['vendor.manage', 'user.manage'],
         },
+        {
+          label: 'Konfigurasi Tanda Tangan',
+          icon: 'pi pi-pencil',
+          route: '/admin/signature-settings',
+          permission: ['user.manage', 'signature_settings.manage', 'signature_settings.read'],
+        },
         { label: 'Pengaturan', icon: 'pi pi-cog', route: '/admin', permission: 'user.manage' },
       ],
     },

@@ -114,6 +114,7 @@ interface ShsItemLocal extends ShsItemInput {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterLink,
     ButtonModule,
     CardModule,
     DialogModule,

@@ -195,9 +195,9 @@
         </div>
         <div class="w-1/3">
           <p>PIHAK PERTAMA</p>
-          <p class="mb-20">Pejabat Pelaksana Teknis Kegiatan</p>
+          <p class="mb-20">{{ signature('PPTK')?.namaLengkap || 'Pejabat Pelaksana Teknis Kegiatan' }}</p>
           <p class="underline">( ........................................ )</p>
-          <p>NIP. ........................................</p>
+          <p>NIK. {{ signature('PPTK')?.nik || '........................................' }}</p>
         </div>
       </div>
     </div>

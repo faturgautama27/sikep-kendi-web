@@ -461,6 +461,18 @@ export const routes: Routes = [
             },
           },
           {
+            path: 'signature-settings',
+            loadComponent: () =>
+              import('@features/admin/signature-settings/signature-settings.component').then(
+                (m) => m.SignatureSettingsComponent,
+              ),
+            canActivate: [permissionGuard],
+            data: {
+              title: 'Konfigurasi Tanda Tangan',
+              requiredPermissions: ['user.manage', 'signature_settings.manage', 'signature_settings.read'],
+            },
+          },
+          {
             path: 'early-warning',
             loadComponent: () =>
               import('@features/admin/early-warning-config/early-warning-config.component').then(
@@ -484,7 +496,7 @@ export const routes: Routes = [
         ],
         data: {
           title: 'Admin',
-          requiredPermissions: ['user.manage', 'shs_master.read', 'vendor.manage'],
+          requiredPermissions: ['user.manage', 'shs_master.read', 'vendor.manage', 'signature_settings.manage', 'signature_settings.read'],
         },
       },
       {
