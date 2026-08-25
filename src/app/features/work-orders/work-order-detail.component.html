@@ -452,13 +452,13 @@
                             [binary]="true"
                             [ngModel]="item.jadikanKomponen ?? false"
                             (ngModelChange)="updateShsItemField(item._key, 'jadikanKomponen', $event)"
-                            [disabled]="!item.umurEstimasiBulan || item.jenis !== 'spare part'"
+                            [disabled]="!ewsEligible(item)"
                             [pTooltip]="
-                              !item.umurEstimasiBulan
+                              !umurMaster(item)
                                 ? 'SHS master belum punya Umur Estimasi'
                                 : item.jenis !== 'spare part'
                                   ? 'Hanya untuk jenis spare part'
-                                  : 'Buat baris komponen otomatis saat WO dibayar'
+                                  : 'Centang/uncheck untuk mengatur komponen otomatis saat WO dibayar'
                             "
                             tooltipPosition="left"
                           ></p-checkbox>

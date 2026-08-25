@@ -22,6 +22,7 @@ export interface WorkOrderShsItem {
   keterangan: string;
   shsMasterId?: number | null;
   shsMaster?: any;
+  jadikanKomponen?: boolean | null;
 }
 
 export interface WorkOrderVerifikasiHarga {

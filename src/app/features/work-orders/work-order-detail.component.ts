@@ -387,6 +387,8 @@ export class WorkOrderDetailComponent implements OnInit {
         shsMasterId: item.shsMasterId ?? undefined,
         hargaShs: hargaStandart || undefined,
         melebihiShs: hargaVendor > hargaStandart && hargaStandart > 0,
+        // pertahankan centangan EWS yang sudah tersimpan di database
+        jadikanKomponen: item.jadikanKomponen === true,
       };
     });
 
@@ -851,6 +853,17 @@ export class WorkOrderDetailComponent implements OnInit {
     return item.hargaVendor * qty * (1 - diskon / 100);
   }
 
+  /** Umur estimasi master SHS diambil live dari options (tahan race saat load). */
+  protected umurMaster(item: { shsMasterId?: number }): number | null {
+    if (!item.shsMasterId) return null;
+    return this.shsMasterOptions().find((s) => s.value === item.shsMasterId)?.umurEstimasiBulan ?? null;
+  }
+
+  /** Checkbox EWS aktif hanya untuk spare part dengan master berumur. */
+  protected ewsEligible(item: ShsItemLocal): boolean {
+    return this.umurMaster(item) != null && item.jenis === 'spare part';
+  }
+
   protected removeShsItem(key: number) {
     this.shsItems.update((items) => items.filter((i) => i._key !== key));
   }
@@ -914,7 +927,7 @@ export class WorkOrderDetailComponent implements OnInit {
         }
         // Recheck eligibility EWS jika jenis berubah
         if (field === 'jenis') {
-          const eligibleEws = !!item.umurEstimasiBulan && updated.jenis === 'spare part';
+          const eligibleEws = this.umurMaster(updated) != null && updated.jenis === 'spare part';
           updated.jadikanKomponen = eligibleEws ? (updated.jadikanKomponen ?? true) : false;
         }
         return updated;
@@ -947,7 +960,7 @@ export class WorkOrderDetailComponent implements OnInit {
     }
 
     const items = this.shsItems();
-    const jadiKomponen = items.filter((i) => i.jadikanKomponen && i.umurEstimasiBulan).length;
+    const jadiKomponen = items.filter((i) => this.ewsEligible(i) && i.jadikanKomponen).length;
 
     this.confirm.confirm({
       message:

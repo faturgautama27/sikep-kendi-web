@@ -457,6 +457,7 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
               keterangan: s.keterangan ?? '',
               shsMasterId: s.shsMasterId ?? null,
               shsMaster: s.shsMaster ?? null,
+              jadikanKomponen: s.jadikanKomponen === true,
             })) ?? [],
         }
       : null,
