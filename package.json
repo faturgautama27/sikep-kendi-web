@@ -47,7 +47,7 @@
     "@primeng/themes": "^21.0.4",
     "apexcharts": "^5.13.0",
     "firebase": "^12.15.0",
-    "html2canvas": "^1.4.1",
+    "html2canvas-pro": "^2.4.0",
     "jspdf": "^2.5.2",
     "ng-apexcharts": "^2.4.0",
     "pdf-lib": "^1.17.1",

@@ -1,5 +1,6 @@
 export interface PengajuanDetailLengkap {
   id: number;
+  nomorPengajuan?: string | null;
   jenisPengajuan: string;
   deskripsiKerusakan: string;
   odometerSaatPengajuan: number;

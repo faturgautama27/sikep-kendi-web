@@ -436,6 +436,8 @@ export const routes: Routes = [
               import('@features/admin/users-list/users-list.component').then(
                 (m) => m.UsersListComponent,
               ),
+            canActivate: [permissionGuard],
+            data: { title: 'Manajemen User', requiredPermissions: ['user.manage'] },
           },
           {
             path: 'roles',
@@ -443,6 +445,8 @@ export const routes: Routes = [
               import('@features/admin/roles-list/roles-list.component').then(
                 (m) => m.RolesListComponent,
               ),
+            canActivate: [permissionGuard],
+            data: { title: 'Manajemen Role', requiredPermissions: ['user.manage'] },
           },
           {
             path: 'vendors',
@@ -450,6 +454,23 @@ export const routes: Routes = [
               import('@features/admin/vendor-management/vendor-management.component').then(
                 (m) => m.VendorManagementComponent,
               ),
+            canActivate: [permissionGuard],
+            data: {
+              title: 'Manajemen Vendor',
+              requiredPermissions: ['vendor.manage', 'user.manage'],
+            },
+          },
+          {
+            path: 'signature-settings',
+            loadComponent: () =>
+              import('@features/admin/signature-settings/signature-settings.component').then(
+                (m) => m.SignatureSettingsComponent,
+              ),
+            canActivate: [permissionGuard],
+            data: {
+              title: 'Konfigurasi Tanda Tangan',
+              requiredPermissions: ['user.manage', 'signature_settings.manage', 'signature_settings.read'],
+            },
           },
           {
             path: 'early-warning',
@@ -457,6 +478,8 @@ export const routes: Routes = [
               import('@features/admin/early-warning-config/early-warning-config.component').then(
                 (m) => m.EarlyWarningConfigComponent,
               ),
+            canActivate: [permissionGuard],
+            data: { title: 'Konfigurasi EWS', requiredPermissions: ['user.manage'] },
           },
           {
             path: 'shs-master',
@@ -464,9 +487,17 @@ export const routes: Routes = [
               import('@features/shs-master/shs-master-list.component').then(
                 (m) => m.ShsMasterListComponent,
               ),
+            canActivate: [permissionGuard],
+            data: {
+              title: 'SHS Master',
+              requiredPermissions: ['shs_master.read', 'user.manage'],
+            },
           },
         ],
-        data: { title: 'Admin', requiredPermissions: ['user.manage'] },
+        data: {
+          title: 'Admin',
+          requiredPermissions: ['user.manage', 'shs_master.read', 'vendor.manage', 'signature_settings.manage', 'signature_settings.read'],
+        },
       },
       {
         path: 'profile',

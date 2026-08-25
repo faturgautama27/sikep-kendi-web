@@ -80,15 +80,26 @@ export class VendorManagementComponent implements OnInit {
 
   protected openAdd(): void {
     this.editingId.set(null); this.emailConflict.set(false);
-    this.form.reset({ isAktif: true }); this.dialogVisible.set(true);
+    this.form.reset({ isAktif: true });
+    this.form.get('username')!.setValidators(Validators.required);
+    this.form.get('username')!.updateValueAndValidity();
+    this.dialogVisible.set(true);
   }
   protected openEdit(v: VendorAdmin): void {
     this.editingId.set(v.id); this.emailConflict.set(false);
-    this.form.patchValue(v); this.dialogVisible.set(true);
+    this.form.patchValue(v);
+    // Username hanya relevan saat tambah — field disembunyikan di mode edit.
+    this.form.get('username')!.clearValidators();
+    this.form.get('username')!.setValue('');
+    this.form.get('username')!.updateValueAndValidity();
+    this.dialogVisible.set(true);
   }
   protected save(): void {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.msg.add({ severity: 'warn', summary: 'Form belum lengkap', detail: 'Periksa kembali field yang bertanda merah.' });
+      return;
+    }
     const raw = this.form.getRawValue();
     this.emailConflict.set(false);
 
@@ -137,6 +148,27 @@ export class VendorManagementComponent implements OnInit {
             this.msg.add({ severity: v.isAktif ? 'warn' : 'success', summary: `Vendor berhasil di-${aksi}.` });
           },
           error: () => this.msg.add({ severity: 'error', summary: 'Gagal mengubah status vendor' })
+        });
+      },
+    });
+  }
+
+  protected deleteVendor(v: VendorAdmin): void {
+    this.confirm.confirm({
+      message: `Vendor "${v.namaVendor}" akan dihapus permanen. Lanjutkan?`,
+      header: 'Hapus Vendor', icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Hapus', rejectLabel: 'Batal', acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.adminPort.deleteVendor(v.id).subscribe({
+          next: () => {
+            this.vendors.update(l => l.filter(x => x.id !== v.id));
+            this.msg.add({ severity: 'success', summary: 'Vendor berhasil dihapus.' });
+          },
+          error: (err) => this.msg.add({
+            severity: 'error',
+            summary: 'Gagal menghapus vendor',
+            detail: err?.error?.message ?? 'Terjadi kesalahan.'
+          })
         });
       },
     });

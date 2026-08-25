@@ -43,6 +43,12 @@ export interface DaftarBarangData {
   rekapitulasi: DaftarBarangRekapitulasi;
 }
 
+export interface SignatureSetting {
+  kodeJabatan: 'PENGURUS_BARANG' | 'PPTK' | 'KASUBBAG_UMUM' | 'KEPALA_DINAS';
+  namaLengkap: string;
+  nik: string;
+}
+
 @Component({
   selector: 'app-daftar-barang',
   standalone: true,
@@ -64,6 +70,9 @@ export class DaftarBarangComponent implements OnInit {
   protected readonly isExporting = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  protected readonly logoUrl = `${this.env.apiBaseUrl}/logo`;
+  protected readonly signatures = signal<Record<string, SignatureSetting>>({});
+
   protected readonly selectedTahun = signal<number>(new Date().getFullYear());
 
   protected readonly tahunOptions = (() => {
@@ -75,7 +84,21 @@ export class DaftarBarangComponent implements OnInit {
   })();
 
   ngOnInit() {
+    this.loadSignatures();
     this.loadData(this.selectedTahun());
+  }
+
+  protected signature(kode: SignatureSetting['kodeJabatan']): SignatureSetting | null {
+    return this.signatures()[kode] ?? null;
+  }
+
+  private loadSignatures() {
+    this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
+      next: (res) => {
+        const raw = Array.isArray(res) ? res : (res?.data ?? []);
+        this.signatures.set(Object.fromEntries((raw as any[]).map((x) => [x.kodeJabatan, x])));
+      },
+    });
   }
 
   protected generate() {
@@ -152,7 +175,7 @@ export class DaftarBarangComponent implements OnInit {
     try {
       const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
-        import('html2canvas'),
+        import('html2canvas-pro'),
       ]);
 
       const A4_W_MM = 297; // landscape

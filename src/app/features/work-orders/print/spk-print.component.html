@@ -29,7 +29,7 @@
       <!-- Kop Surat -->
       <div class="border-b-4 border-double border-slate-800 pb-4 mb-6 flex items-center gap-4">
         <img
-          src="/logo_for_light.png"
+          [src]="logoUrl"
           alt="Logo Disperindag"
           class="w-20 h-20 shrink-0 object-contain"
         />
@@ -140,6 +140,41 @@
           </tbody>
         </table>
 
+        <!-- Rincian item pekerjaan (dari draft checklist yang disetujui PPTK) -->
+        @if (w.penawaranDetail?.items?.length) {
+          <p class="font-semibold">Rincian Biaya Pekerjaan:</p>
+          <table class="w-full border-collapse border border-slate-800 mb-4 mt-1 text-xs">
+            <thead>
+              <tr class="bg-slate-100">
+                <th class="border border-slate-800 p-2 w-8">No</th>
+                <th class="border border-slate-800 p-2 text-left">Uraian Kerusakan</th>
+                <th class="border border-slate-800 p-2 text-left">Sparepart</th>
+                <th class="border border-slate-800 p-2 text-left">Tindakan Perbaikan</th>
+                <th class="border border-slate-800 p-2 text-right w-28">Harga (Rp)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of w.penawaranDetail!.items; track item.id) {
+                <tr>
+                  <td class="border border-slate-800 p-2 text-center">{{ item.urutan }}</td>
+                  <td class="border border-slate-800 p-2">{{ item.namaKerusakan || '-' }}</td>
+                  <td class="border border-slate-800 p-2">{{ item.namaSparepart || '-' }}</td>
+                  <td class="border border-slate-800 p-2">{{ item.tindakanPerbaikan || '-' }}</td>
+                  <td class="border border-slate-800 p-2 text-right">
+                    {{ (item.hargaItem || 0).toLocaleString('id-ID') }}
+                  </td>
+                </tr>
+              }
+              <tr class="font-bold bg-slate-50">
+                <td class="border border-slate-800 p-2 text-right" colspan="4">TOTAL</td>
+                <td class="border border-slate-800 p-2 text-right">
+                  {{ (w.penawaranDetail!.totalBiaya || 0).toLocaleString('id-ID') }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        }
+
         <p>
           Pekerjaan harus diselesaikan sesuai dengan standar kualitas yang telah disepakati dan
           biaya yang tertera pada dokumen penawaran.
@@ -160,9 +195,9 @@
         </div>
         <div class="w-1/3">
           <p>PIHAK PERTAMA</p>
-          <p class="mb-20">Pejabat Pelaksana Teknis Kegiatan</p>
+          <p class="mb-20">{{ signature('PPTK')?.namaLengkap || 'Pejabat Pelaksana Teknis Kegiatan' }}</p>
           <p class="underline">( ........................................ )</p>
-          <p>NIP. ........................................</p>
+          <p>NIP {{ signature('PPTK')?.nik || '........................................' }}</p>
         </div>
       </div>
     </div>

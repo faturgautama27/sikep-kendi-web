@@ -87,6 +87,8 @@
               <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" size="small" pTooltip="Edit" (onClick)="openEdit(v)"></p-button>
               <p-button [icon]="v.isAktif ? 'pi pi-ban' : 'pi pi-check'" [text]="true" [rounded]="true" [severity]="v.isAktif ? 'danger' : 'success'"
                 size="small" [pTooltip]="v.isAktif ? 'Nonaktifkan' : 'Aktifkan'" (onClick)="toggleAktif(v)"></p-button>
+              <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small"
+                pTooltip="Hapus" (onClick)="deleteVendor(v)"></p-button>
             </div>
           </td>
         </tr>

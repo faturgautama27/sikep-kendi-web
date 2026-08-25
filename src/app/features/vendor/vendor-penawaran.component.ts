@@ -144,6 +144,10 @@ export class VendorPenawaranComponent implements OnInit {
     () => this.wo()?.draftChecklists?.find((d: any) => d.status === 'DISETUJUI_PPTK') ?? null,
   );
 
+  protected displayWoStatus(status: string | null | undefined): string {
+    return status === 'PENAWARAN' ? 'PENGERJAAN' : (status ?? '-');
+  }
+
   protected formatKm(value: unknown): string {
     return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(Number(value ?? 0));
   }

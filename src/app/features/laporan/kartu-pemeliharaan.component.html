@@ -98,7 +98,7 @@
 
       <!-- KOP SURAT -->
       <div class="border-b-4 border-double border-slate-800 pb-4 mb-4 flex items-center gap-4">
-        <img src="/logo_for_light.png" alt="Logo" class="w-20 h-20 shrink-0 object-contain" />
+        <img [src]="logoUrl" alt="Logo" class="w-20 h-20 shrink-0 object-contain" />
         <div class="flex-1 text-center">
           <h1 class="text-base font-black uppercase tracking-wider">PEMERINTAH PROVINSI JAWA TENGAH</h1>
           <h2 class="text-lg font-black uppercase tracking-wide">DINAS PERINDUSTRIAN DAN PERDAGANGAN</h2>
@@ -295,19 +295,16 @@
             </tr>
             <tr class="text-center">
               <td class="border border-slate-300 px-3 py-1.5">
-                <p>Nama : ................................</p>
-                <p>NIP &nbsp;&nbsp;: ................................</p>
-                <p>Tanggal : ...............................</p>
+                <p>{{ signature('PENGURUS_BARANG')?.namaLengkap || '........................' }}</p>
+                <p>NIP {{ signature('PENGURUS_BARANG')?.nik || '........................' }}</p>
               </td>
               <td class="border border-slate-300 px-3 py-1.5">
-                <p>Nama : ................................</p>
-                <p>NIP &nbsp;&nbsp;: ................................</p>
-                <p>Tanggal : ...............................</p>
+                <p>{{ signature('KASUBBAG_UMUM')?.namaLengkap || '........................' }}</p>
+                <p>NIP {{ signature('KASUBBAG_UMUM')?.nik || '........................' }}</p>
               </td>
               <td class="border border-slate-300 px-3 py-1.5">
-                <p>Nama : ................................</p>
-                <p>NIP &nbsp;&nbsp;: ................................</p>
-                <p>Tanggal : ...............................</p>
+                <p>{{ signature('KEPALA_DINAS')?.namaLengkap || '........................' }}</p>
+                <p>NIP {{ signature('KEPALA_DINAS')?.nik || '........................' }}</p>
               </td>
             </tr>
           </tbody>

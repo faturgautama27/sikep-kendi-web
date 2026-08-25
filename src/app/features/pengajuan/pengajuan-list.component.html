@@ -210,7 +210,6 @@
 
             <th class="w-52">Status</th>
             <th class="w-28">Dibuat</th>
-            <th class="w-24 text-center">Aksi</th>
           </tr>
         </ng-template>
 
@@ -245,25 +244,12 @@
               ></p-tag>
             </td>
             <td class="text-xs text-slate-500">{{ formatDate(p.createdAt) }}</td>
-            <td>
-              <div class="flex items-center justify-center gap-1">
-                <p-button
-                  icon="pi pi-eye"
-                  severity="secondary"
-                  [text]="true"
-                  [rounded]="true"
-                  pTooltip="Detail"
-                  size="small"
-                  (onClick)="onOpenDetail(p)"
-                ></p-button>
-              </div>
-            </td>
           </tr>
         </ng-template>
 
         <ng-template #emptymessage>
           <tr>
-            <td colspan="9" class="py-10 text-center text-sm text-slate-500">
+            <td colspan="8" class="py-10 text-center text-sm text-slate-500">
               Tidak ada pengajuan yang cocok dengan filter saat ini.
             </td>
           </tr>

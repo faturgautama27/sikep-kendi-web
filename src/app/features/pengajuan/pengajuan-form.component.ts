@@ -354,9 +354,10 @@ export class PengajuanFormComponent implements OnInit {
           setTimeout(() => this.router.navigate([this.env.isMobile ? '/driver' : '/pengajuan']), 1500);
         }
       },
-      error: () => {
+      error: (err: any) => {
         this.submitting.set(false);
-        this.msg.add({ severity: 'error', summary: 'Gagal', detail: 'Terjadi kesalahan saat menyimpan pengajuan.' });
+        const detail = err?.error?.message ?? 'Terjadi kesalahan saat menyimpan pengajuan.';
+        this.msg.add({ severity: 'error', summary: 'Gagal', detail });
       },
     });
   }

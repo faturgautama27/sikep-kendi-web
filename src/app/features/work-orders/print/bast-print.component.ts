@@ -29,6 +29,12 @@ const EVIDENCE_LABEL_MAP: Record<string, string> = {
   setelah_perbaikan: 'Setelah Perbaikan',
 };
 
+interface SignatureSetting {
+  kodeJabatan: 'PENGURUS_BARANG' | 'PPTK' | 'KASUBBAG_UMUM' | 'KEPALA_DINAS';
+  namaLengkap: string;
+  nik: string;
+}
+
 @Component({
   selector: 'app-bast-print',
   standalone: true,
@@ -50,11 +56,16 @@ export class BastPrintComponent implements OnInit, OnDestroy {
   protected readonly wo = signal<WorkOrder | null>(null);
   protected readonly printDate = new Date();
   protected readonly isExporting = signal(false);
+  protected readonly signatures = signal<Record<string, SignatureSetting>>({});
+
+  /** Logo instansi dilayani via API backend (route /api/logo, CORS-enabled). */
+  protected readonly logoUrl = `${this.env.apiBaseUrl}/logo`;
 
   /** PDF attachment defs — uses imageId for proxy, url as fallback */
   private pdfAttachmentDefs: { label: string; imageId: string; url: string }[] = [];
 
   ngOnInit() {
+    this.loadSignatures();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.dataPort.getById(id).subscribe((res) => {
@@ -66,6 +77,20 @@ export class BastPrintComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {}
+
+  protected signature(kode: SignatureSetting['kodeJabatan']): SignatureSetting | null {
+    return this.signatures()[kode] ?? null;
+  }
+
+  private loadSignatures() {
+    this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
+      next: (res) => {
+        const raw = Array.isArray(res) ? res : (res?.data ?? []);
+        const map = Object.fromEntries((raw as any[]).map((x) => [x.kodeJabatan, x]));
+        this.signatures.set(map);
+      },
+    });
+  }
 
   private collectPdfAttachments(wo: WorkOrder) {
     this.pdfAttachmentDefs = [];
@@ -180,7 +205,7 @@ export class BastPrintComponent implements OnInit, OnDestroy {
     try {
       const [{ default: jsPDF }, { default: html2canvas }, { PDFDocument }] = await Promise.all([
         import('jspdf'),
-        import('html2canvas'),
+        import('html2canvas-pro'),
         import('pdf-lib'),
       ]);
 

@@ -9,9 +9,11 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngxs/store';
 
+import { APP_ENV } from '@core/data-access/app-env.token';
 import { IMAGE_DATA, type ImageDataPort } from '@core/data-access/ports/image-data.port';
 import {
   CreateDraftChecklist,
@@ -73,8 +75,13 @@ export class VendorDraftChecklistComponent implements OnInit {
   private readonly msg = inject(MessageService);
   private readonly confirm = inject(ConfirmationService);
   private readonly imageData = inject<ImageDataPort>(IMAGE_DATA);
+  private readonly http = inject(HttpClient);
+  private readonly env = inject(APP_ENV);
 
   protected readonly workOrderId = this.route.snapshot.paramMap.get('id') ?? '';
+
+  /** Data pengajuan terkait WO (untuk referensi vendor saat menyusun draft). */
+  protected readonly pengajuan = signal<any>(null);
 
   private readonly stateList = this.store.selectSignal(DraftChecklistState.list);
 
@@ -196,6 +203,20 @@ export class VendorDraftChecklistComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.dispatch(new LoadDraftChecklist(this.workOrderId));
+
+    this.http
+      .get<any>(`${this.env.apiBaseUrl}/work-orders/${this.workOrderId}`)
+      .subscribe({ next: (wo) => this.pengajuan.set(wo?.pengajuan ?? null) });
+  }
+
+  protected jenisLabel(jenis: string | null | undefined): string {
+    switch (jenis) {
+      case 'SERVIS_RUTIN': return 'Servis Rutin';
+      case 'PERBAIKAN_KERUSAKAN': return 'Perbaikan Kerusakan';
+      case 'GANTI_SPARE_PART': return 'Ganti Spare Part';
+      case 'DARURAT': return 'Darurat';
+      default: return jenis ?? '-';
+    }
   }
 
   protected addRow(): void {

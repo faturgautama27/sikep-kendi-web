@@ -83,6 +83,10 @@ export class AdminDataPort {
     return this.http.patch<VendorAdmin>(`${this.baseUrl}/vendors/${id}`, payload);
   }
 
+  deleteVendor(id: string | number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/vendors/${id}`);
+  }
+
   // --- Early Warning ---
   getEwConfigs(): Observable<EarlyWarningConfig[]> {
     return this.http.get<EarlyWarningConfig[]>(`${this.baseUrl}/early-warning-configs`);
