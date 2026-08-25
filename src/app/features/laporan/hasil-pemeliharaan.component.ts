@@ -156,7 +156,7 @@ export class HasilPemeliharaanComponent implements OnInit {
     try {
       const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
-        import('html2canvas'),
+        import('html2canvas-pro'),
       ]);
 
       const A4_W_MM = 297; // landscape

@@ -37,6 +37,9 @@ export class PengajuanPrintComponent implements OnInit, OnDestroy {
   protected readonly printDate = new Date();
   protected readonly isExporting = signal(false);
 
+  /** Logo instansi dilayani via API backend (route /api/logo, CORS-enabled). */
+  protected readonly logoUrl = `${this.env.apiBaseUrl}/logo`;
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -134,7 +137,7 @@ export class PengajuanPrintComponent implements OnInit, OnDestroy {
 
     try {
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
+        import('html2canvas-pro'),
         import('jspdf'),
       ]);
 
@@ -201,8 +204,7 @@ export class PengajuanPrintComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected formatCurrency(value: number): string {
-    return value.toLocaleString('id-ID');
+  protected formatCurrency(value: number): string {    return value.toLocaleString('id-ID');
   }
 
   protected penawaranTerbaru(

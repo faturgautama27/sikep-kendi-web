@@ -4,6 +4,7 @@ import { MessageService } from 'primeng/api';
 import { Store } from '@ngxs/store';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { APP_ENV } from '@core/data-access/app-env.token';
 import { LoadNotifications } from '@features/notifications/state';
@@ -37,7 +38,7 @@ export class PushService {
   }
 
   async init() {
-    if (this.env.isMobile) {
+    if (Capacitor.isNativePlatform()) {
       await this.initCapacitorPush();
     } else {
       await this.initWebPush();

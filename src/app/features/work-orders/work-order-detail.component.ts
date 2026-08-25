@@ -8,10 +8,12 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -112,7 +114,6 @@ interface ShsItemLocal extends ShsItemInput {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterLink,
     ButtonModule,
     CardModule,
     DialogModule,
@@ -391,14 +392,14 @@ export class WorkOrderDetailComponent implements OnInit {
     if (!this.user()?.roles[0]?.includes('driver')) {
       this.store.dispatch(new LoadDraftChecklist(this.id));
     }
-    this.loadShsMasterOptions();
+    this.loadShsMasterOptions().subscribe();
     this.loadFotoParts();
   }
 
-  private loadShsMasterOptions() {
-    if (this.env.previewMode) return;
-    this.http.get<any>(`${this.env.apiBaseUrl}/shs-master?limit=200&isAktif=true`).subscribe({
-      next: (res) => {
+  private loadShsMasterOptions(): Observable<void> {
+    if (this.env.previewMode) return of(void 0);
+    return this.http.get<any>(`${this.env.apiBaseUrl}/shs-master?limit=200&isAktif=true`).pipe(
+      map((res) => {
         const items = res?.data?.items ?? res?.data ?? res ?? [];
         this.shsMasterOptions.set(
           items.map((s: any) => ({
@@ -408,8 +409,70 @@ export class WorkOrderDetailComponent implements OnInit {
             hargaMaksimum: Number(s.hargaMaksimum),
           })),
         );
-      },
-    });
+      }),
+    );
+  }
+
+  // ─── Inline Tambah SHS Master ──────────────────────────────────────────────
+
+  protected readonly canCreateShs = computed(() => {
+    const p = this.permissions();
+    return p.includes('*') || p.includes('shs_master.create');
+  });
+
+  protected readonly shsDialogVisible = signal(false);
+  protected readonly shsSaving = signal(false);
+  protected readonly shsForm = this.fb.group({
+    namaItem: ['', Validators.required],
+    satuan: ['', Validators.required],
+    hargaMaksimum: [0, [Validators.required, Validators.min(1)]],
+    sumberReferensi: [''],
+  });
+
+  protected openShsDialog() {
+    this.shsForm.reset({ namaItem: '', satuan: '', hargaMaksimum: 0, sumberReferensi: '' });
+    this.shsDialogVisible.set(true);
+  }
+
+  protected submitShs() {
+    this.shsForm.markAllAsTouched();
+    if (this.shsForm.invalid) return;
+    this.shsSaving.set(true);
+
+    const payload = this.shsForm.getRawValue();
+    this.http
+      .post<any>(`${this.env.apiBaseUrl}/shs-master`, payload)
+      .pipe(
+        map((res) => res?.data ?? res),
+        switchMap((created) => this.loadShsMasterOptions().pipe(map(() => created))),
+      )
+      .subscribe({
+        next: (created) => {
+          this.shsSaving.set(false);
+          this.shsDialogVisible.set(false);
+
+          // Auto-select SHS baru pada baris terakhir yang referensi SHS-nya kosong.
+          const target = [...this.shsItems()].reverse().find((i) => !i.shsMasterId);
+          if (target) {
+            this.onShsMasterSelect(target._key, created.id);
+          }
+          this.msg.add({
+            severity: 'success',
+            summary: 'SHS Master ditambahkan',
+            detail: target
+              ? `"${created.namaItem}" tersimpan dan terpilih otomatis pada baris terakhir yang kosong.`
+              : `"${created.namaItem}" tersimpan dan kini tersedia di dropdown.`,
+          });
+        },
+        error: (err) => {
+          this.shsSaving.set(false);
+          this.msg.add({
+            severity: 'error',
+            summary: 'Gagal menambah SHS',
+            detail: err?.error?.message ?? 'Terjadi kesalahan.',
+          });
+        },
+      });
   }
 
   protected goBack() {

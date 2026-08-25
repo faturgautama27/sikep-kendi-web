@@ -80,7 +80,7 @@ export class ApiPengajuanData implements PengajuanDataPort {
 
     return {
       id,
-      nomor: String(raw['nomor'] ?? `PMNT-${String(raw['id'] ?? '-').padStart(4, '0')}`),
+      nomor: String(raw['nomorPengajuan'] ?? raw['nomor_pengajuan'] ?? raw['nomor'] ?? `PMNT-${String(raw['id'] ?? '-').padStart(4, '0')}`),
       jenis: this.mapJenis(jenisRaw),
       vehicleId: String(raw['vehicleId'] ?? raw['kendaraanId'] ?? ''),
       vehiclePlate: String((raw['kendaraan'] as { nomorPolisi?: string } | undefined)?.nomorPolisi ?? '-'),

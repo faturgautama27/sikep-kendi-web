@@ -11,9 +11,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TextareaModule } from 'primeng/textarea';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { PageHeaderComponent } from '@core/layout';
-import { ShsMasterState, LoadShsMaster, CreateShsMaster, UpdateShsMaster } from './state';
+import { ShsMasterState, LoadShsMaster, CreateShsMaster, UpdateShsMaster, DeleteShsMaster } from './state';
 import { ShsMaster } from '@shared/models/shs-master';
 
 @Component({
@@ -30,14 +32,18 @@ import { ShsMaster } from '@shared/models/shs-master';
     InputNumberModule,
     CheckboxModule,
     TextareaModule,
+    ConfirmDialogModule,
     PageHeaderComponent,
   ],
+  providers: [ConfirmationService, MessageService],
   templateUrl: './shs-master-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShsMasterListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
+  private readonly confirm = inject(ConfirmationService);
+  private readonly msg = inject(MessageService);
 
   protected readonly list: any = this.store.selectSignal(ShsMasterState.list);
   protected readonly loading = signal(false);
@@ -120,6 +126,30 @@ export class ShsMasterListComponent implements OnInit {
   protected toggleStatus(item: ShsMaster): void {
     this.store.dispatch(new UpdateShsMaster(item.id, { isAktif: !item.isAktif })).subscribe({
       next: () => this.store.dispatch(new LoadShsMaster()),
+    });
+  }
+
+  protected deleteItem(item: ShsMaster): void {
+    this.confirm.confirm({
+      message: `Item SHS "${item.namaItem}" akan dihapus permanen. Lanjutkan?`,
+      header: 'Hapus SHS',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Hapus',
+      rejectLabel: 'Batal',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.store.dispatch(new DeleteShsMaster(item.id)).subscribe({
+          next: () => {
+            this.msg.add({ severity: 'success', summary: 'Item SHS berhasil dihapus.' });
+            this.store.dispatch(new LoadShsMaster());
+          },
+          error: (err) => this.msg.add({
+            severity: 'error',
+            summary: 'Gagal menghapus SHS',
+            detail: err?.error?.message ?? 'Terjadi kesalahan.'
+          }),
+        });
+      },
     });
   }
 

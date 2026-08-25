@@ -81,6 +81,35 @@
               <span class="block text-xs font-medium text-slate-500">Vendor Ditugaskan</span>
               <span class="block text-sm font-semibold text-slate-800">{{ wo.vendorNama }}</span>
             </div>
+            <div class="md:col-span-2">
+              <span class="block text-xs font-medium text-slate-500">Deskripsi Kerusakan / Pekerjaan</span>
+              <span class="block text-sm font-semibold text-slate-800">
+                {{ wo.pengajuan?.deskripsiKerusakan || '-' }}
+              </span>
+            </div>
+            @if (wo.pengajuan?.fotos?.length) {
+              <div class="md:col-span-2">
+                <span class="block text-xs font-medium text-slate-500 mb-2">
+                  Foto Bukti Kerusakan (Saat Pengajuan)
+                </span>
+                <div class="flex flex-wrap gap-2">
+                  @for (f of wo.pengajuan!.fotos; track f.id) {
+                    <button
+                      type="button"
+                      class="block rounded-lg border border-slate-200 overflow-hidden hover:border-primary-400 transition"
+                      (click)="openDocument(f.image?.id, f.image?.signedUrl || f.image?.url)"
+                      title="Lihat foto"
+                    >
+                      <img
+                        [src]="f.image?.signedUrl || f.image?.url"
+                        alt="Foto bukti kerusakan"
+                        class="w-28 h-20 object-cover"
+                      />
+                    </button>
+                  }
+                </div>
+              </div>
+            }
           </div>
         </p-card>
 
@@ -236,13 +265,25 @@
           <p-card header="Mapping SHS oleh Pengurus Barang">
             <div class="flex flex-col gap-5">
               <div
-                class="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 p-4"
+                class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 p-4"
               >
-                <p class="text-sm font-semibold text-blue-900">Review & Mapping SHS</p>
-                <p class="mt-1 text-xs text-blue-800">
-                  Cocokkan item vendor ke SHS Master. Harga vendor tidak boleh lebih besar dari SHS
-                  maksimum.
-                </p>
+                <div>
+                  <p class="text-sm font-semibold text-blue-900">Review & Mapping SHS</p>
+                  <p class="mt-1 text-xs text-blue-800">
+                    Cocokkan item vendor ke SHS Master. Harga vendor tidak boleh lebih besar dari SHS
+                    maksimum.
+                  </p>
+                </div>
+                @if (canCreateShs()) {
+                  <p-button
+                    icon="pi pi-plus"
+                    label="Tambah Master SHS"
+                    size="small"
+                    [outlined]="true"
+                    (onClick)="openShsDialog()"
+                    [disabled]="shsSaving()"
+                  />
+                }
               </div>
 
               @if (false && latestDraft()?.items?.length) {
@@ -648,18 +689,6 @@
           </div>
         }
 
-        @if (wo.status === 'MENUNGGU_PB' && (isPB() || isAdmin())) {
-          <p-card header="Review Hasil Pekerjaan (PB)">
-            <div class="flex flex-col gap-4">
-              <p class="text-sm text-slate-600">Review hasil pekerjaan vendor sebelum diteruskan ke verifikator.</p>
-              <div class="flex gap-2">
-                <p-button label="Tolak" icon="pi pi-times" severity="danger" [outlined]="true" (onClick)="openPekerjaanPbReviewDialog(false)"></p-button>
-                <p-button label="Setujui → Kirim ke Verifikator" icon="pi pi-check" severity="success" (onClick)="openPekerjaanPbReviewDialog(true)"></p-button>
-              </div>
-            </div>
-          </p-card>
-        }
-
         <!-- ══ STEP F: Verifikator Review ══ -->
         @if (wo.status === 'MENUNGGU_VERIFIKATOR' && isVerifikator()) {
           <p-card header="Verifikasi Invoice & Dokumen">
@@ -937,6 +966,31 @@
                   </figcaption>
                 </figure>
               }
+            </div>
+          </p-card>
+        }
+
+        @if (wo.status === 'MENUNGGU_PB' && (isPB() || isAdmin())) {
+          <p-card header="Review Hasil Pekerjaan (PB)">
+            <div class="flex flex-col gap-4">
+              <p class="text-sm text-slate-600">
+                Review hasil pekerjaan vendor sebelum diteruskan ke verifikator.
+              </p>
+              <div class="flex gap-2">
+                <p-button
+                  label="Tolak"
+                  icon="pi pi-times"
+                  severity="danger"
+                  [outlined]="true"
+                  (onClick)="openPekerjaanPbReviewDialog(false)"
+                ></p-button>
+                <p-button
+                  label="Setujui → Kirim ke Verifikator"
+                  icon="pi pi-check"
+                  severity="success"
+                  (onClick)="openPekerjaanPbReviewDialog(true)"
+                ></p-button>
+              </div>
             </div>
           </p-card>
         }
@@ -1237,6 +1291,67 @@
       [severity]="pptkApprovedSignal() ? 'success' : 'danger'"
       [loading]="pptkLoading()"
       (onClick)="submitPptkDecision()"
+    ></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog: Tambah SHS Master (inline dari Mapping SHS) -->
+<p-dialog
+  header="Tambah SHS Master"
+  [visible]="shsDialogVisible()"
+  (visibleChange)="shsDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '440px' }"
+  [draggable]="false"
+>
+  <form [formGroup]="shsForm" class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Nama Item <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="namaItem" placeholder="cth: Ganti Oli Mesin" />
+      @if (shsForm.get('namaItem')!.invalid && shsForm.get('namaItem')!.touched) {
+        <small class="text-red-500">Nama item wajib diisi.</small>
+      }
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Satuan <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="satuan" placeholder="cth: PCS / LTR" />
+        @if (shsForm.get('satuan')!.invalid && shsForm.get('satuan')!.touched) {
+          <small class="text-red-500">Satuan wajib diisi.</small>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Harga Maksimum (Rp) <span class="text-red-500">*</span></label>
+        <p-inputnumber
+          formControlName="hargaMaksimum"
+          [min]="1"
+          [useGrouping]="true"
+          styleClass="w-full"
+        />
+        @if (shsForm.get('hargaMaksimum')!.invalid && shsForm.get('hargaMaksimum')!.touched) {
+          <small class="text-red-500">Harga minimal Rp 1.</small>
+        }
+      </div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium">Sumber Referensi Harga</label>
+      <input pInputText formControlName="sumberReferensi" placeholder="Opsional — cth: SK Gubernur No..." />
+    </div>
+  </form>
+  <ng-template #footer>
+    <p-button
+      label="Batal"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="shsDialogVisible.set(false)"
+      [disabled]="shsSaving()"
+    ></p-button>
+    <p-button
+      label="Simpan"
+      icon="pi pi-check"
+      [loading]="shsSaving()"
+      [disabled]="shsForm.invalid"
+      (onClick)="submitShs()"
     ></p-button>
   </ng-template>
 </p-dialog>

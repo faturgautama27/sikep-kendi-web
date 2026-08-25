@@ -51,6 +51,9 @@ export class BastPrintComponent implements OnInit, OnDestroy {
   protected readonly printDate = new Date();
   protected readonly isExporting = signal(false);
 
+  /** Logo instansi dilayani via API backend (route /api/logo, CORS-enabled). */
+  protected readonly logoUrl = `${this.env.apiBaseUrl}/logo`;
+
   /** PDF attachment defs — uses imageId for proxy, url as fallback */
   private pdfAttachmentDefs: { label: string; imageId: string; url: string }[] = [];
 
@@ -180,7 +183,7 @@ export class BastPrintComponent implements OnInit, OnDestroy {
     try {
       const [{ default: jsPDF }, { default: html2canvas }, { PDFDocument }] = await Promise.all([
         import('jspdf'),
-        import('html2canvas'),
+        import('html2canvas-pro'),
         import('pdf-lib'),
       ]);
 
