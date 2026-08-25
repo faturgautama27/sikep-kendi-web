@@ -112,7 +112,9 @@ export class VehiclesListComponent {
   }
 
   protected onKartu(v: Vehicle): void {
-    this.router.navigate(['/vehicles', v.id, 'kartu']);
+    this.router.navigate(['/laporan/kartu-pemeliharaan'], {
+      queryParams: { vehicleId: v.id, tahun: new Date().getFullYear() },
+    });
   }
 
   protected statusSeverity(s: VehicleStatus): 'success' | 'warn' | 'secondary' {

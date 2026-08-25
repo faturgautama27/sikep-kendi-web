@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
+import { catchError, filter, of, take } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
@@ -116,6 +116,20 @@ export class KartuPemeliharaanComponent implements OnInit {
   ngOnInit() {
     this.loadSignatures();
     this.store.dispatch(new LoadVehicles());
+
+    // Baca query params dari navigasi (misal dari halaman kendaraan)
+    const params = this.route.snapshot.queryParamMap;
+    const vehicleId = params.get('vehicleId');
+    const tahun = params.get('tahun');
+    if (vehicleId) {
+      this.selectedVehicleId.set(Number(vehicleId));
+      if (tahun) this.selectedTahun.set(Number(tahun));
+      // tunggu vehicles ter-load, lalu generate otomatis
+      this.store.select(VehiclesState.list).pipe(
+        filter((list: any[]) => list && list.length > 0),
+        take(1),
+      ).subscribe(() => this.generate());
+    }
   }
 
   protected signature(kode: SignatureSetting['kodeJabatan']): SignatureSetting | null {

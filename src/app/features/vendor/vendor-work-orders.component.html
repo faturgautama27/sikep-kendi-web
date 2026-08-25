@@ -64,7 +64,7 @@
           <th class="w-36 text-right">Nominal</th>
           <th class="w-32">Ditugaskan</th>
           <th class="w-48">Catatan</th>
-          <th class="w-52 text-right">Aksi</th>
+          <!-- <th class="w-52 text-right">Aksi</th> -->
         </tr>
       </ng-template>
 
@@ -121,6 +121,7 @@
           <td class="text-xs text-slate-600 max-w-[12rem] truncate" [title]="row.status === 'VENDOR_DITUGASKAN' ? (row.komentarVerifikasi || '') : ''">
             {{ row.status === 'VENDOR_DITUGASKAN' ? (row.komentarVerifikasi || '—') : '' }}
           </td>
+          <!-- aksi disembunyikan
           <td>
             <div class="flex justify-end gap-1">
               @if (currentView === 'notifikasi' || currentView === 'draft') {
@@ -145,6 +146,7 @@
               }
             </div>
           </td>
+          -->
         </tr>
       </ng-template>
 

@@ -97,7 +97,7 @@
           <th class="w-32">Tgl Dibuat</th>
           <th class="w-32">Selesai</th>
           <th class="w-40 text-right">Total Nominal</th>
-          <th class="w-16 text-right">Aksi</th>
+          <!-- <th class="w-16 text-right">Aksi</th> -->
         </tr>
       </ng-template>
 
@@ -128,6 +128,7 @@
           <td class="text-right font-medium text-slate-800">
             {{ formatRupiah(wo.totalNominal) }}
           </td>
+          <!-- aksi disembunyikan
           <td class="text-right">
             <p-button
               icon="pi pi-eye"
@@ -139,6 +140,7 @@
               [routerLink]="['/work-orders', wo.id]"
             ></p-button>
           </td>
+          -->
         </tr>
       </ng-template>
 
