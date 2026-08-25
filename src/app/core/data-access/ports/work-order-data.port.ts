@@ -53,6 +53,7 @@ export interface WorkOrderDataPort {
     approved: boolean,
     catatan?: string,
     alasanPenolakan?: string,
+    kondisiAkhir?: string,
   ): Observable<WorkOrder>;
   // Step F: Verifikator review
   verifikatorReview(

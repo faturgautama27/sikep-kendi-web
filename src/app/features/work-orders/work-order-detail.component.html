@@ -1162,6 +1162,28 @@
   [draggable]="false"
 >
   <div class="flex flex-col gap-3 pt-2">
+    @if (pekerjaanPbReviewApproved()) {
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">Kondisi Akhir Kendaraan <span class="text-red-500">*</span></label>
+        <div class="flex gap-4">
+          @for (opt of ['Baik','Rusak Ringan','Rusak Berat']; track opt) {
+            <label class="flex items-center gap-2 cursor-pointer text-sm">
+              <input
+                type="radio"
+                [value]="opt"
+                [checked]="pekerjaanPbKondisiAkhir() === opt"
+                (change)="pekerjaanPbKondisiAkhir.set(opt)"
+                class="accent-primary-600"
+              />
+              {{ opt }}
+            </label>
+          }
+        </div>
+        @if (!pekerjaanPbKondisiAkhir()) {
+          <small class="text-xs text-red-500">Pilih kondisi akhir kendaraan.</small>
+        }
+      </div>
+    }
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium">Catatan (opsional)</label>
       <textarea pTextarea rows="2" [ngModel]="pekerjaanPbCatatan()" (ngModelChange)="pekerjaanPbCatatan.set($event)" placeholder="Catatan untuk vendor..."></textarea>

@@ -337,6 +337,7 @@ export class WorkOrderDetailComponent implements OnInit {
   protected readonly pekerjaanPbCatatan = signal('');
   protected readonly pekerjaanPbAlasanPenolakan = signal('');
   protected readonly pekerjaanPbReviewLoading = signal(false);
+  protected readonly pekerjaanPbKondisiAkhir = signal<string>('');
 
   // ─── Step E: Vendor Submit Invoice ────────────────────────────────────────
   protected readonly invoiceDialogVisible = signal(false);
@@ -1041,6 +1042,7 @@ export class WorkOrderDetailComponent implements OnInit {
     this.pekerjaanPbReviewApproved.set(approved);
     this.pekerjaanPbCatatan.set('');
     this.pekerjaanPbAlasanPenolakan.set('');
+    this.pekerjaanPbKondisiAkhir.set('');
     this.pekerjaanPbReviewDialogVisible.set(true);
   }
 
@@ -1049,8 +1051,12 @@ export class WorkOrderDetailComponent implements OnInit {
       this.msg.add({ severity: 'warn', summary: 'Alasan penolakan wajib diisi' });
       return;
     }
+    if (this.pekerjaanPbReviewApproved() && !this.pekerjaanPbKondisiAkhir()) {
+      this.msg.add({ severity: 'warn', summary: 'Kondisi akhir kendaraan wajib dipilih' });
+      return;
+    }
     this.pekerjaanPbReviewLoading.set(true);
-    this.store.dispatch(new ReviewPekerjaanPb(this.id, this.pekerjaanPbReviewApproved(), this.pekerjaanPbCatatan() || undefined, this.pekerjaanPbAlasanPenolakan() || undefined)).subscribe({
+    this.store.dispatch(new ReviewPekerjaanPb(this.id, this.pekerjaanPbReviewApproved(), this.pekerjaanPbCatatan() || undefined, this.pekerjaanPbAlasanPenolakan() || undefined, this.pekerjaanPbKondisiAkhir() || undefined)).subscribe({
       next: () => {
         this.pekerjaanPbReviewLoading.set(false);
         this.pekerjaanPbReviewDialogVisible.set(false);

@@ -638,12 +638,14 @@ export class ApiWorkOrderData implements WorkOrderDataPort {
     approved: boolean,
     catatan?: string,
     alasanPenolakan?: string,
+    kondisiAkhir?: string,
   ): Observable<WorkOrder> {
     return this.http
       .post<any>(this.url(`/work-orders/${workOrderId}/review-pekerjaan-pb`), {
         approved,
         catatan,
         alasanPenolakan,
+        kondisiAkhir,
       })
       .pipe(map((res) => mapWorkOrder(res?.data ?? res)));
   }

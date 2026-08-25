@@ -88,6 +88,7 @@ export class ReviewPekerjaanPb {
     public readonly approved: boolean,
     public readonly catatan?: string,
     public readonly alasanPenolakan?: string,
+    public readonly kondisiAkhir?: string,
   ) {}
 }
 

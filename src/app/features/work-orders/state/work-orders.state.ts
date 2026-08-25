@@ -230,7 +230,7 @@ export class WorkOrdersState {
 
   @Action(ReviewPekerjaanPb)
   reviewPekerjaanPb(ctx: StateContext<WorkOrdersStateModel>, action: ReviewPekerjaanPb) {
-    if (!this.env.previewMode) return this.data.reviewPekerjaanPb(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan).pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
+    if (!this.env.previewMode) return this.data.reviewPekerjaanPb(action.workOrderId, action.approved, action.catatan, action.alasanPenolakan, action.kondisiAkhir).pipe(tap(() => ctx.dispatch(new GetWorkOrderDetail(action.workOrderId))));
     const detail = ctx.getState().detail;
     if (detail?.id === action.workOrderId) ctx.patchState({ detail: { ...detail, status: action.approved ? 'MENUNGGU_VERIFIKATOR' : 'PENAWARAN' } });
     return;
