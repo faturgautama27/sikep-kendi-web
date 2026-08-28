@@ -135,6 +135,8 @@ export interface WorkOrder {
   kondisiKendaraan?: 'Baik' | 'Rusak Ringan' | 'Rusak Berat' | null;
   kondisiDinilaiOlehId?: string | null;
   kondisiDinilaiAt?: string | null;
+
+  draftChecklists?: any;
 }
 
 export interface WorkOrderProgress {

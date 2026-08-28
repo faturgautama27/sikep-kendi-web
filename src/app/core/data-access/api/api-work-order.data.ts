@@ -510,6 +510,7 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
             null,
         }
       : null,
+    draftChecklists: raw.draftChecklists
   };
 }
 

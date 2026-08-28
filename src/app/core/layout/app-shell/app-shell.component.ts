@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Store } from '@ngxs/store';
 
@@ -22,9 +22,9 @@ import { MessageService } from 'primeng/api';
  * AppShell: layout root SiKeP KenDI yang membungkus halaman authenticated.
  *
  * Layout:
- * - `TopBar` (header) — logo, brand, tagline, notifikasi, user menu
- * - `SideNav` (sidebar kiri) — daftar navigasi utama
- * - `<main>` — slot `router-outlet` untuk halaman fitur
+ * - `TopBar` (header) â€” logo, brand, tagline, notifikasi, user menu
+ * - `SideNav` (sidebar kiri) â€” daftar navigasi utama
+ * - `<main>` â€” slot `router-outlet` untuk halaman fitur
  *
  * Phase 1: dipakai sebagai komponen root di `app.html` agar setiap route
  * di `app.routes.ts` ter-render di dalam shell. Pada Phase 1 ini login flow
@@ -53,34 +53,34 @@ export class AppShellComponent implements OnInit {
       new LoadNotificationPreferences(),
     ];
 
-    // Kendaraan, dashboard summary — pengurus_barang & pengemudi & admin
-    if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi')) {
+    // Kendaraan, dashboard summary â€” pengurus_barang & pengemudi & admin
+    if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi', 'pptk', 'verifikator', 'bendahara')) {
       actions.push(new LoadDashboardSummary());
       actions.push(new LoadTopDeviationVehicles());
       actions.push(new LoadVehicles());
     }
 
-    // Vendor performance — pihak yang terlibat keuangan / penawaran
+    // Vendor performance â€” pihak yang terlibat keuangan / penawaran
     if (hasRole('admin_sistem', 'vendor', 'bendahara')) {
       actions.push(new LoadVendorPerformance());
     }
 
-    // Pengajuan — pengemudi mengajukan, pengurus_barang & pptk mereview
+    // Pengajuan â€” pengemudi mengajukan, pengurus_barang & pptk mereview
     if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi', 'pptk')) {
       actions.push(new LoadPengajuan());
     }
 
-    // Work order — semua pihak yang terlibat alur WO
+    // Work order â€” semua pihak yang terlibat alur WO
     if (hasRole('admin_sistem', 'pengurus_barang', 'vendor', 'verifikator', 'bendahara', 'pptk')) {
       actions.push(new LoadWorkOrders());
     }
 
-    // Darurat — pengemudi melapor, pengurus_barang & pptk & verifikator mereview
+    // Darurat â€” pengemudi melapor, pengurus_barang & pptk & verifikator mereview
     if (hasRole('admin_sistem', 'pengurus_barang', 'pengemudi', 'verifikator', 'pptk')) {
       actions.push(new LoadDarurat());
     }
 
-    // Audit log — admin sistem saja
+    // Audit log â€” admin sistem saja
     if (hasRole('admin_sistem')) {
       actions.push(new LoadAuditLogs());
     }

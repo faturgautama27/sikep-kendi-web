@@ -54,7 +54,7 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
   private printContainerRef!: ElementRef<HTMLElement>;
 
   protected readonly wo = signal<WorkOrder | null>(null);
-  protected readonly printDate = new Date();
+  protected readonly printDate = signal(new Date());
   protected readonly isExporting = signal(false);
   protected readonly signatures = signal<Record<string, SignatureSetting>>({});
 
@@ -69,6 +69,7 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.dataPort.getById(id).subscribe((res) => {
+        this.printDate.set(res.draftChecklists.length > 0 ? new Date(res.draftChecklists[0].pptkAt): new Date());
         this.wo.set(res);
         this.collectPdfAttachments(res);
         setTimeout(() => this.exportPdf(), 800);
