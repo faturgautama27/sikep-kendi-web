@@ -895,7 +895,7 @@
                 Review invoice final, draft checklist, SPK, dan Berita Acara.
               </p>
 
-              @if (wo.verifikasiHarga?.shsItems?.length) {
+              @if (false && wo.verifikasiHarga?.shsItems?.length) {
                 <div>
                   <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                     Item SHS (oleh PB)
@@ -904,7 +904,6 @@
                     <ng-template #header>
                       <tr>
                         <th>Item</th>
-                        <th class="text-center w-16">Qty</th>
                         <th class="text-right">Harga Vendor</th>
                         <th class="text-right">SHS Maks</th>
                         <th class="text-right">Selisih</th>
@@ -913,11 +912,10 @@
                     <ng-template #body let-s>
                       <tr>
                         <td>{{ s.namaItem }}</td>
-                        <td class="text-center">{{ s.qty ?? 1 }}</td>
-                        <td class="text-right">{{ formatRupiah(+s.hargaVendor * (s.qty ?? 1)) }}</td>
-                        <td class="text-right">{{ formatRupiah(+s.hargaStandart * (s.qty ?? 1)) }}</td>
-                        <td class="text-right" [class.text-red-600]="+(s.hargaStandart * (s.qty ?? 1)) - +(s.hargaVendor * (s.qty ?? 1)) < 0">
-                          {{ formatRupiah(+(s.hargaStandart * (s.qty ?? 1)) - +(s.hargaVendor * (s.qty ?? 1))) }}
+                        <td class="text-right">{{ formatRupiah(+s.hargaVendor * (1 - (s.diskon ?? 0) / 100)) }}</td>
+                        <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
+                        <td class="text-right" [class.text-red-600]="+s.hargaStandart - (+s.hargaVendor * (1 - (s.diskon ?? 0) / 100)) < 0">
+                          {{ formatRupiah(+s.hargaStandart - (+s.hargaVendor * (1 - (s.diskon ?? 0) / 100))) }}
                         </td>
                       </tr>
                     </ng-template>
@@ -954,7 +952,7 @@
                   Review estimasi biaya sebelum menerbitkan SPK dan memulai pengerjaan.
                 }
               </p>
-              @if (wo.verifikasiHarga?.shsItems?.length) {
+              @if (false && wo.verifikasiHarga?.shsItems?.length) {
                 <p-table [value]="wo.verifikasiHarga!.shsItems">
                   <ng-template #header>
                     <tr>
