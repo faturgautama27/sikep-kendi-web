@@ -904,6 +904,7 @@
                     <ng-template #header>
                       <tr>
                         <th>Item</th>
+                        <th class="text-center w-16">Qty</th>
                         <th class="text-right">Harga Vendor</th>
                         <th class="text-right">SHS Maks</th>
                         <th class="text-right">Selisih</th>
@@ -912,10 +913,11 @@
                     <ng-template #body let-s>
                       <tr>
                         <td>{{ s.namaItem }}</td>
-                        <td class="text-right">{{ formatRupiah(s.hargaVendor) }}</td>
-                        <td class="text-right">{{ formatRupiah(s.hargaStandart) }}</td>
-                        <td class="text-right" [class.text-red-600]="+s.hargaStandart - +s.hargaVendor < 0">
-                          {{ formatRupiah(+s.hargaStandart - +s.hargaVendor) }}
+                        <td class="text-center">{{ s.qty ?? 1 }}</td>
+                        <td class="text-right">{{ formatRupiah(+s.hargaVendor * (s.qty ?? 1)) }}</td>
+                        <td class="text-right">{{ formatRupiah(+s.hargaStandart * (s.qty ?? 1)) }}</td>
+                        <td class="text-right" [class.text-red-600]="+(s.hargaStandart * (s.qty ?? 1)) - +(s.hargaVendor * (s.qty ?? 1)) < 0">
+                          {{ formatRupiah(+(s.hargaStandart * (s.qty ?? 1)) - +(s.hargaVendor * (s.qty ?? 1))) }}
                         </td>
                       </tr>
                     </ng-template>
