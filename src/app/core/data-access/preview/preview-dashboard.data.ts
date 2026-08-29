@@ -31,6 +31,8 @@ export class PreviewDashboardData implements DashboardDataPort {
       fuelCostThisMonth: 0,
       maintenanceCostThisMonth: 0,
       notificationCriticalUnread: 0,
+      activeWorkOrders: 0,
+      activeEarlyWarnings: 0,
     });
   }
 

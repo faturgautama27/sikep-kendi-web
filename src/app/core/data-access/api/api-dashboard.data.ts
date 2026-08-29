@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import type {
@@ -38,6 +38,8 @@ export class ApiDashboardData implements DashboardDataPort {
       fuelCostThisMonth: Number(raw['fuelCostThisMonth'] ?? 0),
       maintenanceCostThisMonth: Number(raw['maintenanceCostThisMonth'] ?? 0),
       notificationCriticalUnread: Number(raw['notificationCriticalUnread'] ?? 0),
+      activeWorkOrders: Number(raw['activeWorkOrders'] ?? raw['workOrderBerlangsung'] ?? 0),
+      activeEarlyWarnings: Number(raw['activeEarlyWarnings'] ?? raw['earlyWarningAktif'] ?? 0),
     };
   }
 
@@ -64,14 +66,24 @@ export class ApiDashboardData implements DashboardDataPort {
   }
 
   private mapTopDeviation(
-    raw: Array<{ status?: string; _count?: { _all?: number } }>,
+    raw: Array<{ status?: string; count?: number; _count?: { _all?: number } }>,
   ): TopDeviationVehicle[] {
-    return raw.map((row, idx) => ({
-      vehicleId: `status-${row.status ?? idx}`,
-      vehiclePlate: row.status ?? '-',
+    // Normalize status values (AKTIF vs active) and merge duplicates
+    const normalized = new Map<string, number>();
+    
+    raw.forEach((row) => {
+      const status = (row.status ?? '-').toUpperCase();
+      const count = Number(row.count ?? row._count?._all ?? 0);
+      normalized.set(status, (normalized.get(status) ?? 0) + count);
+    });
+
+    // Convert map to array
+    return Array.from(normalized.entries()).map(([status, count]) => ({
+      vehicleId: `status-${status}`,
+      vehiclePlate: status,
       merk: 'Status Kendaraan Dinas',
-      tipe: row.status ?? '-',
-      deviationCount: Number(row._count?._all ?? 0),
+      tipe: status,
+      deviationCount: count,
       lastDeviationAt: new Date().toISOString(),
     }));
   }
@@ -106,7 +118,7 @@ export class ApiDashboardData implements DashboardDataPort {
   getTopDeviationVehicles(): Observable<TopDeviationVehicle[]> {
     return this.http
       .get<
-        Array<{ status?: string; _count?: { _all?: number } }>
+        Array<{ status?: string; count?: number; _count?: { _all?: number } }>
       >(this.url('/dashboard/kendaraan-status'))
       .pipe(map((raw) => this.mapTopDeviation(raw)));
   }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
@@ -45,13 +45,58 @@ export class DashboardComponent {
   protected readonly unread = this.store.selectSignal(NotificationsState.unreadCount);
   protected readonly workOrders = this.store.selectSignal(WorkOrdersState.list);
 
-  protected readonly activeWorkOrders = computed(
-    () =>
-      this.workOrders().filter((wo) => ['assigned', 'received', 'in_progress'].includes(wo.status))
-        .length,
-  );
+  // Calculate vendor performance from work orders (backend /dashboard/vendor returns all zeros)
+  protected readonly calculatedVendorPerf = computed(() => {
+    const wos = this.workOrders();
+    const vendorMap = new Map<string, { 
+      vendorId: string; 
+      vendorNama: string; 
+      total: number; 
+      rejected: number;
+      completed: number;
+    }>();
 
-  protected readonly activeEwe = computed(() => this.topDeviation().length);
+    // Group work orders by vendor
+    wos.forEach(wo => {
+      const existing = vendorMap.get(wo.vendorId) || {
+        vendorId: wo.vendorId,
+        vendorNama: wo.vendorNama,
+        total: 0,
+        rejected: 0,
+        completed: 0,
+      };
+
+      existing.total++;
+      
+      // Count rejected WOs
+      if (['DITOLAK_PB', 'DITOLAK_VERIFIKATOR', 'DITOLAK_PPTK'].includes(wo.status)) {
+        existing.rejected++;
+      }
+      
+      // Count completed/paid WOs
+      if (['DIBAYAR', 'DISETUJUI_PPTK'].includes(wo.status)) {
+        existing.completed++;
+      }
+
+      vendorMap.set(wo.vendorId, existing);
+    });
+
+    // Convert to VendorPerformance array
+    return Array.from(vendorMap.values())
+      .map(v => ({
+        vendorId: v.vendorId,
+        vendorNama: v.vendorNama,
+        totalWorkOrders: v.total,
+        avgCompletionDays: 7, // Placeholder - need timestamps to calculate
+        rejectionRate: v.total > 0 ? v.rejected / v.total : 0,
+        rating: 4.5, // Placeholder
+      }))
+      .sort((a, b) => b.totalWorkOrders - a.totalWorkOrders); // Sort by most active
+  });
+
+  protected readonly activeWorkOrders = computed(() => this.num(this.summary(), 'activeWorkOrders'));
+
+  protected readonly activeEwe = computed(() => this.num(this.summary(), 'activeEarlyWarnings'));
 
   protected num(s: DashboardSummary | null, key: keyof DashboardSummary): number {
     return s ? Number(s[key] ?? 0) : 0;
@@ -149,7 +194,7 @@ export class DashboardComponent {
 
   // ── Vendor performa: Radial ───────────────────────────────────────────
   protected readonly radialSeries = computed(() =>
-    this.safeArray<VendorPerformance>(this.vendorPerf())
+    this.safeArray<VendorPerformance>(this.calculatedVendorPerf())
       .slice(0, 4)
       .map((v) => Math.round((1 - v.rejectionRate) * 100)),
   );
@@ -165,7 +210,7 @@ export class DashboardComponent {
         dataLabels: { name: { fontSize: '10px' }, value: { fontSize: '12px', fontWeight: 700 } },
       },
     },
-    labels: this.safeArray<VendorPerformance>(this.vendorPerf())
+    labels: this.safeArray<VendorPerformance>(this.calculatedVendorPerf())
       .slice(0, 4)
       .map((v) => v.vendorNama.split(' ').slice(0, 2).join(' ')),
     colors: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'],

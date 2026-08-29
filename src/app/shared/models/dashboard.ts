@@ -1,4 +1,4 @@
-import type { Money } from './common';
+﻿import type { Money } from './common';
 
 export interface DashboardSummary {
   totalVehicles: number;
@@ -13,6 +13,8 @@ export interface DashboardSummary {
   fuelCostThisMonth: Money;
   maintenanceCostThisMonth: Money;
   notificationCriticalUnread: number;
+  activeWorkOrders: number;
+  activeEarlyWarnings: number;
 }
 
 export interface CostBreakdown {

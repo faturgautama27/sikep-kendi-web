@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { tap } from 'rxjs';
 
@@ -102,7 +102,24 @@ export class DashboardState {
     if (this.env.previewMode) return;
     return this.data.getTopDeviationVehicles().pipe(
       tap((topDeviation) => {
-        ctx.patchState({ topDeviation });
+        // Calculate total active vehicles from merged status data
+        const activeCount = topDeviation
+          .filter((v) => v.vehiclePlate.toUpperCase() === 'AKTIF' || v.vehiclePlate.toUpperCase() === 'ACTIVE')
+          .reduce((sum, v) => sum + v.deviationCount, 0);
+        
+        // Update summary.activeVehicles with correct merged count
+        const currentSummary = ctx.getState().summary;
+        if (currentSummary && activeCount > 0) {
+          ctx.patchState({ 
+            topDeviation,
+            summary: {
+              ...currentSummary,
+              activeVehicles: activeCount,
+            }
+          });
+        } else {
+          ctx.patchState({ topDeviation });
+        }
       }),
     );
   }
