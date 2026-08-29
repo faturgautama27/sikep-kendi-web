@@ -140,44 +140,9 @@
           </tbody>
         </table>
 
-        <!-- Rincian item pekerjaan (dari draft checklist yang disetujui PPTK) -->
-        @if (w.penawaranDetail?.items?.length) {
-          <p class="font-semibold">Rincian Biaya Pekerjaan:</p>
-          <table class="w-full border-collapse border border-slate-800 mb-4 mt-1 text-xs">
-            <thead>
-              <tr class="bg-slate-100">
-                <th class="border border-slate-800 p-2 w-8">No</th>
-                <th class="border border-slate-800 p-2 text-left">Uraian Kerusakan</th>
-                <th class="border border-slate-800 p-2 text-left">Sparepart</th>
-                <th class="border border-slate-800 p-2 text-left">Tindakan Perbaikan</th>
-                <th class="border border-slate-800 p-2 text-right w-28">Harga (Rp)</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of w.penawaranDetail!.items; track item.id) {
-                <tr>
-                  <td class="border border-slate-800 p-2 text-center">{{ item.urutan }}</td>
-                  <td class="border border-slate-800 p-2">{{ item.namaKerusakan || '-' }}</td>
-                  <td class="border border-slate-800 p-2">{{ item.namaSparepart || '-' }}</td>
-                  <td class="border border-slate-800 p-2">{{ item.tindakanPerbaikan || '-' }}</td>
-                  <td class="border border-slate-800 p-2 text-right">
-                    {{ (item.hargaItem || 0).toLocaleString('id-ID') }}
-                  </td>
-                </tr>
-              }
-              <tr class="font-bold bg-slate-50">
-                <td class="border border-slate-800 p-2 text-right" colspan="4">TOTAL</td>
-                <td class="border border-slate-800 p-2 text-right">
-                  {{ (w.penawaranDetail!.totalBiaya || 0).toLocaleString('id-ID') }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        }
-
         <p>
           Pekerjaan harus diselesaikan sesuai dengan standar kualitas yang telah disepakati dan
-          biaya yang tertera pada dokumen penawaran.
+          biaya yang tertera pada lampiran detail draft checklist yang disetujui.
         </p>
 
         <p>
@@ -195,11 +160,71 @@
         </div>
         <div class="w-1/3">
           <p>PIHAK PERTAMA</p>
-          <p class="mb-20">Pejabat Pelaksana Teknis Kegiatan</p>
+          <p class="mb-4">Pejabat Pelaksana Teknis Kegiatan</p>
+          @if (signature('PPTK')?.signatureImageUrl) {
+            <img [src]="signature('PPTK')!.signatureImageUrl!" alt="TTD PPTK" class="h-16 object-contain mx-auto" />
+          } @else {
+            <div class="mb-10"></div>
+          }
           <p class="underline">({{ signature('PPTK')?.namaLengkap || '........................................' }})</p>
           <p>NIP {{ signature('PPTK')?.nik || '........................................' }}</p>
         </div>
       </div>
+    </div>
+
+    <!-- ═══ HALAMAN 2: Lampiran Detail Draft Checklist ═══ -->
+    <div class="print-page bg-white p-8 max-w-[210mm] mx-auto min-h-[297mm]">
+      <div class="border-b-4 border-double border-slate-800 pb-4 mb-6 flex items-center gap-4">
+        <img [src]="logoUrl" alt="Logo Disperindag" class="w-20 h-20 shrink-0 object-contain" />
+        <div class="flex-1 text-center">
+          <h1 class="text-base font-black uppercase tracking-wider">PEMERINTAH PROVINSI JAWA TENGAH</h1>
+          <h2 class="text-lg font-black uppercase tracking-wide">DINAS PERINDUSTRIAN DAN PERDAGANGAN</h2>
+          <h3 class="text-sm font-bold uppercase">PROVINSI JAWA TENGAH</h3>
+        </div>
+      </div>
+      <div class="mb-6 text-center">
+        <h3 class="text-lg font-bold uppercase underline">Lampiran 2</h3>
+        <p class="text-sm mt-1">Nomor: SPK-{{ w.nomor }}/{{ printDate().getFullYear() }}</p>
+        <p class="text-sm mt-1">Rincian Pekerjaan</p>
+      </div>
+      @if (w.draftChecklists?.length) {
+        @for (draft of w.draftChecklists; track draft.id) {
+          @if (draft.status === 'DISETUJUI_PPTK') {
+            <table class="w-full border-collapse border border-slate-800 text-xs">
+              <thead>
+                <tr class="bg-slate-100">
+                  <th class="border border-slate-800 p-2 w-8">No</th>
+                  <th class="border border-slate-800 p-2 text-left">Tindakan</th>
+                  <th class="border border-slate-800 p-2 text-left">Jenis</th>
+                  <th class="border border-slate-800 p-2 text-right">Qty</th>
+                  <th class="border border-slate-800 p-2 text-right">Harga</th>
+                  <th class="border border-slate-800 p-2 text-right">Diskon</th>
+                  <th class="border border-slate-800 p-2 text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of draft.items || []; track item.id; let i = $index) {
+                  <tr>
+                    <td class="border border-slate-800 p-2 text-center">{{ i + 1 }}</td>
+                    <td class="border border-slate-800 p-2">{{ item.tindakanPerbaikan || item.namaKerusakan || '-' }}</td>
+                    <td class="border border-slate-800 p-2">{{ item.jenis || '-' }}</td>
+                    <td class="border border-slate-800 p-2 text-right">{{ item.qty ?? 1 }}</td>
+                    <td class="border border-slate-800 p-2 text-right">{{ (+item.harga || +item.hargaItem || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 }) }}</td>
+                    <td class="border border-slate-800 p-2 text-right">{{ item.diskon ?? 0 }}%</td>
+                    <td class="border border-slate-800 p-2 text-right">{{ (+item.subTotal || +item.hargaItem || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 }) }}</td>
+                  </tr>
+                }
+                <tr class="font-bold bg-slate-50">
+                  <td class="border border-slate-800 p-2 text-right" colspan="6">TOTAL</td>
+                  <td class="border border-slate-800 p-2 text-right">{{ (+draft.totalHarga || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 }) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
+        }
+      } @else {
+        <p class="text-sm italic">Draft checklist yang disetujui PPTK belum tersedia.</p>
+      }
     </div>
   </div>
 } @else {

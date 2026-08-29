@@ -37,6 +37,12 @@ const JENIS_OPTS: SelectOpt[] = [
   { label: 'Lainnya', value: 'lainnya' },
 ];
 
+const KONDISI_OPTS: SelectOpt[] = [
+  { label: 'Baik', value: 'Baik' },
+  { label: 'Rusak Ringan', value: 'Rusak Ringan' },
+  { label: 'Rusak Berat', value: 'Rusak Berat' },
+];
+
 @Component({
   selector: 'app-vehicle-form',
   standalone: true,
@@ -67,6 +73,7 @@ export class VehicleFormComponent implements OnInit {
   protected readonly currentYear = new Date().getFullYear();
   protected readonly statusOpts = STATUS_OPTS;
   protected readonly jenisOpts = JENIS_OPTS;
+  protected readonly kondisiOpts = KONDISI_OPTS;
   protected readonly isEditMode = signal(false);
   protected readonly vehicleId = signal<string | null>(null);
   protected readonly saving = signal(false);
@@ -83,6 +90,7 @@ export class VehicleFormComponent implements OnInit {
     jenisKendaraan: ['mobil', Validators.required],
     odometerCurrent: [0, [Validators.required, Validators.min(0)]],
     status: ['active', Validators.required],
+    kondisi: ['Baik', Validators.required],
     unitKerja: ['', Validators.required],
     nomorInventaris: [''],
     nomorRangka: [''],
@@ -132,6 +140,7 @@ export class VehicleFormComponent implements OnInit {
       jenisKendaraan: v.jenisKendaraan,
       odometerCurrent: v.odometerCurrent,
       status: v.status,
+      kondisi: v.kondisi ?? v.kondisiTerakhir ?? 'Baik',
       unitKerja: v.unitKerja,
       nomorInventaris: v.nomorInventaris,
       nomorRangka: v.nomorRangka,

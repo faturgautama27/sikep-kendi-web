@@ -228,7 +228,12 @@
       <div class="mt-auto pt-8 flex justify-end text-sm text-center">
         <div class="w-1/3">
           <p>Semarang, {{ printDate | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
-          <p class="mb-16">Pengurus Barang</p>
+          <p class="mb-4">Pengurus Barang</p>
+          @if (signature('PENGURUS_BARANG')?.signatureImageUrl) {
+            <img [src]="signature('PENGURUS_BARANG')!.signatureImageUrl!" alt="TTD PB" class="h-16 object-contain mx-auto" />
+          } @else {
+            <div class="mb-10"></div>
+          }
           <p class="underline">({{ signature('PENGURUS_BARANG')?.namaLengkap || '........................................' }})</p>
           <p>NIP {{ signature('PENGURUS_BARANG')?.nik || '........................................' }}</p>
         </div>

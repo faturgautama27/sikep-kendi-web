@@ -16,6 +16,8 @@ interface SignatureSetting {
   namaLengkap: string;
   nik: string;
   isAktif: boolean;
+  signatureImageId?: number | null;
+  signatureImageUrl?: string | null;
 }
 
 function mapSignatureSetting(raw: any): SignatureSetting {
@@ -25,6 +27,8 @@ function mapSignatureSetting(raw: any): SignatureSetting {
     namaLengkap: raw?.namaLengkap ?? raw?.nama_lengkap ?? '-',
     nik: raw?.nik ?? '-',
     isAktif: Boolean(raw?.isAktif ?? raw?.is_aktif ?? true),
+    signatureImageId: raw?.signatureImageId ?? raw?.signature_image_id ?? null,
+    signatureImageUrl: raw?.signatureImageUrl ?? null,
   };
 }
 
@@ -46,7 +50,7 @@ const DEFAULT_SIGNATURE_SETTINGS: SignatureSetting[] = [
     <div class="flex flex-col gap-5">
       <header>
         <h2 class="text-xl font-bold text-primary-900">Konfigurasi Tanda Tangan</h2>
-        <p class="text-sm text-slate-500">Kelola nama lengkap dan NIK pejabat untuk seluruh dokumen cetak.</p>
+        <p class="text-sm text-slate-500">Kelola nama lengkap, NIK, dan gambar tanda tangan pejabat untuk seluruh dokumen cetak.</p>
       </header>
 
       @if (loading()) {
@@ -80,6 +84,34 @@ const DEFAULT_SIGNATURE_SETTINGS: SignatureSetting[] = [
                     (ngModelChange)="patchItem(item.kodeJabatan, 'nik', $event)"
                   />
                 </div>
+
+                <!-- Gambar Tanda Tangan -->
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-medium">Gambar Tanda Tangan</label>
+                  @if (item.signatureImageUrl) {
+                    <div class="flex items-center gap-3">
+                      <img [src]="item.signatureImageUrl" alt="TTD" class="h-16 max-w-[160px] object-contain border border-slate-200 rounded p-1 bg-white" />
+                      <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small"
+                        pTooltip="Hapus gambar TTD"
+                        (onClick)="removeSig(item.kodeJabatan)"
+                      ></p-button>
+                    </div>
+                  }
+                  <div>
+                    <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-300 text-sm text-slate-700 hover:bg-slate-50">
+                      <i class="pi pi-upload text-xs"></i>
+                      {{ item.signatureImageUrl ? 'Ganti Gambar' : 'Upload Gambar TTD' }}
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        class="hidden"
+                        (change)="onFileChange($event, item.kodeJabatan)"
+                      />
+                    </label>
+                    <p class="text-xs text-slate-400 mt-1">Format: PNG/JPG/WEBP. Latar putih/transparan direkomendasikan.</p>
+                  </div>
+                </div>
+
                 <div class="flex justify-end">
                   <p-button label="Simpan" icon="pi pi-save" [loading]="saving() === item.kodeJabatan" (onClick)="save(item)"></p-button>
                 </div>
@@ -104,8 +136,6 @@ export class SignatureSettingsComponent {
   constructor() {
     this.http.get<any>(`${this.env.apiBaseUrl}/signature-settings`).subscribe({
       next: (res) => {
-        // responseUnwrapperInterceptor sudah membongkar envelope {success,data}
-        // sehingga `res` bisa berupa array langsung, atau tetap {data:[...]} di fallback.
         const raw = Array.isArray(res) ? res : (res?.data ?? []);
         const rows = (raw as any[]).map(mapSignatureSetting);
         const mapped = DEFAULT_SIGNATURE_SETTINGS.map((def) => {
@@ -141,15 +171,54 @@ export class SignatureSettingsComponent {
     );
   }
 
+  protected removeSig(kodeJabatan: SignatureSetting['kodeJabatan']) {
+    this.settings.update((list) =>
+      list.map((item) =>
+        item.kodeJabatan === kodeJabatan
+          ? { ...item, signatureImageId: null, signatureImageUrl: null }
+          : item,
+      ),
+    );
+  }
+
+  protected onFileChange(event: Event, kodeJabatan: SignatureSetting['kodeJabatan']) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    form.append('category', 'signature');
+    this.saving.set(kodeJabatan + '_img');
+    this.http.post<any>(`${this.env.apiBaseUrl}/images`, form).subscribe({
+      next: (res) => {
+        const img = res?.data ?? res;
+        const imgId = img?.imageId ?? img?.id ?? null;
+        const imgUrl = img?.url ?? img?.signedUrl ?? img?.signed_url ?? null;
+        this.settings.update((list) =>
+          list.map((item) =>
+            item.kodeJabatan === kodeJabatan
+              ? { ...item, signatureImageId: imgId, signatureImageUrl: imgUrl }
+              : item,
+          ),
+        );
+        this.saving.set(null);
+        this.msg.add({ severity: 'success', summary: 'Gambar ter-upload. Klik Simpan untuk menyimpan.' });
+      },
+      error: (err) => {
+        this.saving.set(null);
+        this.msg.add({ severity: 'error', summary: 'Gagal upload', detail: err?.error?.message ?? 'Error upload.' });
+      },
+    });
+  }
+
   protected save(item: SignatureSetting) {
     this.saving.set(item.kodeJabatan);
     this.http.patch<any>(`${this.env.apiBaseUrl}/signature-settings/${item.kodeJabatan}`, {
       namaLengkap: item.namaLengkap,
       nik: item.nik,
       isAktif: item.isAktif,
+      signatureImageId: item.signatureImageId ?? null,
     }).subscribe({
       next: (res) => {
-        // res sudah di-unwrap oleh interceptor: bisa objek row langsung atau {data:[...]}
         const updated = mapSignatureSetting(Array.isArray(res) ? res[0] : (res?.data ?? res));
         this.settings.update((list) => list.map((x) => x.kodeJabatan === updated.kodeJabatan ? updated : x));
         this.msg.add({ severity: 'success', summary: 'Tersimpan' });

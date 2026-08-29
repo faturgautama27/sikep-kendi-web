@@ -33,6 +33,7 @@ interface SignatureSetting {
   kodeJabatan: 'PENGURUS_BARANG' | 'PPTK' | 'KASUBBAG_UMUM' | 'KEPALA_DINAS';
   namaLengkap: string;
   nik: string;
+  signatureImageUrl?: string | null;
 }
 
 @Component({
@@ -93,29 +94,10 @@ export class SpkPrintComponent implements OnInit, OnDestroy {
     });
   }
 
-  private collectPdfAttachments(wo: WorkOrder) {
+  private collectPdfAttachments(_wo: WorkOrder) {
+    // SPK tidak lagi melampirkan invoice/faktur pajak.
+    // Lampiran SPK kini berupa Detail Draft Checklist (halaman 2 template).
     this.pdfAttachmentDefs = [];
-    if (wo.invoiceImage && this.isPdfUrl(wo.invoiceImage.url)) {
-      this.pdfAttachmentDefs.push({
-        label: 'Invoice Final',
-        imageId: wo.invoiceImage.id,
-        url: wo.invoiceImage.url,
-      });
-    }
-    if (wo.invoiceDraft && this.isPdfUrl(wo.invoiceDraft.url)) {
-      this.pdfAttachmentDefs.push({
-        label: 'Draft Invoice (TTD/Cap)',
-        imageId: wo.invoiceDraft.id,
-        url: wo.invoiceDraft.url,
-      });
-    }
-    if (wo.fakturPajakFile && this.isPdfUrl(wo.fakturPajakFile.url)) {
-      this.pdfAttachmentDefs.push({
-        label: 'Faktur Pajak',
-        imageId: wo.fakturPajakFile.id,
-        url: wo.fakturPajakFile.url,
-      });
-    }
   }
 
   /**

@@ -20,6 +20,7 @@ interface SignatureSetting {
   kodeJabatan: 'PENGURUS_BARANG' | 'PPTK' | 'KASUBBAG_UMUM' | 'KEPALA_DINAS';
   namaLengkap: string;
   nik: string;
+  signatureImageUrl?: string | null;
 }
 
 @Component({

@@ -195,14 +195,26 @@
           </thead>
           <tbody>
             <tr>
-              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
-                (Tanda Tangan &amp; Stempel)
+              <td class="border border-slate-300 px-3 pt-2 pb-4 text-center">
+                @if (signature('PENGURUS_BARANG')?.signatureImageUrl) {
+                  <img [src]="signature('PENGURUS_BARANG')!.signatureImageUrl!" alt="TTD" class="h-14 object-contain mx-auto" />
+                } @else {
+                  <div class="h-14 flex items-center justify-center text-slate-400 italic text-[11px]">(Tanda Tangan &amp; Stempel)</div>
+                }
               </td>
-              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
-                (Tanda Tangan)
+              <td class="border border-slate-300 px-3 pt-2 pb-4 text-center">
+                @if (signature('KASUBBAG_UMUM')?.signatureImageUrl) {
+                  <img [src]="signature('KASUBBAG_UMUM')!.signatureImageUrl!" alt="TTD" class="h-14 object-contain mx-auto" />
+                } @else {
+                  <div class="h-14 flex items-center justify-center text-slate-400 italic text-[11px]">(Tanda Tangan)</div>
+                }
               </td>
-              <td class="border border-slate-300 px-3 pt-2 pb-14 text-center text-slate-400 italic text-[11px]">
-                (Tanda Tangan &amp; Stempel)
+              <td class="border border-slate-300 px-3 pt-2 pb-4 text-center">
+                @if (signature('KEPALA_DINAS')?.signatureImageUrl) {
+                  <img [src]="signature('KEPALA_DINAS')!.signatureImageUrl!" alt="TTD" class="h-14 object-contain mx-auto" />
+                } @else {
+                  <div class="h-14 flex items-center justify-center text-slate-400 italic text-[11px]">(Tanda Tangan &amp; Stempel)</div>
+                }
               </td>
             </tr>
             <tr class="text-center">

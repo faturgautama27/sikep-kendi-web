@@ -276,7 +276,12 @@
         </div>
         <div class="w-1/3">
           <p>PIHAK KEDUA</p>
-          <p class="mb-20">Pejabat Pelaksana Teknis Kegiatan</p>
+          <p class="mb-4">Pejabat Pelaksana Teknis Kegiatan</p>
+          @if (signature('PPTK')?.signatureImageUrl) {
+            <img [src]="signature('PPTK')!.signatureImageUrl!" alt="TTD PPTK" class="h-16 object-contain mx-auto" />
+          } @else {
+            <div class="mb-10"></div>
+          }
           <p class="underline">({{ signature('PPTK')?.namaLengkap || '........................................' }})</p>
           <p>NIP {{ signature('PPTK')?.nik || '........................................' }}</p>
         </div>

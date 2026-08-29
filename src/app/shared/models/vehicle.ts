@@ -16,6 +16,7 @@ export interface Vehicle {
   jenisKendaraan: VehicleType;
   unitKerja: string;
   status: VehicleStatus;
+  kondisi?: 'Baik' | 'Rusak Ringan' | 'Rusak Berat' | null;
   odometerCurrent: number; // KM
   baselinePhotos: Image[];
   tanggalHabisPajak?: string;
