@@ -131,6 +131,7 @@ interface BackendVendor {
   namaPimpinan?: string | null;
   signatureImageId?: number | null;
   signatureImageUrl?: string | null;
+  signatureImage?: { signedUrl?: string | null; signed_url?: string | null } | null;
 }
 
 interface BackendKendaraan {
