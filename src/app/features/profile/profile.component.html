@@ -80,6 +80,50 @@
     </ng-template>
   </p-card>
 
+  <!-- Profil Vendor — hanya tampil untuk role vendor -->
+  @if (isVendor()) {
+    <p-card>
+      <ng-template pTemplate="title">Profil Bengkel / Vendor</ng-template>
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-slate-500">Informasi ini digunakan pada dokumen cetak SPK, BAST, dan laporan.</p>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium">Nama Pimpinan</label>
+          <input
+            pInputText
+            [ngModel]="vendorNamaPimpinan()"
+            (ngModelChange)="vendorNamaPimpinan.set($event)"
+            placeholder="Nama lengkap pimpinan"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">Tanda Tangan Pimpinan</label>
+          @if (vendorSignatureImageUrl()) {
+            <div class="flex items-center gap-3">
+              <img [src]="vendorSignatureImageUrl()!" alt="TTD" class="h-16 max-w-[180px] object-contain border border-slate-200 rounded p-1 bg-white" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small"
+                pTooltip="Hapus TTD" (onClick)="removeVendorSignature()"></p-button>
+            </div>
+          }
+          <div>
+            <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded border border-slate-300 text-sm text-slate-700 hover:bg-slate-50">
+              <i class="pi pi-upload text-xs"></i>
+              {{ vendorSignatureImageUrl() ? 'Ganti TTD' : 'Upload Tanda Tangan' }}
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden"
+                (change)="onVendorSignatureFileChange($event)" />
+            </label>
+            <p class="text-xs text-slate-400 mt-1">Format: PNG/JPG/WEBP. Gunakan latar transparan/putih.</p>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <p-button label="Simpan Profil" icon="pi pi-save" [loading]="vendorSaving()" (onClick)="saveVendorProfile()" />
+        </div>
+      </div>
+    </p-card>
+  }
+
   <p-dialog
     header="Ubah Password"
     [modal]="true"

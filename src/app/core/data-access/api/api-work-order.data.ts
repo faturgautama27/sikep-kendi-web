@@ -125,6 +125,12 @@ interface BackendPembayaran {
 interface BackendVendor {
   id: number;
   namaVendor: string;
+  alamat?: string;
+  kontak?: string;
+  telepon?: string;
+  namaPimpinan?: string | null;
+  signatureImageId?: number | null;
+  signatureImageUrl?: string | null;
 }
 
 interface BackendKendaraan {

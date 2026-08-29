@@ -154,12 +154,18 @@
       <div class="mt-16 flex justify-between text-sm text-center">
         <div class="w-1/3">
           <p>PIHAK KEDUA</p>
-          <p class="mb-20">{{ w.vendor?.namaVendor || '-' }}</p>
-          <p class="underline">( ........................................ )</p>
+          <p class="mb-4">{{ w.vendor?.namaVendor || '-' }}</p>
+          @if (w.vendor?.signatureImageUrl) {
+            <img [src]="w.vendor!.signatureImageUrl!" alt="TTD Vendor" class="h-16 object-contain mx-auto" />
+          } @else {
+            <div class="mb-10"></div>
+          }
+          <p class="underline">({{ w.vendor?.namaPimpinan || '........................................' }})</p>
           <p>Pimpinan/Perwakilan</p>
         </div>
         <div class="w-1/3">
           <p>PIHAK PERTAMA</p>
+          <p>Semarang, {{ printDate() | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
           <p class="mb-4">Pejabat Pelaksana Teknis Kegiatan</p>
           @if (signature('PPTK')?.signatureImageUrl) {
             <img [src]="signature('PPTK')!.signatureImageUrl!" alt="TTD PPTK" class="h-16 object-contain mx-auto" />
@@ -225,6 +231,29 @@
       } @else {
         <p class="text-sm italic">Draft checklist yang disetujui PPTK belum tersedia.</p>
       }
+
+      <!-- Tanda Tangan Lampiran 2 -->
+      <div class="mt-16 flex justify-between text-sm text-center">
+        <div class="w-1/3">
+          <p>PIHAK KEDUA</p>
+          <p class="mb-4">{{ w.vendor?.namaVendor || '-' }}</p>
+          <div class="mb-2 h-16 flex items-center justify-center"></div>
+          <p class="underline">( ........................................ )</p>
+          <p>Pimpinan/Perwakilan</p>
+        </div>
+        <div class="w-1/3">
+          <p>PIHAK PERTAMA</p>
+          <p>Semarang, {{ printDate() | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
+          <p class="mb-4">Pejabat Pelaksana Teknis Kegiatan</p>
+          @if (signature('PPTK')?.signatureImageUrl) {
+            <img [src]="signature('PPTK')!.signatureImageUrl!" alt="TTD PPTK" class="h-16 object-contain mx-auto" />
+          } @else {
+            <div class="mb-10"></div>
+          }
+          <p class="underline">({{ signature('PPTK')?.namaLengkap || '........................................' }})</p>
+          <p>NIP {{ signature('PPTK')?.nik || '........................................' }}</p>
+        </div>
+      </div>
     </div>
   </div>
 } @else {
