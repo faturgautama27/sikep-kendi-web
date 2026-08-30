@@ -187,11 +187,21 @@
           <h3 class="text-sm font-bold uppercase">PROVINSI JAWA TENGAH</h3>
         </div>
       </div>
-      <div class="mb-6 text-center">
-        <h3 class="text-lg font-bold uppercase underline">Lampiran 2</h3>
-        <p class="text-sm mt-1">Nomor: SPK-{{ w.nomor }}/{{ printDate().getFullYear() }}</p>
-        <p class="text-sm mt-1">Tanggal : {{ printDate() | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
-        <p class="text-sm mt-1">Rincian Pekerjaan</p>
+      <div class="mb-6 ">
+        <h3 class="text-lg text-center font-bold uppercase underline">Lampiran 2</h3>
+        <table class="mx-auto text-sm mt-1">
+          <tr>
+            <td class="text-right pr-2">Nomor</td>
+            <td>:</td>
+            <td class="pl-2">SPK-{{ w.nomor }}/{{ printDate().getFullYear() }}</td>
+          </tr>
+          <tr>
+            <td class="text-right pr-2">Tanggal</td>
+            <td>:</td>
+            <td class="pl-2">{{ printDate() | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</td>
+          </tr>
+        </table>
+        <p class="text-sm mt-1 text-center">Rincian Pekerjaan</p>
       </div>
       @if (w.draftChecklists?.length) {
         @for (draft of w.draftChecklists; track draft.id) {
