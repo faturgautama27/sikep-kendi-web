@@ -226,8 +226,15 @@
       }
 
       <!-- Footer Halaman 1 -->
-      <div class="mt-auto pt-8 flex justify-end text-sm text-center">
+      <div class="mt-auto pt-8 flex justify-between text-sm text-center">
         <div class="w-1/3">
+          <p>Yang Melaporkan:</p>
+          <p>Pengemudi</p>
+          <div class="mb-10 h-16"></div>
+          <p class="underline">({{ d.pengemudi?.fullName || '........................................' }})</p>
+        </div>
+        <div class="w-1/3">
+          <p>Telah diverifikasi oleh:</p>
           <p>Semarang, {{ d.createdAt | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
           <p class="mb-4">Pengurus Barang</p>
           @if (signature('PENGURUS_BARANG')?.signatureImageUrl) {
