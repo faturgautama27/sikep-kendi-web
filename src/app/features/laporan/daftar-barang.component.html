@@ -101,6 +101,7 @@
               <th class="border border-slate-300 px-2 py-2 w-24">Nopol</th>
               <th class="border border-slate-300 px-2 py-2">Merk / Tipe</th>
               <th class="border border-slate-300 px-2 py-2 w-14">Tahun</th>
+              <th class="border border-slate-300 px-2 py-2 w-20">Warna</th>
               <th class="border border-slate-300 px-2 py-2">Pengguna</th>
               <th class="border border-slate-300 px-2 py-2 w-24">Kondisi</th>
               <th class="border border-slate-300 px-2 py-2 w-36 text-right">Nilai Perolehan</th>
@@ -114,6 +115,7 @@
                 <td class="border border-slate-200 px-2 py-1.5 text-center font-semibold">{{ item.nomorPolisi }}</td>
                 <td class="border border-slate-200 px-2 py-1.5">{{ item.merkTipe }}</td>
                 <td class="border border-slate-200 px-2 py-1.5 text-center">{{ item.tahun }}</td>
+                <td class="border border-slate-200 px-2 py-1.5 text-center">{{ item.warna || '-' }}</td>
                 <td class="border border-slate-200 px-2 py-1.5">{{ item.pengguna }}</td>
                 <td class="border border-slate-200 px-2 py-1.5 text-center" [class]="kondisiClass(item.kondisi)">
                   {{ item.kondisi }}
@@ -125,7 +127,7 @@
             }
             @empty {
               <tr>
-                <td colspan="8" class="border border-slate-200 px-2 py-6 text-center text-slate-400">
+                <td colspan="9" class="border border-slate-200 px-2 py-6 text-center text-slate-400">
                   Tidak ada data kendaraan.
                 </td>
               </tr>
@@ -133,7 +135,7 @@
           </tbody>
           <tfoot>
             <tr class="bg-slate-100 font-bold">
-              <td colspan="7" class="border border-slate-300 px-2 py-1.5 text-right">Total Nilai Perolehan</td>
+              <td colspan="8" class="border border-slate-300 px-2 py-1.5 text-right">Total Nilai Perolehan</td>
               <td class="border border-slate-300 px-2 py-1.5 text-right">{{ formatRupiah(d.rekapitulasi.totalNilai) }}</td>
             </tr>
           </tfoot>

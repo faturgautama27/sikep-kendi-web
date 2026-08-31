@@ -24,6 +24,7 @@ export interface DaftarBarangItem {
   nomorPolisi: string;
   merkTipe: string;
   tahun: number;
+  warna: string | null;
   pengguna: string;
   kondisi: string;
   nilaiPerolehan: number;

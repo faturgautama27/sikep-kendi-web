@@ -52,7 +52,7 @@
       <!-- Title -->
       <div class="text-center mb-8">
         <h3 class="text-lg font-bold underline uppercase">Surat Perintah Kerja (SPK)</h3>
-        <p class="text-sm mt-1">Nomor: SPK-{{ w.nomor }}/{{ printDate().getFullYear() }}</p>
+        <p class="text-sm mt-1">Nomor: SPK-{{ w.nomor }}, Tanggal : {{ printDate() | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
       </div>
 
       <!-- Body -->

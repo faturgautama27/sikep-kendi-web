@@ -52,13 +52,13 @@
       <!-- Title -->
       <div class="text-center mb-8">
         <h3 class="text-lg font-bold underline uppercase">Berita Acara Serah Terima (BAST)</h3>
-        <p class="text-sm mt-1">Nomor: BAST-{{ w.nomor }}/{{ printDate.getFullYear() }}</p>
+        <p class="text-sm mt-1">Nomor: BAST-{{ w.nomor }}, Tanggal : {{ printDate() | date: 'dd MMMM yyyy' : '' : 'id-ID' }}</p>
       </div>
 
       <!-- Body -->
       <div class="text-sm leading-relaxed space-y-4 text-justify">
         <p>
-          Pada hari ini, <b>{{ printDate | date: 'fullDate' : '' : 'id-ID' }}</b
+          Pada hari ini, <b>{{ printDate() | date: 'fullDate' : '' : 'id-ID' }}</b
           >, yang bertanda tangan di bawah ini:
         </p>
 
@@ -156,89 +156,13 @@
           DINAS PERINDUSTRIAN DAN PERDAGANGAN PROVINSI JAWA TENGAH
         </h2>
         <p class="text-xs text-slate-600">
-          Lampiran BAST-{{ w.nomor }}/{{ printDate.getFullYear() }}
+          Lampiran BAST-{{ w.nomor }}
         </p>
       </div>
 
       <h3 class="text-base font-bold uppercase text-center mb-4">
         Lampiran: Dokumentasi & Dokumen Pendukung
       </h3>
-
-      <!-- Dokumen Invoice -->
-      @if (w.invoiceImage || w.invoiceDraft || w.fakturPajakFile) {
-        <div class="mb-6">
-          <h4 class="text-sm font-bold uppercase border-b border-slate-400 pb-1 mb-3">
-            Dokumen Invoice & Faktur
-          </h4>
-          <div class="grid grid-cols-3 gap-3 text-xs">
-            @if (w.invoiceImage) {
-              <div class="border border-slate-300 rounded p-2 text-center">
-                @if (isImageUrl(w.invoiceImage.url)) {
-                  <img
-                    [src]="w.invoiceImage.url"
-                    [attr.data-image-id]="w.invoiceImage.id"
-                    class="w-full h-28 object-contain mb-1"
-                    alt="Invoice Final"
-                  />
-                } @else {
-                  <div class="w-full h-28 flex items-center justify-center bg-slate-100 mb-1">
-                    <span class="text-slate-500 text-2xl">📄</span>
-                  </div>
-                }
-                <p class="font-semibold">Invoice Final</p>
-                <p class="text-slate-500 truncate">{{ w.invoiceImage.caption || 'invoice' }}</p>
-                @if (isPdfUrl(w.invoiceImage.url)) {
-                  <p class="text-blue-500 text-[10px] mt-1">✓ Dilampirkan sebagai PDF</p>
-                }
-              </div>
-            }
-            @if (w.invoiceDraft) {
-              <div class="border border-slate-300 rounded p-2 text-center">
-                @if (isImageUrl(w.invoiceDraft.url)) {
-                  <img
-                    [src]="w.invoiceDraft.url"
-                    [attr.data-image-id]="w.invoiceDraft.id"
-                    class="w-full h-28 object-contain mb-1"
-                    alt="Draft Invoice"
-                  />
-                } @else {
-                  <div class="w-full h-28 flex items-center justify-center bg-slate-100 mb-1">
-                    <span class="text-slate-500 text-2xl">📄</span>
-                  </div>
-                }
-                <p class="font-semibold">Draft Invoice (TTD/Cap)</p>
-                <p class="text-slate-500 truncate">{{ w.invoiceDraft.caption || 'draft' }}</p>
-                @if (isPdfUrl(w.invoiceDraft.url)) {
-                  <p class="text-blue-500 text-[10px] mt-1">✓ Dilampirkan sebagai PDF</p>
-                }
-              </div>
-            }
-            @if (w.fakturPajakFile) {
-              <div class="border border-slate-300 rounded p-2 text-center">
-                @if (isImageUrl(w.fakturPajakFile.url)) {
-                  <img
-                    [src]="w.fakturPajakFile.url"
-                    [attr.data-image-id]="w.fakturPajakFile.id"
-                    class="w-full h-28 object-contain mb-1"
-                    alt="Faktur Pajak"
-                  />
-                } @else {
-                  <div class="w-full h-28 flex items-center justify-center bg-slate-100 mb-1">
-                    <span class="text-slate-500 text-2xl">🧾</span>
-                  </div>
-                }
-                <p class="font-semibold">Faktur Pajak</p>
-                <p class="text-slate-500 truncate">
-                  {{ w.fakturPajakFile.caption || 'faktur pajak' }}
-                </p>
-                @if (isPdfUrl(w.fakturPajakFile.url)) {
-                  <p class="text-blue-500 text-[10px] mt-1">✓ Dilampirkan sebagai PDF</p>
-                }
-              </div>
-            }
-          </div>
-        </div>
-      }
 
       <!-- Foto Dokumentasi Pekerjaan -->
       @if (w.evidence && w.evidence.length > 0) {

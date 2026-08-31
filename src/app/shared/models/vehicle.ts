@@ -11,6 +11,8 @@ export interface Vehicle {
   merk: string;
   tipe: string;
   tahun: number;
+  warna?: string | null;
+  pengguna?: string | null;
   nomorRangka: string;
   nomorMesin: string;
   jenisKendaraan: VehicleType;
@@ -22,6 +24,8 @@ export interface Vehicle {
   tanggalHabisPajak?: string;
   tanggalHabisSTNK?: string;
   hargaPerolehan?: number | null;
+  pengemudiId?: number | null;
+  pengemudi?: { id: number; fullName: string } | null;
   // Early warning fields
   intervalServisHari?: number | null; // jumlah hari antar servis berkala
   intervalServisKm?: number | null; // jarak km antar servis berkala

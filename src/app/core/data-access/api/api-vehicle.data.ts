@@ -37,6 +37,8 @@ interface ApiVehicle {
   paguTahunan?: number | null;
   // RKBMD Pemeliharaan
   rkbmdPemeliharaan?: boolean | null;
+  warna?: string | null;
+  pengguna?: string | null;
 }
 
 interface ApiOdometerReading {
@@ -118,6 +120,8 @@ export class ApiVehicleData implements VehicleDataPort {
       paguTahunan: raw.paguTahunan ?? null,
       // RKBMD Pemeliharaan — default true if not provided (backward compat)
       rkbmdPemeliharaan: raw.rkbmdPemeliharaan ?? true,
+      warna: raw.warna ?? null,
+      pengguna: raw.pengguna ?? null,
     };
   }
 

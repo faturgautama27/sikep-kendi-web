@@ -61,11 +61,7 @@ export class PembayaranWorkOrderComponent implements OnInit, AfterViewInit {
     () => this.list().find((item) => item.workOrderId === this.workOrderId) ?? null,
   );
 
-  protected readonly verifiedTotal = computed(() => {
-    const shsItems = this.wo()?.verifikasiHarga?.shsItems ?? [];
-    if (shsItems.length === 0) return this.wo()?.penawaranDetail?.totalBiaya ?? 0;
-    return shsItems.reduce((acc, item) => acc + Number(item.hargaVendor), 0);
-  });
+  protected readonly verifiedTotal = computed(() => this.wo()?.totalNominal ?? 0);
 
   // Form Options
   protected metodeOptions = [
