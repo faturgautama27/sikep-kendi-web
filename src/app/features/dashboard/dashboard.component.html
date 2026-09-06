@@ -96,7 +96,10 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-4 rounded-2xl bg-red-50 border border-red-100 p-5">
+    <div
+      class="flex items-center gap-4 rounded-2xl bg-red-50 border border-red-100 p-5"
+      [class.animate-attention-shake]="true"
+    >
       <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100">
         <i class="pi pi-exclamation-triangle text-xl text-red-700"></i>
       </div>
@@ -188,6 +191,7 @@
       <!-- Notifikasi critical -->
       <div
         class="mt-3 flex items-center justify-between rounded-xl bg-red-50 border border-red-100 p-3"
+        [class.animate-attention-shake]="true"
       >
         <div class="flex items-center gap-2.5">
           <i class="pi pi-bell text-red-600"></i>

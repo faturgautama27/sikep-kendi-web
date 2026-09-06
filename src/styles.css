@@ -202,3 +202,21 @@ body {
 .tag-mobile-status {
   font-size: 10px !important;
 }
+
+/* ── Dashboard attention shake (Early Warning & Notifikasi Critical) ── */
+@keyframes attention-shake {
+  0%, 55%, 100% { transform: translateX(0) rotate(0); }
+  60% { transform: translateX(-8px) rotate(-1deg); }
+  68% { transform: translateX(8px) rotate(1deg); }
+  76% { transform: translateX(-6px) rotate(-0.7deg); }
+  84% { transform: translateX(6px) rotate(0.7deg); }
+  92% { transform: translateX(-3px) rotate(-0.3deg); }
+}
+.animate-attention-shake {
+  animation: attention-shake 1s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-attention-shake { animation: none; }
+}
