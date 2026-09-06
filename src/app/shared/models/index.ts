@@ -12,6 +12,7 @@ export * from './fuel';
 export * from './spj';
 export * from './image';
 export * from './notification';
+export * from './ews-history';
 export * from './audit';
 export * from './dashboard';
 export * from './kartu-pemeliharaan';

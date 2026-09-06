@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+::ng-deep {
+  .p-card {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+
+    .p-card-body {
+      padding: 1.25rem;
+    }
+  }
+
+  .p-datatable {
+    .p-datatable-thead > tr > th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.875rem 1rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .p-datatable-tbody > tr > td {
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .p-datatable-tbody > tr:hover {
+      background-color: #f8fafc;
+    }
+  }
+}

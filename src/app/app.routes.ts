@@ -521,6 +521,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Notifications' },
       },
+      {
+        path: 'ews-history',
+        loadComponent: () =>
+          import('@features/ews-history/ews-history.component').then(
+            (m) => m.EwsHistoryComponent,
+          ),
+        canActivate: [permissionGuard],
+        data: { title: 'EWS History', requiredPermissions: ['user.manage'] },
+      },
     ],
   },
 

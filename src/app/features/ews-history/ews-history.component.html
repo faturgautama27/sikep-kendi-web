@@ -1,0 +1,311 @@
+<section class="flex flex-col gap-5">
+  <app-page-header
+    title="EWS History"
+    subtitle="Riwayat dan analisis Early Warning System notifications"
+  />
+
+  <!-- Statistics Cards -->
+  @if (statistics(); as stats) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <p-card>
+        <div class="flex flex-col gap-2">
+          <div class="text-slate-500 text-sm">Total Notifikasi</div>
+          <div class="text-3xl font-bold text-slate-900">{{ stats.totalNotifications }}</div>
+          <div class="text-xs text-slate-400">
+            24 jam: {{ stats.last24Hours }} | 7 hari: {{ stats.last7Days }}
+          </div>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="flex flex-col gap-2">
+          <div class="text-slate-500 text-sm">Kritis</div>
+          <div class="text-3xl font-bold text-red-600">{{ stats.criticalCount }}</div>
+          <div class="text-xs text-slate-400">
+            Belum dibaca: {{ stats.unreadCount }}
+          </div>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="flex flex-col gap-2">
+          <div class="text-slate-500 text-sm">Peringatan</div>
+          <div class="text-3xl font-bold text-amber-600">{{ stats.warningCount }}</div>
+          <div class="text-xs text-slate-400">
+            Tereskalasi: {{ stats.escalatedCount }}
+          </div>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="flex flex-col gap-2">
+          <div class="text-slate-500 text-sm">Info</div>
+          <div class="text-3xl font-bold text-blue-600">{{ stats.infoCount }}</div>
+          <div class="text-xs text-slate-400">
+            30 hari: {{ stats.last30Days }}
+          </div>
+        </div>
+      </p-card>
+    </div>
+  }
+
+  <!-- Trend Chart -->
+  @if (trendChartData()) {
+    <p-card>
+      <div style="height: 300px">
+        <p-chart type="line" [data]="trendChartData()!" [options]="chartOptions" />
+      </div>
+    </p-card>
+  }
+
+  <!-- Filters -->
+  <p-card>
+    <div class="flex flex-col gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700">Tanggal Mulai</label>
+          <p-datepicker
+            [(ngModel)]="startDate"
+            dateFormat="dd/mm/yy"
+            placeholder="Pilih tanggal"
+            [showIcon]="true"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700">Tanggal Akhir</label>
+          <p-datepicker
+            [(ngModel)]="endDate"
+            dateFormat="dd/mm/yy"
+            placeholder="Pilih tanggal"
+            [showIcon]="true"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700">Jenis Trigger</label>
+          <p-select
+            [(ngModel)]="selectedTrigger"
+            [options]="triggerOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Pilih trigger"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700">Severity</label>
+          <p-select
+            [(ngModel)]="selectedSeverity"
+            [options]="severityOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Pilih severity"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700">Jenis Entitas</label>
+          <p-select
+            [(ngModel)]="selectedEntity"
+            [options]="entityOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Pilih entitas"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700">Status Baca</label>
+          <p-select
+            [(ngModel)]="selectedStatus"
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Pilih status"
+            styleClass="w-full"
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end">
+        <p-button
+          label="Reset"
+          icon="pi pi-refresh"
+          severity="secondary"
+          (onClick)="resetFilter()"
+        />
+        <p-button
+          label="Filter"
+          icon="pi pi-filter"
+          (onClick)="applyFilter()"
+        />
+        <p-button
+          label="Export Excel"
+          icon="pi pi-file-excel"
+          severity="success"
+          [outlined]="true"
+          (onClick)="exportExcel()"
+        />
+        <p-button
+          label="Export PDF"
+          icon="pi pi-file-pdf"
+          severity="danger"
+          [outlined]="true"
+          (onClick)="exportPdf()"
+        />
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+      <p-progressSpinner />
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <p-card>
+      <div class="flex items-center gap-3 text-red-600">
+        <i class="pi pi-exclamation-circle text-2xl"></i>
+        <div>
+          <div class="font-medium">Terjadi Kesalahan</div>
+          <div class="text-sm">{{ error() }}</div>
+        </div>
+      </div>
+    </p-card>
+  }
+
+  <!-- Data Table -->
+  @if (!loading() && !error()) {
+    <div class="sikep-table-wrap">
+      <p-table
+        [value]="items()"
+        [rowHover]="true"
+        styleClass="text-sm"
+        [paginator]="true"
+        [rows]="perPage()"
+        [totalRecords]="totalItems()"
+      >
+        <ng-template #header>
+          <tr>
+            <th style="width: 60px">Severity</th>
+            <th style="width: 180px">Trigger</th>
+            <th>Pesan</th>
+            <th style="width: 120px">Entitas</th>
+            <th style="width: 100px">Referensi</th>
+            <th style="width: 140px">Penerima</th>
+            <th style="width: 100px">Channel</th>
+            <th style="width: 160px">Waktu</th>
+            <th style="width: 80px" class="text-center">Status</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item>
+          <tr>
+            <td>
+              <p-tag
+                [value]="severityLabel(item.severity)"
+                [severity]="severityTagSeverity(item.severity)"
+                [icon]="
+                  item.severity === 'critical'
+                    ? 'pi pi-exclamation-circle'
+                    : item.severity === 'warning'
+                      ? 'pi pi-exclamation-triangle'
+                      : 'pi pi-info-circle'
+                "
+              />
+            </td>
+            <td>
+              <div class="text-xs font-medium text-slate-700">
+                {{ triggerLabel(item.triggerKind) }}
+              </div>
+            </td>
+            <td>
+              <div class="flex flex-col gap-1">
+                <div class="font-medium text-slate-900">{{ item.title }}</div>
+                <div class="text-xs text-slate-600">{{ item.message }}</div>
+              </div>
+            </td>
+            <td>
+              <span class="text-xs text-slate-600">{{ entityLabel(item.entityKind) }}</span>
+            </td>
+            <td>
+              @if (item.entityRef && item.link) {
+                <a
+                  [routerLink]="item.link"
+                  class="text-blue-600 hover:underline text-xs font-mono"
+                >
+                  {{ item.entityRef }}
+                </a>
+              } @else if (item.entityRef) {
+                <span class="text-xs font-mono text-slate-600">{{ item.entityRef }}</span>
+              } @else {
+                <span class="text-slate-300">—</span>
+              }
+            </td>
+            <td>
+              <div class="text-xs text-slate-700">{{ item.recipientName }}</div>
+            </td>
+            <td>
+              <div class="flex flex-wrap gap-1">
+                @for (channel of item.channelsSent; track channel) {
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"
+                  >
+                    {{ channel }}
+                  </span>
+                }
+              </div>
+            </td>
+            <td>
+              <div class="flex flex-col gap-1">
+                <div class="text-xs text-slate-900">{{ formatDateTime(item.createdAt) }}</div>
+                @if (item.escalatedAt) {
+                  <div class="text-xs text-red-600 flex items-center gap-1">
+                    <i class="pi pi-arrow-up text-xs"></i>
+                    <span>Eskalasi</span>
+                  </div>
+                }
+              </div>
+            </td>
+            <td class="text-center">
+              @if (item.readAt) {
+                <i
+                  class="pi pi-check-circle text-green-600"
+                  pTooltip="Dibaca: {{ formatDateTime(item.readAt) }}"
+                ></i>
+              } @else {
+                <i class="pi pi-circle text-slate-300" pTooltip="Belum dibaca"></i>
+              }
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="9" class="text-center py-8 text-slate-500">
+              Tidak ada data EWS history
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Summary Footer -->
+    <p-card>
+      <div class="text-sm text-slate-600">
+        Menampilkan <strong>{{ items().length }}</strong> dari
+        <strong>{{ totalItems() }}</strong> notifikasi
+        @if (currentPage() > 1) {
+          <span> (Halaman {{ currentPage() }} dari {{ totalPages() }})</span>
+        }
+      </div>
+    </p-card>
+  }
+</section>

@@ -63,6 +63,12 @@ export class SideNavComponent {
         },
         { label: 'Audit Log', icon: 'pi pi-shield', route: '/audit', permission: 'audit_log.read' },
         {
+          label: 'EWS History',
+          icon: 'pi pi-bell',
+          route: '/ews-history',
+          permission: 'user.manage',
+        },
+        {
           label: 'SHS Master',
           icon: 'pi pi-tags',
           route: '/admin/shs-master',

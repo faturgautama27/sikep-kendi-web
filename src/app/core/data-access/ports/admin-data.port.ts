@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { APP_ENV } from '../app-env.token';
-import type { EarlyWarningConfig, User, VendorAdmin, RoleName } from '@shared/models';
+import type { EarlyWarningConfig, User, VendorAdmin, RoleName, EwsHistoryFilter, EwsHistoryResponse } from '@shared/models';
 
 export type VendorPaymentPayload = {
   namaPenerimaTunai?: string | null;
@@ -94,5 +94,20 @@ export class AdminDataPort {
 
   updateEwConfig(id: string | number, payload: { ambangBulan?: number; ambangKm?: number; ambangHari?: number; isActive: boolean }): Observable<EarlyWarningConfig> {
     return this.http.patch<EarlyWarningConfig>(`${this.baseUrl}/early-warning-configs/${id}`, payload);
+  }
+
+  // --- EWS History ---
+  getEwsHistory(filter: EwsHistoryFilter, page: number = 1, perPage: number = 50): Observable<EwsHistoryResponse> {
+    const params: any = { page, perPage };
+    
+    if (filter.startDate) params.startDate = filter.startDate;
+    if (filter.endDate) params.endDate = filter.endDate;
+    if (filter.triggerKind && filter.triggerKind !== 'all') params.triggerKind = filter.triggerKind;
+    if (filter.severity && filter.severity !== 'all') params.severity = filter.severity;
+    if (filter.entityKind && filter.entityKind !== 'all') params.entityKind = filter.entityKind;
+    if (filter.status && filter.status !== 'all') params.status = filter.status;
+    if (filter.recipientId) params.recipientId = filter.recipientId;
+
+    return this.http.get<EwsHistoryResponse>(`${this.baseUrl}/ews-history`, { params });
   }
 }
