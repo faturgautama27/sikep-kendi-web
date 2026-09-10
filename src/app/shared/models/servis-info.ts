@@ -24,6 +24,8 @@ export interface LastServisDetail {
 export interface ServisInfo {
   kendaraanId: number;
   odometerSaatIni: number;
+  /** RKPBMD Pemeliharaan aktif untuk kendaraan ini */
+  rkbmdPemeliharaan?: boolean;
   intervalServisHari: number | null;
   intervalServisKm: number | null;
   /** true jika sudah waktunya servis (OR logic) atau interval belum dikonfigurasi */

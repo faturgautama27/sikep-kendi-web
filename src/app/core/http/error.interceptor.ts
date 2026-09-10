@@ -19,8 +19,16 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (err.status === 401) {
-        store.dispatch(new Logout());
-        router.navigateByUrl('/login');
+        // Hanya logout jika request sebenarnya membawa token (401 = token
+        // invalid/expired). 401 pada request tanpa token terjadi saat startup
+        // mobile sebelum NGXS rehydration selesai (race condition) dan TIDAK
+        // boleh membuang sesi tersimpan.
+        const hadToken =
+          !!req.headers.get('Authorization') || !!req.headers.get('X-Authorization');
+        if (hadToken) {
+          store.dispatch(new Logout());
+          router.navigateByUrl('/login');
+        }
       } else if (err.status === 403) {
         router.navigateByUrl('/403');
       }

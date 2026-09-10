@@ -168,6 +168,11 @@ interface BackendWorkOrder {
   pengajuanId: number;
   vendorId: number | null;
   status: string;
+  pbCatatan?: string | null;
+  pbVerifikasiAt?: string | null;
+  pbAlasanPenolakan?: string | null;
+  catatanPptk?: string | null;
+  alasanPenolakanPptk?: string | null;
   createdAt: string;
   updatedAt?: string;
   pengajuan: BackendPengajuan;
@@ -478,8 +483,13 @@ function mapWorkOrder(raw: BackendWorkOrder): WorkOrder {
       deskripsiKerusakan: raw.pengajuan.deskripsiKerusakan,
       fotos: raw.pengajuan.fotos ?? [],
     },
-    komentarVerifikasi: raw.pengajuan.komentarVerifikasi ?? null,
-    vendor: raw.vendor ?? null,
+     komentarVerifikasi: raw.pengajuan.komentarVerifikasi ?? null,
+     pbCatatan: raw.pbCatatan ?? null,
+     pbVerifikasiAt: raw.pbVerifikasiAt ?? null,
+     pbAlasanPenolakan: raw.pbAlasanPenolakan ?? null,
+     pptkCatatan: raw.catatanPptk ?? null,
+     alasanPenolakanPptk: raw.alasanPenolakanPptk ?? null,
+     vendor: raw.vendor ?? null,
     // Dokumen invoice & faktur pajak
     invoiceImage: raw.invoiceImage
       ? emptyImage(

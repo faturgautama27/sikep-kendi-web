@@ -157,19 +157,19 @@
               </div>
             </ng-template>
 
-            <!-- Banner penolakan -->
-            @if (draftRejected()) {
-              <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3">
-                <i class="pi pi-exclamation-circle text-red-500 mt-0.5 text-lg"></i>
-                <div class="flex-1">
-                  <p class="font-semibold text-red-700">Draft Ditolak</p>
-                  <p class="text-sm text-red-600 mt-1">{{ draftRejectionNote() }}</p>
-                  <p class="text-xs text-red-500 mt-2 italic">
-                    Vendor dapat merevisi dan mengirim ulang draft di halaman draft checklist.
-                  </p>
-                </div>
-              </div>
-            }
+             <!-- Banner penolakan -->
+             @if (wo.status === 'DITOLAK_PPTK') {
+               <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3">
+                 <i class="pi pi-exclamation-circle text-red-500 mt-0.5 text-lg"></i>
+                 <div class="flex-1">
+                   <p class="font-semibold text-red-700">Alasan Penolakan PPTK</p>
+                   <p class="text-sm text-red-600 mt-1">{{ wo.alasanPenolakanPptk || draftRejectionNote() }}</p>
+                   <p class="text-xs text-red-500 mt-2 italic">
+                     Pengurus Barang dapat memperbaiki mapping SHS atau menolak draft checklist ke vendor.
+                   </p>
+                 </div>
+               </div>
+             }
 
             <!-- Scan Dokumen Draft -->
             @if (draft.scanDraftImageId || draft.scanDraftImageUrl) {
@@ -796,9 +796,10 @@
         @if (wo.status === 'DITOLAK_PPTK') {
           <div class="rounded-lg border border-red-200 bg-red-50 p-4">
             <p class="font-semibold text-red-700">Ditolak PPTK</p>
-            <p class="text-sm text-red-600 mt-1">
-              Silakan hubungi Verifikator atau Pengurus Barang.
-            </p>
+           <p class="text-sm text-red-600 mt-1">
+             Alasan: {{ wo.alasanPenolakanPptk || 'Tidak ada alasan yang tercatat.' }}
+           </p>
+           <p class="text-xs text-red-500 mt-2">Pengurus Barang dapat memperbaiki mapping SHS atau menolak draft checklist.</p>
           </div>
         }
 

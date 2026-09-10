@@ -123,6 +123,8 @@ export interface WorkOrder {
   pbCatatan?: string | null;
   pbVerifikasiAt?: string | null;
   pbAlasanPenolakan?: string | null;
+  pptkCatatan?: string | null;
+  alasanPenolakanPptk?: string | null;
   invoiceImage?: Image | null;
   invoiceDraft?: Image | null;
   fakturPajakFile?: Image | null;

@@ -174,7 +174,7 @@ export class WorkOrderDetailComponent implements OnInit {
    */
   protected readonly draftToReview = computed(() => {
     const latest = this.latestDraft();
-    return latest?.status === 'DIKIRIM' ? latest : null;
+    return latest && ['DIKIRIM', 'DITOLAK_PPTK'].includes(latest.status) ? latest : null;
   });
 
   /** Status penolakan draft (PB / PPTK / legacy). */
