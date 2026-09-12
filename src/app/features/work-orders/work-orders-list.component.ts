@@ -53,7 +53,7 @@ const STATUS_LABEL: Record<WorkOrderStatus, string> = {
   MENUNGGU_PB: 'Menunggu PB',
   MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
   MENUNGGU_PPTK: 'Menunggu PPTK',
-  DISETUJUI_PPTK: 'Disetujui PPTK',
+  DISETUJUI_PPTK: 'Disetujui PPTK dan Lolos Verifikator',
   DIBAYAR: 'Dibayar',
   DITOLAK_PB: 'Ditolak PB',
   DITOLAK_VERIFIKATOR: 'Ditolak Verifikator',

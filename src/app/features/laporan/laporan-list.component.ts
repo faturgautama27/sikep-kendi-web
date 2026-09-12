@@ -441,7 +441,7 @@ export class LaporanListComponent implements OnInit {
   protected daruratStatusLabel(s: string): string {
     const map: Record<string, string> = {
       DIBAYAR: 'Dibayar',
-      DISETUJUI_PPTK: 'Disetujui PPTK',
+      DISETUJUI_PPTK: 'Disetujui PPTK dan Lolos Verifikator',
       DITOLAK_PB: 'Ditolak PB',
       DITOLAK_PPTK: 'Ditolak PPTK',
       DITOLAK_VERIFIKATOR: 'Ditolak',

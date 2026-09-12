@@ -59,7 +59,7 @@ export class VendorHistoryComponent {
       MENUNGGU_PB: 'Menunggu PB',
       MENUNGGU_VERIFIKATOR: 'Menunggu Verifikator',
       MENUNGGU_PPTK: 'Menunggu PPTK',
-      DISETUJUI_PPTK: 'Disetujui PPTK',
+      DISETUJUI_PPTK: 'Disetujui PPTK dan Lolos Verifikator',
       DIVERIFIKASI: 'Diverifikasi',
       DIBAYAR: 'Selesai (Dibayar)',
     };

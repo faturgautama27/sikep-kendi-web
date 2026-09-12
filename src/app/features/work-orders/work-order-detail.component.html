@@ -868,7 +868,7 @@
           <p-card header="Review Hasil Pekerjaan (PB)">
             <div class="flex flex-col gap-4">
               <p class="text-sm text-slate-600">
-                Review hasil pekerjaan vendor sebelum diteruskan ke verifikator.
+                Review hasil pekerjaan vendor sebelum diteruskan ke PPTK.
               </p>
               <div class="flex gap-2">
                 <p-button
@@ -879,7 +879,7 @@
                   (onClick)="openPekerjaanPbReviewDialog(false)"
                 ></p-button>
                 <p-button
-                  label="Setujui → Kirim ke Verifikator"
+                  label="Setujui → Kirim ke PPTK"
                   icon="pi pi-check"
                   severity="success"
                   (onClick)="openPekerjaanPbReviewDialog(true)"
@@ -933,7 +933,7 @@
                   (onClick)="openVerifikatorDialog(false)"
                 ></p-button>
                 <p-button
-                  label="Setujui → Kirim ke PPTK"
+                  label="Setujui → Kirim ke Bendahara"
                   icon="pi pi-check"
                   severity="success"
                   (onClick)="openVerifikatorDialog(true)"
@@ -948,7 +948,7 @@
             <div class="flex flex-col gap-3">
               <p class="text-sm text-slate-600">
                 @if (wo.status === 'MENUNGGU_PPTK') {
-                  Review final hasil pekerjaan sebelum diteruskan ke Bendahara.
+                  Review final hasil pekerjaan sebelum diteruskan ke Verifikator.
                 } @else {
                   Review estimasi biaya sebelum menerbitkan SPK dan memulai pengerjaan.
                 }
@@ -1003,7 +1003,7 @@
                   </a>
                 }
                 <p-button
-                  [label]="wo.status === 'MENUNGGU_PPTK' ? 'Setujui → Kirim ke Bendahara' : 'Setujui Estimasi & Terbitkan SPK'"
+                  [label]="wo.status === 'MENUNGGU_PPTK' ? 'Setujui → Kirim ke Verifikator' : 'Setujui Estimasi & Terbitkan SPK'"
                   icon="pi pi-check"
                   severity="success"
                   (onClick)="openPptkDialog(true)"
@@ -1204,7 +1204,7 @@
 
 <!-- ══ Dialog: Verifikator Review (Step F) ══ -->
 <p-dialog
-  [header]="verifikatorApproved() ? 'Setujui & Kirim ke PPTK' : 'Tolak Invoice'"
+  [header]="verifikatorApproved() ? 'Setujui & Kirim ke Bendahara' : 'Tolak Invoice'"
   [visible]="verifikatorDialogVisible()"
   (visibleChange)="verifikatorDialogVisible.set($event)"
   [modal]="true"
@@ -1245,7 +1245,7 @@
       (onClick)="verifikatorDialogVisible.set(false)"
     ></p-button>
     <p-button
-      [label]="verifikatorApproved() ? 'Setujui' : 'Tolak'"
+      [label]="verifikatorApproved() ? 'Setujui & Kirim ke Bendahara' : 'Tolak'"
       [severity]="verifikatorApproved() ? 'success' : 'danger'"
       [loading]="verifikatorLoading()"
       (onClick)="submitVerifikatorReview()"
@@ -1258,7 +1258,7 @@
   [header]="
     isPptkFinalPhase()
       ? pptkApprovedSignal()
-        ? 'Setujui Hasil Pekerjaan — Kirim ke Bendahara'
+        ? 'Setujui Hasil Pekerjaan — Kirim ke Verifikator'
         : 'Tolak Hasil Pekerjaan'
       : pptkApprovedSignal()
         ? 'Setujui Estimasi & Terbitkan SPK'
@@ -1303,9 +1303,9 @@
       </div>
     } @else {
       <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-        @if (isPptkFinalPhase()) {
-          Hasil pekerjaan akan disetujui dan WO diteruskan ke Bendahara.
-        } @else {
+          @if (isPptkFinalPhase()) {
+            Hasil pekerjaan akan disetujui dan WO diteruskan ke Verifikator.
+          } @else {
           Estimasi biaya akan disetujui dan SPK dapat diterbitkan untuk memulai pengerjaan.
         }
       </div>
